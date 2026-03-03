@@ -13,6 +13,15 @@ export const errorHandler = (
   }
 
   if (error instanceof AppError) {
+    if (error.code === 'VALIDATION_ERROR' && error.details) {
+      response.status(error.status).json({
+        success: false,
+        message: error.message,
+        errors: error.details,
+      });
+      return;
+    }
+
     response.status(error.status).json({
       error: {
         code: error.code,
