@@ -65,3 +65,32 @@ body {
   color: #ffffff;
   font-size: 0.9rem;
 }
+
+
+.error-card {
+  display: grid;
+  gap: 12px;
+}
+
+.error-message {
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(17, 36, 61, 0.06);
+  color: #11243d;
+  word-break: break-word;
+}
+
+.retry-button {
+  width: fit-content;
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: #1a7f72;
+  color: #ffffff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.retry-button:hover {
+  filter: brightness(0.96);
+}
