@@ -5,6 +5,7 @@ const previewHealthState: HealthStatusDto = {
 };
 
 export default function App() {
+
   return (
     <main className="app-shell">
       <section className="hero-card">
