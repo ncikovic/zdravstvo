@@ -2,6 +2,19 @@ import { z } from 'zod';
 
 import { OrganizationUserRole } from '../enums/index.js';
 
+export interface AuthUserDto {
+  userId: string;
+  email: string | null;
+  phone: string | null;
+  firstName: string;
+  lastName: string;
+  dateOfBirth: string | null;
+  oib: string | null;
+  address: string | null;
+  emergencyContactName: string | null;
+  emergencyContactPhone: string | null;
+}
+
 export const registerRequestSchema = z.object({
   email: z.email(),
   phone: z.string().trim().min(1).max(60),
@@ -18,16 +31,21 @@ export const registerRequestSchema = z.object({
 export type RegisterRequestDto = z.infer<typeof registerRequestSchema>;
 
 export interface RegisterResponseDto {
-  userId: string;
+  user: AuthUserDto;
   organizationId: string;
   role: OrganizationUserRole.PATIENT;
-  email: string | null;
-  phone: string | null;
-  firstName: string;
-  lastName: string;
-  dateOfBirth: string | null;
-  oib: string | null;
-  address: string | null;
-  emergencyContactName: string | null;
-  emergencyContactPhone: string | null;
+}
+
+export const loginRequestSchema = z.object({
+  emailOrPhone: z.string().trim().min(1).max(255),
+  password: z.string().min(1).max(255),
+});
+
+export type LoginRequestDto = z.infer<typeof loginRequestSchema>;
+
+export interface LoginResponseDto {
+  accessToken: string;
+  user: AuthUserDto;
+  organizationId: string;
+  role: OrganizationUserRole;
 }

@@ -26,3 +26,9 @@ export interface OrganizationUserRecord {
   role: OrganizationUserRole;
   isActive: boolean;
 }
+
+export interface LoginMembershipRecord {
+  organizationId: string;
+  role: OrganizationUserRole;
+  isActive: boolean;
+}
