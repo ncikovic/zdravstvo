@@ -1,13 +1,13 @@
 import type { ReactElement } from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 
-import { useAuthStore } from '@/state'
+import { useAuthStore } from '@/stores'
 
 export function ProtectedRoute(): ReactElement {
-  const token = useAuthStore((state) => state.token)
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const location = useLocation()
 
-  if (!token) {
+  if (!isAuthenticated) {
     return <Navigate to="/login" replace state={{ from: location }} />
   }
 
@@ -15,9 +15,9 @@ export function ProtectedRoute(): ReactElement {
 }
 
 export function PublicOnlyRoute(): ReactElement {
-  const token = useAuthStore((state) => state.token)
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
 
-  if (token) {
+  if (isAuthenticated) {
     return <Navigate to="/" replace />
   }
 

@@ -7,7 +7,7 @@ import { useForm } from 'react-hook-form'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 import { useLoginMutation } from '@/hooks'
-import { useAuthStore } from '@/state'
+import { useAuthStore } from '@/stores'
 
 interface LocationState {
   from?: {
@@ -24,7 +24,7 @@ const resolveRedirectPath = (state: LocationState | null | undefined): string =>
 export function LoginPage(): ReactElement {
   const navigate = useNavigate()
   const location = useLocation()
-  const token = useAuthStore((state) => state.token)
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const loginMutation = useLoginMutation()
   const {
     register,
@@ -39,14 +39,14 @@ export function LoginPage(): ReactElement {
   })
 
   useEffect(() => {
-    if (!token) {
+    if (!isAuthenticated) {
       return
     }
 
     navigate(resolveRedirectPath(location.state as LocationState | null), {
       replace: true,
     })
-  }, [location.state, navigate, token])
+  }, [isAuthenticated, location.state, navigate])
 
   const onSubmit = async (values: LoginRequestDto): Promise<void> => {
     await loginMutation.mutateAsync(values)
