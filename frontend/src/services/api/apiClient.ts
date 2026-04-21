@@ -28,12 +28,26 @@ const normalizeApiError = (error: AxiosError): AppApiError => {
 
   const { data, status } = error.response
   const payload = isRecord(data) ? data : null
+  const nestedError =
+    payload && isRecord(payload.error) ? payload.error : null
   const payloadCode =
-    payload && typeof payload.code === 'string' ? payload.code : undefined
+    nestedError && typeof nestedError.code === 'string'
+      ? nestedError.code
+      : payload && typeof payload.code === 'string'
+        ? payload.code
+        : undefined
   const payloadMessage =
-    payload && typeof payload.message === 'string' ? payload.message : undefined
+    nestedError && typeof nestedError.message === 'string'
+      ? nestedError.message
+      : payload && typeof payload.message === 'string'
+        ? payload.message
+        : undefined
   const payloadDetails =
-    payload && 'details' in payload ? payload.details : data
+    nestedError && 'details' in nestedError
+      ? nestedError.details
+      : payload && 'details' in payload
+        ? payload.details
+        : data
 
   return {
     status,
