@@ -1,9 +1,11 @@
 import type { ReactElement } from 'react'
 
-import { useAuthStore } from '@/state'
+import { useAuthStore } from '@/stores'
 
 export function HomePage(): ReactElement {
-  const session = useAuthStore((state) => state.session)
+  const user = useAuthStore((state) => state.user)
+  const role = useAuthStore((state) => state.role)
+  const organizationId = useAuthStore((state) => state.organizationId)
   const clearAuth = useAuthStore((state) => state.clearAuth)
 
   return (
@@ -11,23 +13,23 @@ export function HomePage(): ReactElement {
       <section className="hero-card">
         <p className="eyebrow">zdravstvo</p>
         <h1>
-          {session
-            ? `Pozdrav, ${session.user.firstName}.`
+          {user
+            ? `Pozdrav, ${user.firstName}.`
             : 'Frontend skeleton is ready.'}
         </h1>
         <p>
-          {session
+          {user
             ? 'Uspjesno ste prijavljeni i organizacijski kontekst je aktivan.'
             : 'Prijavite se kako biste nastavili prema zasticenim funkcionalnostima.'}
         </p>
 
-        {session ? (
+        {user && role && organizationId ? (
           <div className="session-summary">
             <p>
-              Uloga: <strong>{session.role}</strong>
+              Uloga: <strong>{role}</strong>
             </p>
             <p>
-              Organizacija: <strong>{session.organizationId}</strong>
+              Organizacija: <strong>{organizationId}</strong>
             </p>
             <button className="retry-button" type="button" onClick={clearAuth}>
               Odjavi se
