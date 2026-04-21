@@ -10,6 +10,8 @@ import { useLoginMutation } from '@/hooks'
 import { useAuthStore } from '@/state'
 
 interface LocationState {
+  registrationSuccess?: boolean
+  registeredEmail?: string
   from?: {
     pathname?: string
   }
@@ -26,6 +28,7 @@ export function LoginPage(): ReactElement {
   const location = useLocation()
   const token = useAuthStore((state) => state.token)
   const loginMutation = useLoginMutation()
+  const locationState = location.state as LocationState | null
   const {
     register,
     handleSubmit,
@@ -43,15 +46,15 @@ export function LoginPage(): ReactElement {
       return
     }
 
-    navigate(resolveRedirectPath(location.state as LocationState | null), {
+    navigate(resolveRedirectPath(locationState), {
       replace: true,
     })
-  }, [location.state, navigate, token])
+  }, [locationState, navigate, token])
 
   const onSubmit = async (values: LoginRequestDto): Promise<void> => {
     await loginMutation.mutateAsync(values)
 
-    navigate(resolveRedirectPath(location.state as LocationState | null), {
+    navigate(resolveRedirectPath(locationState), {
       replace: true,
     })
   }
@@ -81,6 +84,13 @@ export function LoginPage(): ReactElement {
           <p className="auth-subtitle">
             Unesite svoje podatke za prijavu kako biste nastavili.
           </p>
+
+          {locationState?.registrationSuccess ? (
+            <div className="form-success" role="status" aria-live="polite">
+              Racun je uspjesno izraden. Prijavite se podacima za{' '}
+              <strong>{locationState.registeredEmail ?? 'novi racun'}</strong>.
+            </div>
+          ) : null}
 
           {loginMutation.error ? (
             <div className="form-banner" role="alert" aria-live="assertive">
@@ -128,8 +138,8 @@ export function LoginPage(): ReactElement {
           </form>
 
           <p className="auth-footer">
-            Potrebna vam je pomoc? Obratite se administratoru ustanove ili se
-            vratite na <Link to="/">pocetnu stranicu</Link>.
+            Nemate racun? <Link to="/register">Registrirajte se</Link>. Ako vam
+            treba pomoc, obratite se administratoru ustanove.
           </p>
         </div>
       </section>

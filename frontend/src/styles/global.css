@@ -197,6 +197,14 @@ input {
   color: #8f1f2b;
 }
 
+.form-success {
+  margin-top: 20px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: rgba(26, 127, 114, 0.1);
+  color: #0e5e55;
+}
+
 .submit-button {
   width: 100%;
   padding: 14px 18px;
@@ -221,6 +229,28 @@ input {
 .auth-footer {
   margin: 18px 0 0;
   color: rgba(17, 36, 61, 0.74);
+}
+
+.auth-panel--form-wide {
+  align-items: flex-start;
+}
+
+.auth-card--wide {
+  width: min(100%, 760px);
+}
+
+.auth-form--wide {
+  gap: 22px;
+}
+
+.auth-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.auth-grid-span-2 {
+  grid-column: span 2;
 }
 
 
@@ -263,5 +293,13 @@ input {
 
   .auth-card {
     padding: 28px 22px;
+  }
+
+  .auth-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-grid-span-2 {
+    grid-column: span 1;
   }
 }

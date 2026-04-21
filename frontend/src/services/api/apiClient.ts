@@ -10,6 +10,8 @@ import type { AppApiError } from '@/types'
 
 const NETWORK_ERROR_CODE = 'NETWORK_ERROR'
 const NETWORK_ERROR_MESSAGE = 'Network error. Please try again.'
+const NOT_FOUND_ERROR_MESSAGE =
+  'The requested service is currently unavailable. Please try again.'
 const UNAUTHORIZED_GUARD_MS = 250
 
 let isHandlingUnauthorized = false
@@ -52,7 +54,11 @@ const normalizeApiError = (error: AxiosError): AppApiError => {
   return {
     status,
     code: payloadCode ?? error.code ?? `HTTP_${status}`,
-    message: payloadMessage ?? (error.message || 'Request failed.'),
+    message:
+      payloadMessage ??
+      (status === 404
+        ? NOT_FOUND_ERROR_MESSAGE
+        : error.message || 'Request failed.'),
     details: payloadDetails,
   }
 }

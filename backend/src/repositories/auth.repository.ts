@@ -80,6 +80,11 @@ export interface CreateOrganizationUserInput {
   isActive: boolean;
 }
 
+export interface CreateOrganizationInput {
+  name: string;
+  timezone: string;
+}
+
 const mapUserRecord = (row: UserRow): UserRecord => {
   return {
     id: bufferToUuid(row.id),
@@ -318,5 +323,19 @@ export class AuthRepository {
       .first();
 
     return row ? bufferToUuid(row.id) : null;
+  }
+
+  public async createOrganization(
+    input: CreateOrganizationInput
+  ): Promise<string> {
+    const id = uuidv4();
+
+    await this.executor('organizations').insert({
+      id: uuidToBuffer(id),
+      name: input.name,
+      timezone: input.timezone,
+    });
+
+    return id;
   }
 }

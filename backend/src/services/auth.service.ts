@@ -15,6 +15,8 @@ import { db } from '../shared/db/index.js';
 import { signAccessToken } from '../shared/utils/index.js';
 
 const PASSWORD_SALT_ROUNDS = 12;
+const DEFAULT_REGISTRATION_ORGANIZATION_NAME = 'Zdravstvo';
+const DEFAULT_REGISTRATION_ORGANIZATION_TIMEZONE = 'Europe/Zagreb';
 
 interface DatabaseErrorLike {
   code?: string;
@@ -101,10 +103,29 @@ const mapDuplicateDatabaseError = (error: DatabaseErrorLike): AppError | null =>
     return AppError.conflict('PHONE_ALREADY_EXISTS', 'Phone is already registered.');
   }
 
+  if (message.includes('uq_patient_oib')) {
+    return AppError.conflict('OIB_ALREADY_EXISTS', 'OIB is already registered.');
+  }
+
   return AppError.conflict(
     'REGISTRATION_CONFLICT',
     'Registration could not be completed because the account already exists.'
   );
+};
+
+const resolveRegistrationOrganizationId = async (
+  repository: AuthRepository
+): Promise<string> => {
+  const existingOrganizationId = await repository.findDefaultOrganizationId();
+
+  if (existingOrganizationId) {
+    return existingOrganizationId;
+  }
+
+  return repository.createOrganization({
+    name: DEFAULT_REGISTRATION_ORGANIZATION_NAME,
+    timezone: DEFAULT_REGISTRATION_ORGANIZATION_TIMEZONE,
+  });
 };
 
 export class AuthService {
@@ -177,11 +198,7 @@ export class AuthService {
     try {
       return await db.transaction(async (transaction) => {
         const repository = new AuthRepository(transaction);
-        const organizationId = await repository.findDefaultOrganizationId();
-
-        if (!organizationId) {
-          throw AppError.internal('Registration is not available at the moment.');
-        }
+        const organizationId = await resolveRegistrationOrganizationId(repository);
 
         const user = await repository.createUser({
           email: input.email,

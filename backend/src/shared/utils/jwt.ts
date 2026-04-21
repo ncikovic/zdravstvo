@@ -1,12 +1,10 @@
 import { OrganizationUserRole } from '@zdravstvo/contracts';
-import jwt, {
-  JsonWebTokenError,
-  type JwtPayload,
-  type SignOptions,
-  TokenExpiredError,
-} from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
+import type { JwtPayload, SignOptions } from 'jsonwebtoken';
 
 import { env } from '../../config/env.js';
+
+const { JsonWebTokenError, TokenExpiredError } = jwt;
 
 export interface AccessTokenClaims {
   sub: string;
