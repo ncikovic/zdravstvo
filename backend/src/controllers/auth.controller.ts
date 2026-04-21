@@ -1,4 +1,10 @@
-import type { ApiResponse, RegisterRequestDto, RegisterResponseDto } from '@zdravstvo/contracts';
+import type {
+  ApiResponse,
+  LoginRequestDto,
+  LoginResponseDto,
+  RegisterRequestDto,
+  RegisterResponseDto,
+} from '@zdravstvo/contracts';
 import type { Request, Response } from 'express';
 
 import { authService } from '../services/index.js';
@@ -12,6 +18,17 @@ export class AuthController {
 
     response.status(201).json({
       data: registrationResponse,
+    });
+  }
+
+  public async login(
+    request: Request<unknown, ApiResponse<LoginResponseDto>, LoginRequestDto>,
+    response: Response<ApiResponse<LoginResponseDto>>
+  ): Promise<void> {
+    const loginResponse = await authService.login(request.body);
+
+    response.status(200).json({
+      data: loginResponse,
     });
   }
 }
