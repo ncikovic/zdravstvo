@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import type { DatabaseExecutor } from '../shared/db/index.js';
 import { bufferToUuid, uuidToBuffer } from '../shared/utils/index.js';
 import type {
+  AuthenticatedUserRecord,
   LoginMembershipRecord,
   OrganizationUserRecord,
   PatientProfileRecord,
@@ -41,6 +42,17 @@ interface LoginMembershipRow {
   organization_id: Buffer;
   role: OrganizationUserRole;
   is_active: number | boolean;
+}
+
+interface AuthenticatedUserRow {
+  user_id: Buffer;
+  organization_user_id: Buffer;
+  organization_id: Buffer;
+  role: OrganizationUserRole;
+  is_active: number | boolean;
+  email: string | null;
+  phone: string | null;
+  status: UserStatus;
 }
 
 export interface CreateUserInput {
@@ -112,6 +124,21 @@ const mapLoginMembershipRecord = (
     organizationId: bufferToUuid(row.organization_id),
     role: row.role,
     isActive: Boolean(row.is_active),
+  };
+};
+
+const mapAuthenticatedUserRecord = (
+  row: AuthenticatedUserRow
+): AuthenticatedUserRecord => {
+  return {
+    userId: bufferToUuid(row.user_id),
+    organizationUserId: bufferToUuid(row.organization_user_id),
+    organizationId: bufferToUuid(row.organization_id),
+    role: row.role,
+    isActive: Boolean(row.is_active),
+    email: row.email,
+    phone: row.phone,
+    status: row.status,
   };
 };
 
@@ -256,6 +283,32 @@ export class AuthRepository {
       .first();
 
     return row ? mapLoginMembershipRecord(row) : null;
+  }
+
+  public async findAuthenticatedContext(
+    userId: string,
+    organizationId: string
+  ): Promise<AuthenticatedUserRecord | null> {
+    const row = await this.executor<AuthenticatedUserRow>(
+      'organization_users as organizationUser'
+    )
+      .innerJoin('users as user', 'user.id', 'organizationUser.user_id')
+      .select(
+        'organizationUser.user_id as user_id',
+        'organizationUser.id as organization_user_id',
+        'organizationUser.organization_id as organization_id',
+        'organizationUser.role as role',
+        'organizationUser.is_active as is_active',
+        'user.email as email',
+        'user.phone as phone',
+        'user.status as status'
+      )
+      .where('organizationUser.user_id', uuidToBuffer(userId))
+      .andWhere('organizationUser.organization_id', uuidToBuffer(organizationId))
+      .orderBy('organizationUser.created_at', 'asc')
+      .first();
+
+    return row ? mapAuthenticatedUserRecord(row) : null;
   }
 
   public async findDefaultOrganizationId(): Promise<string | null> {
