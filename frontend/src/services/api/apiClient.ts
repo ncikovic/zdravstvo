@@ -5,7 +5,7 @@ import {
 } from 'axios'
 import axios from 'axios'
 
-import { clearAuthState, getAuthToken } from '@/state'
+import { clearAuthState, getAccessToken } from '@/stores'
 import type { AppApiError } from '@/types'
 
 const NETWORK_ERROR_CODE = 'NETWORK_ERROR'
@@ -66,7 +66,7 @@ const normalizeApiError = (error: AxiosError): AppApiError => {
 const attachAuthorizationHeader = (
   config: InternalAxiosRequestConfig,
 ): InternalAxiosRequestConfig => {
-  const token = getAuthToken()
+  const token = getAccessToken()
 
   if (!token) {
     return config
