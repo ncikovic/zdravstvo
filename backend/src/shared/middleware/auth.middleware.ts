@@ -1,6 +1,6 @@
 import { UserStatus } from '@zdravstvo/contracts';
 import type { RequestHandler } from 'express';
-import { JsonWebTokenError, TokenExpiredError } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 
 import { AppError } from '../../errors/AppError.js';
 import { AuthRepository } from '../../repositories/index.js';
@@ -9,6 +9,7 @@ import type { AuthenticatedRequestContext } from '../context/index.js';
 import { verifyAccessToken } from '../utils/index.js';
 
 const AUTHORIZATION_SCHEME = 'Bearer';
+const { JsonWebTokenError, TokenExpiredError } = jwt;
 
 const extractBearerToken = (authorizationHeader: string | undefined): string => {
   if (!authorizationHeader) {
