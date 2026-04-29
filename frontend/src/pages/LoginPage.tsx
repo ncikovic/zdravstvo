@@ -11,6 +11,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import type { z } from 'zod';
 
 import { AuthBrandLogo, PatientRegistrationForm } from '@/components';
+import { APP_ROUTES } from '@/app/routes';
 import {
   useLoginMutation,
   usePublicOrganizationsQuery,
@@ -170,10 +171,9 @@ export function LoginPage({ initialStep = 'login' }: LoginPageProps): ReactEleme
     setSelectedRegistrationOrganization(null);
     setOrganizationSearch('');
     setOrganizationPage(1);
-    navigate('/login', {
+    navigate(APP_ROUTES.accountCreated, {
       replace: true,
       state: {
-        registrationSuccess: true,
         registeredEmail,
       },
     });

@@ -1,6 +1,7 @@
 import type { ReactElement } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
+import { APP_ROUTES } from '@/app/routes';
 import { AuthBrandLogo, FieldIcon, PatientRegistrationForm } from '@/components';
 
 const MedicalIllustration = (): ReactElement => (
@@ -61,10 +62,9 @@ export function RegisterPage(): ReactElement {
   const navigate = useNavigate();
 
   const handleRegistrationSuccess = (registeredEmail: string): void => {
-    navigate('/login', {
+    navigate(APP_ROUTES.accountCreated, {
       replace: true,
       state: {
-        registrationSuccess: true,
         registeredEmail,
       },
     });
@@ -123,7 +123,7 @@ export function RegisterPage(): ReactElement {
             onRegistrationSuccess={handleRegistrationSuccess}
             footer={
               <p className="login-footer register-footer">
-                Već imate račun? <Link to="/login">Prijavite se</Link>
+                Već imate račun? <Link to={APP_ROUTES.login}>Prijavite se</Link>
                 <span aria-hidden="true">→</span>
               </p>
             }
