@@ -1,4 +1,4 @@
-import { UserStatus } from '@zdravstvo/contracts';
+import { OrganizationUserRole, UserStatus } from '@zdravstvo/contracts';
 import type { RequestHandler } from 'express';
 import jwt from 'jsonwebtoken';
 
@@ -37,7 +37,7 @@ const mapAuthContext = (
   token: {
     iat?: number;
     exp?: number;
-  }
+  },
 ): AuthenticatedRequestContext => {
   return {
     userId: context.userId,
@@ -60,7 +60,7 @@ type RequestWithAuth = Parameters<RequestHandler>[0] & {
 export const authenticateRequest: RequestHandler = async (
   request,
   _response,
-  next
+  next,
 ): Promise<void> => {
   try {
     const token = extractBearerToken(request.header('authorization'));
@@ -68,7 +68,7 @@ export const authenticateRequest: RequestHandler = async (
     const repository = new AuthRepository(db);
     const authContext = await repository.findAuthenticatedContext(
       claims.sub,
-      claims.organizationId
+      claims.organizationId,
     );
 
     if (!authContext || !authContext.isActive) {
@@ -114,3 +114,23 @@ export const authenticateRequest: RequestHandler = async (
     next(error);
   }
 };
+
+export const authorizeRoles =
+  (...allowedRoles: readonly OrganizationUserRole[]): RequestHandler =>
+  (request, _response, next): void => {
+    try {
+      const authenticatedRequest = request as RequestWithAuth;
+
+      if (!authenticatedRequest.auth) {
+        throw AppError.unauthorized();
+      }
+
+      if (!allowedRoles.includes(authenticatedRequest.auth.role)) {
+        throw AppError.forbidden();
+      }
+
+      next();
+    } catch (error: unknown) {
+      next(error);
+    }
+  };

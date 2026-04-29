@@ -11,3 +11,4 @@ export const healthCheckQuerySchema = z.object({
 export type HealthCheckQueryDto = z.infer<typeof healthCheckQuerySchema>;
 
 export * from './auth.dto.js';
+export * from './organizations/index.js';
