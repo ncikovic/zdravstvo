@@ -2,6 +2,8 @@ import { useMutation, type UseMutationResult } from '@tanstack/react-query'
 import type {
   LoginRequestDto,
   LoginResponseDto,
+  ForgotPasswordRequestDto,
+  ForgotPasswordResponseDto,
   SelectOrganizationRequestDto,
   SelectOrganizationResponseDto,
 } from '@zdravstvo/contracts'
@@ -42,5 +44,17 @@ export const useSelectOrganizationMutation = (): UseMutationResult<
     onSuccess: (auth: SelectOrganizationResponseDto) => {
       setAuth(auth)
     },
+  })
+}
+
+export const useForgotPasswordMutation = (): UseMutationResult<
+  ForgotPasswordResponseDto,
+  AppApiError,
+  ForgotPasswordRequestDto
+> => {
+  return useMutation({
+    mutationFn: (payload: ForgotPasswordRequestDto) =>
+      authService.requestPasswordReset(payload),
+    throwOnError: false,
   })
 }

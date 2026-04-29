@@ -56,6 +56,16 @@ export const loginRequestSchema = z
 
 export type LoginRequestDto = z.infer<typeof loginRequestSchema>;
 
+export const forgotPasswordRequestSchema = z.object({
+  identifier: z.string().trim().min(1).max(255),
+});
+
+export type ForgotPasswordRequestDto = z.infer<typeof forgotPasswordRequestSchema>;
+
+export interface ForgotPasswordResponseDto {
+  accepted: true;
+}
+
 export interface SelectableOrganizationMembershipDto {
   organizationId: string;
   organizationName: string;

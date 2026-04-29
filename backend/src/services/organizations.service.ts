@@ -1,5 +1,6 @@
 import type {
   CreateOrganizationRequestDto,
+  OrganizationListQueryDto,
   OrganizationListResponseDto,
   OrganizationResponseDto,
   UpdateOrganizationRequestDto,
@@ -16,10 +17,11 @@ import type { OrganizationRecord } from '../types/entities/index.js';
 
 type OrganizationsRepositoryContract = Pick<
   OrganizationsRepository,
-  'create' | 'findAll' | 'findById' | 'update' | 'delete'
+  'create' | 'findAll' | 'findPage' | 'findById' | 'update' | 'delete'
 >;
 
 const DEFAULT_ORGANIZATION_TIMEZONE = 'Europe/Zagreb';
+const PUBLIC_ORGANIZATIONS_PAGE_SIZE = 3;
 
 const normalizeRequiredString = (value: string): string => {
   return value.trim();
@@ -87,9 +89,36 @@ export class OrganizationsService {
 
   public async list(): Promise<OrganizationListResponseDto> {
     const organizations = await this.organizationsRepository.findAll();
+    const totalItems = organizations.length;
 
     return {
       organizations: organizations.map(mapOrganizationResponse),
+      pagination: {
+        page: 1,
+        pageSize: totalItems,
+        totalItems,
+        totalPages: totalItems > 0 ? 1 : 0,
+      },
+    };
+  }
+
+  public async listPublic(query: OrganizationListQueryDto): Promise<OrganizationListResponseDto> {
+    const page = query.page;
+    const pageSize = PUBLIC_ORGANIZATIONS_PAGE_SIZE;
+    const organizationPage = await this.organizationsRepository.findPage({
+      search: normalizeOptionalString(query.search),
+      limit: pageSize,
+      offset: (page - 1) * pageSize,
+    });
+
+    return {
+      organizations: organizationPage.organizations.map(mapOrganizationResponse),
+      pagination: {
+        page,
+        pageSize,
+        totalItems: organizationPage.totalItems,
+        totalPages: Math.ceil(organizationPage.totalItems / pageSize),
+      },
     };
   }
 

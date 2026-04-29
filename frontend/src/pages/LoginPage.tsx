@@ -5,12 +5,13 @@ import type {
 } from '@zdravstvo/contracts';
 import { loginRequestSchema } from '@zdravstvo/contracts';
 import type { ReactElement } from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import type { z } from 'zod';
 
-import { PatientRegistrationForm } from '@/components';
+import { AuthBrandLogo, PatientRegistrationForm } from '@/components';
+import { APP_ROUTES } from '@/app/routes';
 import {
   useLoginMutation,
   usePublicOrganizationsQuery,
@@ -38,19 +39,6 @@ const resolveRedirectPath = (state: LocationState | null | undefined): string =>
   const redirectPath = state?.from?.pathname;
 
   return redirectPath && redirectPath !== '/login' ? redirectPath : '/';
-};
-
-const matchesOrganizationSearch = (
-  organization: Organization,
-  normalizedSearch: string,
-): boolean => {
-  if (!normalizedSearch) {
-    return true;
-  }
-
-  return [organization.name, organization.city, organization.address]
-    .filter(Boolean)
-    .some((value) => value?.toLowerCase().includes(normalizedSearch));
 };
 
 const OrganizationCardIcon = (): ReactElement => (
@@ -85,7 +73,6 @@ export function LoginPage({ initialStep = 'login' }: LoginPageProps): ReactEleme
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const loginMutation = useLoginMutation();
   const selectOrganizationMutation = useSelectOrganizationMutation();
-  const organizationsQuery = usePublicOrganizationsQuery();
   const locationState = location.state as LocationState | null;
   const [authStep, setAuthStep] = useState<AuthStep>(initialStep);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -93,8 +80,16 @@ export function LoginPage({ initialStep = 'login' }: LoginPageProps): ReactEleme
     useState<LoginOrganizationSelectionRequiredResponseDto | null>(null);
   const [selectedOrganizationId, setSelectedOrganizationId] = useState<string | null>(null);
   const [organizationSearch, setOrganizationSearch] = useState('');
+  const [organizationPage, setOrganizationPage] = useState(1);
   const [selectedRegistrationOrganization, setSelectedRegistrationOrganization] =
     useState<Organization | null>(null);
+  const organizationsQuery = usePublicOrganizationsQuery(
+    {
+      page: organizationPage,
+      search: organizationSearch,
+    },
+    authStep === 'organizationSelection' && !organizationSelection,
+  );
   const {
     register,
     handleSubmit,
@@ -116,14 +111,6 @@ export function LoginPage({ initialStep = 'login' }: LoginPageProps): ReactEleme
       replace: true,
     });
   }, [isAuthenticated, locationState, navigate]);
-
-  const filteredOrganizations = useMemo(() => {
-    const normalizedSearch = organizationSearch.trim().toLowerCase();
-
-    return (organizationsQuery.data ?? []).filter((organization) =>
-      matchesOrganizationSearch(organization, normalizedSearch),
-    );
-  }, [organizationSearch, organizationsQuery.data]);
 
   const onSubmit = async (values: LoginRequestDto): Promise<void> => {
     setOrganizationSelection(null);
@@ -161,6 +148,7 @@ export function LoginPage({ initialStep = 'login' }: LoginPageProps): ReactEleme
     setSelectedOrganizationId(null);
     setSelectedRegistrationOrganization(null);
     setOrganizationSearch('');
+    setOrganizationPage(1);
     setAuthStep('organizationSelection');
   };
 
@@ -169,6 +157,7 @@ export function LoginPage({ initialStep = 'login' }: LoginPageProps): ReactEleme
     setSelectedOrganizationId(null);
     setSelectedRegistrationOrganization(null);
     setOrganizationSearch('');
+    setOrganizationPage(1);
     setAuthStep('login');
   };
 
@@ -181,10 +170,10 @@ export function LoginPage({ initialStep = 'login' }: LoginPageProps): ReactEleme
     setAuthStep('login');
     setSelectedRegistrationOrganization(null);
     setOrganizationSearch('');
-    navigate('/login', {
+    setOrganizationPage(1);
+    navigate(APP_ROUTES.accountCreated, {
       replace: true,
       state: {
-        registrationSuccess: true,
         registeredEmail,
       },
     });
@@ -192,19 +181,39 @@ export function LoginPage({ initialStep = 'login' }: LoginPageProps): ReactEleme
 
   const isPending = loginMutation.isPending || isSubmitting;
   const isSelecting = selectOrganizationMutation.isPending;
+  const organizations = organizationsQuery.data?.organizations ?? [];
+  const organizationsPagination = organizationsQuery.data?.pagination;
+  const hasPreviousOrganizationPage = (organizationsPagination?.page ?? organizationPage) > 1;
+  const hasNextOrganizationPage = organizationsPagination
+    ? organizationsPagination.page < organizationsPagination.totalPages
+    : false;
   const isRegistrationFlow = !organizationSelection && authStep !== 'login';
+  const pageClassName = isRegistrationFlow
+    ? `login-page register-page ${authStep === 'register' ? 'patient-register-page' : 'organization-register-page'}`
+    : 'login-page';
+  const formPanelClassName = isRegistrationFlow
+    ? 'login-form-panel register-form-panel'
+    : 'login-form-panel';
+  const heroClassName = isRegistrationFlow ? 'login-hero register-hero' : 'login-hero';
+  const heroContentClassName = isRegistrationFlow
+    ? 'login-hero__content register-hero__content'
+    : 'login-hero__content';
+  const featureListClassName = isRegistrationFlow
+    ? 'login-feature-list register-feature-list'
+    : 'login-feature-list';
+  const featureClassName = isRegistrationFlow ? 'login-feature register-feature' : 'login-feature';
   const cardClassName =
     authStep === 'login' && !organizationSelection
       ? 'login-card'
       : authStep === 'register'
-        ? 'login-card auth-flow-card auth-flow-card--register'
+        ? 'login-card register-card auth-flow-card auth-flow-card--register'
         : 'login-card auth-flow-card';
 
   return (
-    <main className="login-page">
-      <section className="login-hero" aria-label="Informacije o prijavi">
-        <div className="login-hero__content">
-          <p className="login-brand">ZDRAVSTVO</p>
+    <main className={pageClassName}>
+      <section className={heroClassName} aria-label="Informacije o prijavi">
+        <div className={heroContentClassName}>
+          <AuthBrandLogo />
           <h1>
             {isRegistrationFlow
               ? 'Otvorite pacijentski račun jednostavno i sigurno'
@@ -216,8 +225,8 @@ export function LoginPage({ initialStep = 'login' }: LoginPageProps): ReactEleme
               : 'Prijavite se kako biste brzo pregledali termine, nalaze, obavijesti i podatke o svom računu na jednom mjestu.'}
           </p>
 
-          <div className="login-feature-list" aria-label="Prednosti prijave">
-            <div className="login-feature">
+          <div className={featureListClassName} aria-label="Prednosti prijave">
+            <div className={featureClassName}>
               <span className="login-feature__icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" role="img">
                   <path d="M12 12.2a4.2 4.2 0 1 0 0-8.4 4.2 4.2 0 0 0 0 8.4Z" />
@@ -231,7 +240,7 @@ export function LoginPage({ initialStep = 'login' }: LoginPageProps): ReactEleme
               </p>
             </div>
 
-            <div className="login-feature">
+            <div className={featureClassName}>
               <span className="login-feature__icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" role="img">
                   <path d="M12 3.4 18 6v4.4c0 4.2-2.4 7.9-6 9.6-3.6-1.7-6-5.4-6-9.6V6l6-2.6Z" />
@@ -246,7 +255,7 @@ export function LoginPage({ initialStep = 'login' }: LoginPageProps): ReactEleme
               </p>
             </div>
 
-            <div className="login-feature">
+            <div className={featureClassName}>
               <span className="login-feature__icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" role="img">
                   <path d="M7 3.8h8.1L19 7.7v12.5H7V3.8Z" />
@@ -327,7 +336,7 @@ export function LoginPage({ initialStep = 'login' }: LoginPageProps): ReactEleme
         </div>
       </section>
 
-      <section className="login-form-panel" aria-label="Prijava">
+      <section className={formPanelClassName} aria-label="Prijava">
         <div className={cardClassName}>
           <div className="auth-step" key={organizationSelection ? 'loginOrganization' : authStep}>
             {organizationSelection ? (
@@ -462,7 +471,7 @@ export function LoginPage({ initialStep = 'login' }: LoginPageProps): ReactEleme
                       <span aria-hidden="true" />
                       Zapamti me
                     </label>
-                    <a href="#forgot-password">Zaboravili ste lozinku?</a>
+                    <Link to="/forgot-password">Zaboravili ste lozinku?</Link>
                   </div>
 
                   <button className="login-submit" type="submit" disabled={isPending}>
@@ -493,21 +502,22 @@ export function LoginPage({ initialStep = 'login' }: LoginPageProps): ReactEleme
                   pacijentski račun.
                 </p>
 
-                {(organizationsQuery.data?.length ?? 0) > 1 ? (
-                  <div className="organization-search">
-                    <SearchIcon />
-                    <label className="sr-only" htmlFor="organizationSearch">
-                      Pretražite ustanovu
-                    </label>
-                    <input
-                      id="organizationSearch"
-                      type="search"
-                      placeholder="Pretražite ustanovu"
-                      value={organizationSearch}
-                      onChange={(event) => setOrganizationSearch(event.target.value)}
-                    />
-                  </div>
-                ) : null}
+                <div className="organization-search">
+                  <SearchIcon />
+                  <label className="sr-only" htmlFor="organizationSearch">
+                    Pretražite ustanovu
+                  </label>
+                  <input
+                    id="organizationSearch"
+                    type="search"
+                    placeholder="Pretražite ustanovu"
+                    value={organizationSearch}
+                    onChange={(event) => {
+                      setOrganizationSearch(event.target.value);
+                      setOrganizationPage(1);
+                    }}
+                  />
+                </div>
 
                 {organizationsQuery.isLoading ? (
                   <div className="form-success" role="status">
@@ -523,7 +533,7 @@ export function LoginPage({ initialStep = 'login' }: LoginPageProps): ReactEleme
 
                 {!organizationsQuery.isLoading && !organizationsQuery.error ? (
                   <div className="organization-list" aria-label="Dostupne ustanove">
-                    {filteredOrganizations.map((organization) => (
+                    {organizations.map((organization) => (
                       <button
                         className="organization-card"
                         type="button"
@@ -553,10 +563,32 @@ export function LoginPage({ initialStep = 'login' }: LoginPageProps): ReactEleme
 
                 {!organizationsQuery.isLoading &&
                 !organizationsQuery.error &&
-                filteredOrganizations.length === 0 ? (
+                organizations.length === 0 ? (
                   <div className="form-banner" role="status">
                     Nema ustanova koje odgovaraju pretrazi.
                   </div>
+                ) : null}
+
+                {organizationsPagination && organizationsPagination.totalPages > 1 ? (
+                  <nav className="organization-pagination" aria-label="Stranice ustanova">
+                    <button
+                      type="button"
+                      disabled={!hasPreviousOrganizationPage || organizationsQuery.isFetching}
+                      onClick={() => setOrganizationPage((page) => Math.max(1, page - 1))}
+                    >
+                      Prethodna
+                    </button>
+                    <span>
+                      {organizationsPagination.page} / {organizationsPagination.totalPages}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={!hasNextOrganizationPage || organizationsQuery.isFetching}
+                      onClick={() => setOrganizationPage((page) => page + 1)}
+                    >
+                      Sljedeća
+                    </button>
+                  </nav>
                 ) : null}
 
                 <p className="login-footer register-footer">
@@ -581,6 +613,7 @@ export function LoginPage({ initialStep = 'login' }: LoginPageProps): ReactEleme
                   selectedOrganization={selectedRegistrationOrganization}
                   onChangeOrganization={() => setAuthStep('organizationSelection')}
                   onRegistrationSuccess={handleRegistrationSuccess}
+                  showSelectedOrganizationSummary={false}
                   footer={
                     <p className="login-footer register-footer">
                       Već imate račun?

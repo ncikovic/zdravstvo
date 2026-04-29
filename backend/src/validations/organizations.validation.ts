@@ -1,5 +1,6 @@
 import {
   createOrganizationRequestSchema,
+  organizationListQuerySchema,
   organizationIdParamsSchema,
   updateOrganizationRequestSchema,
 } from '@zdravstvo/contracts';
@@ -8,7 +9,9 @@ export const createOrganizationValidationSchemas = {
   body: createOrganizationRequestSchema,
 };
 
-export const listOrganizationsValidationSchemas = {};
+export const listOrganizationsValidationSchemas = {
+  query: organizationListQuerySchema,
+};
 
 export const organizationIdValidationSchemas = {
   params: organizationIdParamsSchema,

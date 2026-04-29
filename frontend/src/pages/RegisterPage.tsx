@@ -1,7 +1,8 @@
 import type { ReactElement } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
-import { FieldIcon, PatientRegistrationForm } from '@/components';
+import { APP_ROUTES } from '@/app/routes';
+import { AuthBrandLogo, FieldIcon, PatientRegistrationForm } from '@/components';
 
 const MedicalIllustration = (): ReactElement => (
   <div className="medical-illustration" aria-hidden="true">
@@ -61,10 +62,9 @@ export function RegisterPage(): ReactElement {
   const navigate = useNavigate();
 
   const handleRegistrationSuccess = (registeredEmail: string): void => {
-    navigate('/login', {
+    navigate(APP_ROUTES.accountCreated, {
       replace: true,
       state: {
-        registrationSuccess: true,
         registeredEmail,
       },
     });
@@ -74,7 +74,7 @@ export function RegisterPage(): ReactElement {
     <main className="login-page register-page">
       <section className="login-hero register-hero" aria-label="Informacije o registraciji">
         <div className="login-hero__content register-hero__content">
-          <p className="login-brand">ZDRAVSTVO</p>
+          <AuthBrandLogo />
           <h1>Otvorite pacijentski račun jednostavno i sigurno</h1>
           <p className="login-hero__lead">
             Registrirajte se kako biste upravljali terminima, pratili obavijesti i imali pregled
@@ -123,7 +123,7 @@ export function RegisterPage(): ReactElement {
             onRegistrationSuccess={handleRegistrationSuccess}
             footer={
               <p className="login-footer register-footer">
-                Već imate račun? <Link to="/login">Prijavite se</Link>
+                Već imate račun? <Link to={APP_ROUTES.login}>Prijavite se</Link>
                 <span aria-hidden="true">→</span>
               </p>
             }
