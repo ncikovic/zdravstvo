@@ -203,6 +203,10 @@ export function LoginPage({ initialStep = 'login' }: LoginPageProps): ReactEleme
   const heroContentClassName = isRegistrationFlow
     ? 'login-hero__content register-hero__content'
     : 'login-hero__content';
+  const featureListClassName = isRegistrationFlow
+    ? 'login-feature-list register-feature-list'
+    : 'login-feature-list';
+  const featureClassName = isRegistrationFlow ? 'login-feature register-feature' : 'login-feature';
   const cardClassName =
     authStep === 'login' && !organizationSelection
       ? 'login-card'
@@ -226,8 +230,8 @@ export function LoginPage({ initialStep = 'login' }: LoginPageProps): ReactEleme
               : 'Prijavite se kako biste brzo pregledali termine, nalaze, obavijesti i podatke o svom računu na jednom mjestu.'}
           </p>
 
-          <div className="login-feature-list" aria-label="Prednosti prijave">
-            <div className="login-feature">
+          <div className={featureListClassName} aria-label="Prednosti prijave">
+            <div className={featureClassName}>
               <span className="login-feature__icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" role="img">
                   <path d="M12 12.2a4.2 4.2 0 1 0 0-8.4 4.2 4.2 0 0 0 0 8.4Z" />
@@ -241,7 +245,7 @@ export function LoginPage({ initialStep = 'login' }: LoginPageProps): ReactEleme
               </p>
             </div>
 
-            <div className="login-feature">
+            <div className={featureClassName}>
               <span className="login-feature__icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" role="img">
                   <path d="M12 3.4 18 6v4.4c0 4.2-2.4 7.9-6 9.6-3.6-1.7-6-5.4-6-9.6V6l6-2.6Z" />
@@ -256,7 +260,7 @@ export function LoginPage({ initialStep = 'login' }: LoginPageProps): ReactEleme
               </p>
             </div>
 
-            <div className="login-feature">
+            <div className={featureClassName}>
               <span className="login-feature__icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" role="img">
                   <path d="M7 3.8h8.1L19 7.7v12.5H7V3.8Z" />
