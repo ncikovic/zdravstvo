@@ -976,9 +976,236 @@ button {
   font-size: 0.9rem;
 }
 
+.register-page {
+  grid-template-columns: minmax(0, 54.5vw) minmax(720px, 1fr);
+}
+
+.register-hero {
+  grid-template-columns: minmax(380px, 0.78fr) minmax(330px, 0.72fr);
+  gap: clamp(28px, 3.2vw, 52px);
+  padding: clamp(52px, 6vw, 82px) clamp(48px, 4.8vw, 80px);
+}
+
+.register-hero__content {
+  align-self: center;
+}
+
+.register-hero h1 {
+  max-width: 11.2ch;
+  font-size: clamp(3rem, 4.2vw, 4.35rem);
+}
+
+.register-hero .login-hero__lead {
+  max-width: 31.5rem;
+  margin-top: 26px;
+  font-size: clamp(1.02rem, 1.05vw, 1.08rem);
+}
+
+.register-feature-list {
+  width: min(100%, 21rem);
+  gap: 16px;
+  margin-top: 38px;
+}
+
+.register-feature {
+  grid-template-columns: 58px minmax(0, 1fr);
+  gap: 18px;
+  min-height: 94px;
+  padding: 16px 18px;
+}
+
+.register-feature .login-feature__icon {
+  width: 54px;
+  height: 54px;
+}
+
+.register-feature p {
+  font-size: 1.05rem;
+}
+
+.register-hero .medical-illustration {
+  width: min(100%, 420px);
+  min-height: 500px;
+}
+
+.register-hero .tablet-card {
+  right: 44px;
+  bottom: 92px;
+  width: 286px;
+  height: 350px;
+  border-radius: 20px;
+}
+
+.register-hero .health-card {
+  height: 134px;
+  bottom: 48px;
+}
+
+.register-hero .profile-card {
+  left: 4px;
+  bottom: 52px;
+  width: 200px;
+  height: 158px;
+}
+
+.register-hero .shield-card {
+  right: 0;
+  bottom: 68px;
+}
+
+.register-form-panel {
+  padding: 40px 44px 20px 0;
+}
+
+.register-card {
+  width: min(100%, 720px);
+  min-height: 884px;
+  padding: 46px 54px 34px;
+  border-radius: 22px;
+  transform: none;
+}
+
+.register-card h2 {
+  font-size: clamp(2.2rem, 2.45vw, 2.65rem);
+}
+
+.register-card .login-card__subtitle {
+  margin-top: 14px;
+}
+
+.register-form {
+  display: grid;
+  gap: 16px;
+  margin-top: 26px;
+}
+
+.register-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 30px;
+  row-gap: 17px;
+}
+
+.register-grid-span-2 {
+  grid-column: span 2;
+}
+
+.register-card .login-field {
+  gap: 7px;
+}
+
+.register-card .login-field label {
+  font-size: 0.88rem;
+}
+
+.register-card .login-input-shell {
+  min-height: 50px;
+  padding-inline: 14px;
+}
+
+.register-card .login-input-shell input {
+  min-height: 48px;
+  color: #6f788c;
+  font-size: 0.95rem;
+}
+
+.register-card .login-input-shell input::placeholder {
+  color: #8c96aa;
+  opacity: 1;
+}
+
+.register-card .password-toggle {
+  width: 30px;
+  min-height: 30px;
+  height: 30px;
+}
+
+.register-terms {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  color: #69748a;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.register-terms input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.register-terms span {
+  position: relative;
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  background: #168f87;
+  box-shadow: inset 0 0 0 1px rgba(6, 97, 101, 0.08);
+}
+
+.register-terms span::after {
+  position: absolute;
+  top: 3px;
+  left: 5px;
+  width: 4px;
+  height: 8px;
+  border: solid #ffffff;
+  border-width: 0 2px 2px 0;
+  content: '';
+  transform: rotate(45deg);
+}
+
+.register-terms input:not(:checked) + span {
+  background: #ffffff;
+  box-shadow: inset 0 0 0 1px #cbd5e1;
+}
+
+.register-terms input:not(:checked) + span::after {
+  opacity: 0;
+}
+
+.register-terms a {
+  color: #166bc1;
+  text-decoration: none;
+}
+
+.register-terms a:hover {
+  text-decoration: underline;
+}
+
+.register-submit {
+  min-height: 51px;
+  margin-top: -2px;
+}
+
+.register-footer {
+  position: relative;
+  gap: 10px;
+  margin-top: 18px;
+  padding-top: 10px;
+  border-top: 0;
+}
+
+.register-footer::before,
+.register-footer::after {
+  flex: 1 1 0;
+  height: 1px;
+  background: #e4eaf2;
+  content: '';
+}
+
 @media (max-width: 1120px) {
-  .login-page {
+  .login-page:not(.register-page) {
     grid-template-columns: minmax(0, 1fr) minmax(390px, 0.86fr);
+  }
+
+  .register-page {
+    grid-template-columns: minmax(0, 1fr);
+    overflow: visible;
   }
 
   .login-hero {
@@ -1001,6 +1228,42 @@ button {
 
   .login-card {
     transform: translateX(-16px);
+  }
+
+  .register-hero {
+    min-height: auto;
+    padding: 42px 28px;
+  }
+
+  .register-hero .medical-illustration {
+    position: absolute;
+    right: clamp(12px, 4vw, 44px);
+    bottom: 16px;
+    width: 320px;
+    min-height: 390px;
+    opacity: 0.54;
+  }
+
+  .register-feature-list {
+    width: min(100%, 34rem);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .register-feature {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    min-height: 132px;
+    text-align: center;
+  }
+
+  .register-form-panel {
+    padding: 28px 20px 40px;
+  }
+
+  .register-card {
+    width: min(100%, 760px);
+    min-height: auto;
+    transform: none;
   }
 }
 
@@ -1043,6 +1306,14 @@ button {
     min-height: auto;
     transform: none;
   }
+
+  .register-hero .medical-illustration {
+    display: none;
+  }
+
+  .register-feature-list {
+    width: 100%;
+  }
 }
 
 @media (max-width: 640px) {
@@ -1082,6 +1353,45 @@ button {
 
   .login-footer {
     flex-wrap: wrap;
+  }
+
+  .register-hero h1 {
+    font-size: clamp(2.2rem, 11vw, 3rem);
+  }
+
+  .register-feature-list {
+    grid-template-columns: 1fr;
+  }
+
+  .register-feature {
+    grid-template-columns: 54px minmax(0, 1fr);
+    justify-items: stretch;
+    min-height: 84px;
+    text-align: left;
+  }
+
+  .register-card {
+    padding: 28px 20px;
+    border-radius: 16px;
+  }
+
+  .register-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .register-grid-span-2 {
+    grid-column: span 1;
+  }
+
+  .register-terms {
+    align-items: flex-start;
+    line-height: 1.35;
+  }
+
+  .register-footer::before,
+  .register-footer::after {
+    display: none;
   }
 }
 
