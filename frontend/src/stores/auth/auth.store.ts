@@ -1,4 +1,4 @@
-import type { LoginResponseDto } from '@zdravstvo/contracts'
+import type { AuthenticatedAuthResponseDto } from '@zdravstvo/contracts'
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 
@@ -11,15 +11,17 @@ const createUnauthenticatedState = (): AuthStateSnapshot => ({
   user: null,
   role: null,
   organizationId: null,
+  orgUserId: null,
 })
 
 const mapAuthResponseToState = (
-  auth: LoginResponseDto,
+  auth: AuthenticatedAuthResponseDto,
 ): AuthStateSnapshot => ({
   accessToken: auth.accessToken,
   user: auth.user,
   role: auth.role,
   organizationId: auth.organizationId,
+  orgUserId: auth.orgUserId,
 })
 
 export const useAuthStore = create<AuthStore>()(
@@ -51,6 +53,7 @@ export const useAuthStore = create<AuthStore>()(
         user: state.user,
         role: state.role,
         organizationId: state.organizationId,
+        orgUserId: state.orgUserId,
       }),
       merge: (persistedState, currentState) => {
         const mergedState = {
@@ -64,7 +67,8 @@ export const useAuthStore = create<AuthStore>()(
             mergedState.accessToken &&
               mergedState.user &&
               mergedState.role &&
-              mergedState.organizationId,
+              mergedState.organizationId &&
+              mergedState.orgUserId,
           ),
         }
       },

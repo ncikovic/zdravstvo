@@ -1,18 +1,37 @@
 import bcrypt from 'bcrypt';
 import {
   type AuthUserDto,
+  type AuthenticatedAuthResponseDto,
   type LoginRequestDto,
+  type LoginOrganizationSelectionRequiredResponseDto,
   type LoginResponseDto,
   OrganizationUserRole,
   type RegisterRequestDto,
   type RegisterResponseDto,
+  type SelectableOrganizationMembershipDto,
+  type SelectOrganizationRequestDto,
+  type SelectOrganizationResponseDto,
   UserStatus,
 } from '@zdravstvo/contracts';
 
 import { AppError } from '../errors/AppError.js';
-import { AuthRepository } from '../repositories/index.js';
+import {
+  AuthRepository,
+  OrganizationUsersRepository,
+  OrganizationsRepository,
+  UsersRepository,
+} from '../repositories/index.js';
 import { db } from '../shared/db/index.js';
-import { signAccessToken } from '../shared/utils/index.js';
+import {
+  signAccessToken,
+  signOrganizationSelectionToken,
+  verifyOrganizationSelectionToken,
+} from '../shared/utils/index.js';
+import type {
+  OrganizationUserRecord,
+  PatientProfileRecord,
+  UserRecord,
+} from '../types/entities/index.js';
 
 const PASSWORD_SALT_ROUNDS = 12;
 const DEFAULT_REGISTRATION_ORGANIZATION_NAME = 'Zdravstvo';
@@ -61,30 +80,20 @@ const normalizeLoginIdentifier = (value: string): string => {
 };
 
 const mapAuthUser = (
-  userId: string,
-  email: string | null,
-  phone: string | null,
-  profile: {
-    firstName: string;
-    lastName: string;
-    dateOfBirth: string | null;
-    oib: string | null;
-    address: string | null;
-    emergencyContactName: string | null;
-    emergencyContactPhone: string | null;
-  }
+  user: UserRecord,
+  profile: PatientProfileRecord | null
 ): AuthUserDto => {
   return {
-    userId,
-    email,
-    phone,
-    firstName: profile.firstName,
-    lastName: profile.lastName,
-    dateOfBirth: profile.dateOfBirth,
-    oib: profile.oib,
-    address: profile.address,
-    emergencyContactName: profile.emergencyContactName,
-    emergencyContactPhone: profile.emergencyContactPhone,
+    userId: user.id,
+    email: user.email,
+    phone: user.phone,
+    firstName: profile?.firstName ?? null,
+    lastName: profile?.lastName ?? null,
+    dateOfBirth: profile?.dateOfBirth ?? null,
+    oib: profile?.oib ?? null,
+    address: profile?.address ?? null,
+    emergencyContactName: profile?.emergencyContactName ?? null,
+    emergencyContactPhone: profile?.emergencyContactPhone ?? null,
   };
 };
 
@@ -128,14 +137,66 @@ const resolveRegistrationOrganizationId = async (
   });
 };
 
+const mapAuthenticatedResponse = (
+  user: UserRecord,
+  profile: PatientProfileRecord | null,
+  membership: OrganizationUserRecord
+): AuthenticatedAuthResponseDto => {
+  const accessToken = signAccessToken({
+    sub: user.id,
+    organizationId: membership.organizationId,
+    orgUserId: membership.id,
+    role: membership.role,
+  });
+
+  return {
+    authenticated: true,
+    requiresOrganizationSelection: false,
+    accessToken,
+    user: mapAuthUser(user, profile),
+    organizationId: membership.organizationId,
+    orgUserId: membership.id,
+    role: membership.role,
+  };
+};
+
+const mapSelectableMemberships = async (
+  memberships: readonly OrganizationUserRecord[]
+): Promise<SelectableOrganizationMembershipDto[]> => {
+  const organizationRepository = new OrganizationsRepository(db);
+  const organizations = await organizationRepository.findMinimalByIds(
+    memberships.map((membership) => membership.organizationId)
+  );
+  const organizationsById = new Map(
+    organizations.map((organization) => [organization.id, organization])
+  );
+
+  return memberships.map((membership) => {
+    const organization = organizationsById.get(membership.organizationId);
+
+    if (!organization) {
+      throw AppError.unauthorized('Account is not allowed to sign in.');
+    }
+
+    return {
+      organizationId: membership.organizationId,
+      organizationName: organization.name,
+      orgUserId: membership.id,
+      role: membership.role,
+    };
+  });
+};
+
 export class AuthService {
   public async login(payload: LoginRequestDto): Promise<LoginResponseDto> {
-    const identifier = normalizeLoginIdentifier(payload.emailOrPhone);
+    const identifier = normalizeLoginIdentifier(payload.identifier);
     const invalidCredentialsError = AppError.unauthorized(
       'Invalid email/phone or password.'
     );
-    const repository = new AuthRepository(db);
-    const user = await repository.findUserByEmailOrPhone(identifier);
+    const usersRepository = new UsersRepository(db);
+    const organizationUsersRepository = new OrganizationUsersRepository(db);
+    const authRepository = new AuthRepository(db);
+    const user = await usersRepository.findByEmailOrPhone(identifier);
 
     if (!user || !user.passwordHash || user.status !== UserStatus.ACTIVE) {
       throw invalidCredentialsError;
@@ -147,30 +208,57 @@ export class AuthService {
       throw invalidCredentialsError;
     }
 
-    const membership = await repository.findFirstActiveOrganizationMembership(user.id);
+    const memberships =
+      await organizationUsersRepository.findActiveMembershipsByUserId(user.id);
 
-    if (!membership || !membership.isActive) {
+    if (memberships.length === 0) {
       throw AppError.unauthorized('Account is not allowed to sign in.');
     }
 
-    const patientProfile = await repository.findPatientProfileByUserId(user.id);
+    const patientProfile = await authRepository.findPatientProfileByUserId(user.id);
 
-    if (!patientProfile) {
-      throw AppError.unauthorized('Account is not allowed to sign in.');
+    if (memberships.length === 1) {
+      return mapAuthenticatedResponse(user, patientProfile, memberships[0]);
     }
-
-    const accessToken = signAccessToken({
-      sub: user.id,
-      organizationId: membership.organizationId,
-      role: membership.role,
-    });
 
     return {
-      accessToken,
-      user: mapAuthUser(user.id, user.email, user.phone, patientProfile),
-      organizationId: membership.organizationId,
-      role: membership.role,
+      authenticated: false,
+      requiresOrganizationSelection: true,
+      selectionToken: signOrganizationSelectionToken({
+        sub: user.id,
+      }),
+      user: mapAuthUser(user, patientProfile),
+      memberships: await mapSelectableMemberships(memberships),
     };
+  }
+
+  public async selectOrganization(
+    payload: SelectOrganizationRequestDto
+  ): Promise<SelectOrganizationResponseDto> {
+    const claims = verifyOrganizationSelectionToken(payload.selectionToken);
+    const usersRepository = new UsersRepository(db);
+    const organizationUsersRepository = new OrganizationUsersRepository(db);
+    const authRepository = new AuthRepository(db);
+
+    const [user, membership] = await Promise.all([
+      usersRepository.findById(claims.sub),
+      organizationUsersRepository.findActiveMembershipByUserIdAndOrganizationId(
+        claims.sub,
+        payload.organizationId
+      ),
+    ]);
+
+    if (!user || !user.passwordHash || user.status !== UserStatus.ACTIVE) {
+      throw AppError.unauthorized('Authentication is invalid or no longer active.');
+    }
+
+    if (!membership) {
+      throw AppError.forbidden('Organization is not available for this login.');
+    }
+
+    const patientProfile = await authRepository.findPatientProfileByUserId(user.id);
+
+    return mapAuthenticatedResponse(user, patientProfile, membership);
   }
 
   public async register(
@@ -226,7 +314,7 @@ export class AuthService {
         });
 
         return {
-          user: mapAuthUser(user.id, user.email, user.phone, patientProfile),
+          user: mapAuthUser(user, patientProfile),
           organizationId,
           role: OrganizationUserRole.PATIENT,
         };

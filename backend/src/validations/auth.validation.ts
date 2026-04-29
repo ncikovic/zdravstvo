@@ -1,6 +1,7 @@
 import {
   loginRequestSchema,
   registerRequestSchema,
+  selectOrganizationRequestSchema,
 } from '@zdravstvo/contracts';
 
 export const registerValidationSchemas = {
@@ -9,4 +10,8 @@ export const registerValidationSchemas = {
 
 export const loginValidationSchemas = {
   body: loginRequestSchema,
+};
+
+export const selectOrganizationValidationSchemas = {
+  body: selectOrganizationRequestSchema,
 };

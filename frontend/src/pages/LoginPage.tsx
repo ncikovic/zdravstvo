@@ -1,12 +1,16 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import type { LoginRequestDto } from '@zdravstvo/contracts'
+import type {
+  LoginOrganizationSelectionRequiredResponseDto,
+  LoginRequestDto,
+} from '@zdravstvo/contracts'
 import { loginRequestSchema } from '@zdravstvo/contracts'
 import type { ReactElement } from 'react'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import type { z } from 'zod'
 
-import { useLoginMutation } from '@/hooks'
+import { useLoginMutation, useSelectOrganizationMutation } from '@/hooks'
 import { useAuthStore } from '@/stores'
 
 interface LocationState {
@@ -23,21 +27,29 @@ const resolveRedirectPath = (state: LocationState | null | undefined): string =>
   return redirectPath && redirectPath !== '/login' ? redirectPath : '/'
 }
 
+type LoginFormValues = z.input<typeof loginRequestSchema>
+
 export function LoginPage(): ReactElement {
   const navigate = useNavigate()
   const location = useLocation()
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const loginMutation = useLoginMutation()
+  const selectOrganizationMutation = useSelectOrganizationMutation()
   const locationState = location.state as LocationState | null
   const [isPasswordVisible, setIsPasswordVisible] = useState(false)
+  const [organizationSelection, setOrganizationSelection] =
+    useState<LoginOrganizationSelectionRequiredResponseDto | null>(null)
+  const [selectedOrganizationId, setSelectedOrganizationId] = useState<string | null>(
+    null,
+  )
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<LoginRequestDto>({
+  } = useForm<LoginFormValues, unknown, LoginRequestDto>({
     resolver: zodResolver(loginRequestSchema),
     defaultValues: {
-      emailOrPhone: 'admin@zdravstvo-demo.test',
+      identifier: 'admin@zdravstvo-demo.test',
       password: 'Demo1234!',
     },
   })
@@ -53,7 +65,30 @@ export function LoginPage(): ReactElement {
   }, [isAuthenticated, location.state, navigate])
 
   const onSubmit = async (values: LoginRequestDto): Promise<void> => {
-    await loginMutation.mutateAsync(values)
+    setOrganizationSelection(null)
+    const loginResponse = await loginMutation.mutateAsync(values)
+
+    if (loginResponse.requiresOrganizationSelection) {
+      setOrganizationSelection(loginResponse)
+      return
+    }
+
+    navigate(resolveRedirectPath(locationState), {
+      replace: true,
+    })
+  }
+
+  const onSelectOrganization = async (organizationId: string): Promise<void> => {
+    if (!organizationSelection) {
+      return
+    }
+
+    setSelectedOrganizationId(organizationId)
+
+    await selectOrganizationMutation.mutateAsync({
+      selectionToken: organizationSelection.selectionToken,
+      organizationId,
+    })
 
     navigate(resolveRedirectPath(locationState), {
       replace: true,
@@ -61,6 +96,7 @@ export function LoginPage(): ReactElement {
   }
 
   const isPending = loginMutation.isPending || isSubmitting
+  const isSelecting = selectOrganizationMutation.isPending
 
   return (
     <main className="login-page">
@@ -193,26 +229,54 @@ export function LoginPage(): ReactElement {
             </div>
           ) : null}
 
+          {selectOrganizationMutation.error ? (
+            <div className="form-banner" role="alert" aria-live="assertive">
+              {selectOrganizationMutation.error.message}
+            </div>
+          ) : null}
+
+          {organizationSelection ? (
+            <div className="login-form" role="group" aria-label="Odabir organizacije">
+              <div className="form-success" role="status" aria-live="polite">
+                Odaberite organizaciju za nastavak prijave.
+              </div>
+
+              {organizationSelection.memberships.map((membership) => (
+                <button
+                  className="login-submit"
+                  type="button"
+                  key={membership.orgUserId}
+                  disabled={isSelecting}
+                  onClick={() => void onSelectOrganization(membership.organizationId)}
+                >
+                  {isSelecting && selectedOrganizationId === membership.organizationId
+                    ? 'Odabir u tijeku...'
+                    : `${membership.organizationName} - ${membership.role}`}
+                </button>
+              ))}
+            </div>
+          ) : null}
+
           <form className="login-form" onSubmit={handleSubmit(onSubmit)} noValidate>
             <div className="login-field">
-              <label htmlFor="emailOrPhone">E-mail ili telefon</label>
+              <label htmlFor="identifier">E-mail ili telefon</label>
               <div className="login-input-shell">
                 <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
                   <path d="M4.8 6.5h14.4c.8 0 1.5.7 1.5 1.5v8c0 .8-.7 1.5-1.5 1.5H4.8c-.8 0-1.5-.7-1.5-1.5V8c0-.8.7-1.5 1.5-1.5Z" />
                   <path d="m4 8 8 5.4L20 8" />
                 </svg>
                 <input
-                  id="emailOrPhone"
+                  id="identifier"
                   type="text"
                   autoComplete="username"
                   inputMode="email"
-                  aria-invalid={errors.emailOrPhone ? 'true' : 'false'}
-                  {...register('emailOrPhone')}
+                  aria-invalid={errors.identifier ? 'true' : 'false'}
+                  {...register('identifier')}
                 />
               </div>
-              {errors.emailOrPhone ? (
+              {errors.identifier ? (
                 <p className="field-error" role="alert">
-                  {errors.emailOrPhone.message}
+                  {errors.identifier.message}
                 </p>
               ) : null}
             </div>

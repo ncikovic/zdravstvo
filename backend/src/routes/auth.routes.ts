@@ -6,6 +6,7 @@ import { validateRequest } from '../middleware/validateRequest.js';
 import {
   loginValidationSchemas,
   registerValidationSchemas,
+  selectOrganizationValidationSchemas,
 } from '../validations/index.js';
 
 export const authRouter = Router();
@@ -23,5 +24,13 @@ authRouter.post(
   validateRequest(registerValidationSchemas),
   asyncHandler(async (request, response) => {
     await authController.register(request, response);
+  })
+);
+
+authRouter.post(
+  '/auth/select-organization',
+  validateRequest(selectOrganizationValidationSchemas),
+  asyncHandler(async (request, response) => {
+    await authController.selectOrganization(request, response);
   })
 );

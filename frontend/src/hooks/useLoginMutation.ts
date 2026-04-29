@@ -1,5 +1,10 @@
 import { useMutation, type UseMutationResult } from '@tanstack/react-query'
-import type { LoginRequestDto, LoginResponseDto } from '@zdravstvo/contracts'
+import type {
+  LoginRequestDto,
+  LoginResponseDto,
+  SelectOrganizationRequestDto,
+  SelectOrganizationResponseDto,
+} from '@zdravstvo/contracts'
 
 import { authService } from '@/services'
 import { useAuthStore } from '@/stores'
@@ -16,6 +21,25 @@ export const useLoginMutation = (): UseMutationResult<
     mutationFn: (payload: LoginRequestDto) => authService.login(payload),
     throwOnError: false,
     onSuccess: (auth: LoginResponseDto) => {
+      if (auth.authenticated) {
+        setAuth(auth)
+      }
+    },
+  })
+}
+
+export const useSelectOrganizationMutation = (): UseMutationResult<
+  SelectOrganizationResponseDto,
+  AppApiError,
+  SelectOrganizationRequestDto
+> => {
+  const setAuth = useAuthStore((state) => state.setAuth)
+
+  return useMutation({
+    mutationFn: (payload: SelectOrganizationRequestDto) =>
+      authService.selectOrganization(payload),
+    throwOnError: false,
+    onSuccess: (auth: SelectOrganizationResponseDto) => {
       setAuth(auth)
     },
   })

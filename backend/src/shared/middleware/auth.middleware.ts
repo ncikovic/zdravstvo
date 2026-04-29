@@ -53,6 +53,10 @@ const mapAuthContext = (
   };
 };
 
+type RequestWithAuth = Parameters<RequestHandler>[0] & {
+  auth?: AuthenticatedRequestContext;
+};
+
 export const authenticateRequest: RequestHandler = async (
   request,
   _response,
@@ -79,7 +83,13 @@ export const authenticateRequest: RequestHandler = async (
       throw AppError.unauthorized('Authentication is invalid or no longer active.');
     }
 
-    request.auth = mapAuthContext(authContext, {
+    if (authContext.organizationUserId !== claims.orgUserId) {
+      throw AppError.unauthorized('Authentication is invalid or no longer active.');
+    }
+
+    const authenticatedRequest = request as RequestWithAuth;
+
+    authenticatedRequest.auth = mapAuthContext(authContext, {
       iat: claims.iat,
       exp: claims.exp,
     });

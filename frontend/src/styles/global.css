@@ -284,9 +284,10 @@ button {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(488px, 39.5vw);
   min-height: 100vh;
+  min-height: 100svh;
   background: #f7fbff;
   color: #07183a;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 .login-hero {
@@ -346,6 +347,7 @@ button {
   font-size: clamp(2.55rem, 4vw, 4.08rem);
   font-weight: 800;
   line-height: 1.07;
+  overflow-wrap: break-word;
 }
 
 .login-hero__lead {
@@ -941,6 +943,9 @@ button {
   background: linear-gradient(135deg, #0e9a9a 0%, #1663c4 100%);
   color: #ffffff;
   font-weight: 800;
+  line-height: 1.25;
+  text-align: center;
+  white-space: normal;
   cursor: pointer;
   box-shadow: 0 12px 22px rgba(19, 107, 180, 0.22);
   transition:
@@ -1200,7 +1205,8 @@ button {
 
 @media (max-width: 1120px) {
   .login-page:not(.register-page) {
-    grid-template-columns: minmax(0, 1fr) minmax(390px, 0.86fr);
+    grid-template-columns: 1fr;
+    min-height: 100svh;
   }
 
   .register-page {
@@ -1227,7 +1233,8 @@ button {
   }
 
   .login-card {
-    transform: translateX(-16px);
+    min-height: auto;
+    transform: none;
   }
 
   .register-hero {
@@ -1271,7 +1278,6 @@ button {
   .login-page {
     grid-template-columns: 1fr;
     min-height: 100svh;
-    overflow: visible;
   }
 
   .login-hero {
@@ -1318,7 +1324,7 @@ button {
 
 @media (max-width: 640px) {
   .login-hero {
-    padding: 30px 20px;
+    padding: 28px 18px 22px;
   }
 
   .login-brand {
@@ -1337,12 +1343,32 @@ button {
   .login-feature {
     grid-template-columns: 44px minmax(0, 1fr);
     justify-items: stretch;
+    min-height: 64px;
+    padding: 10px 12px;
     text-align: left;
   }
 
+  .login-form-panel {
+    padding: 22px 14px 28px;
+  }
+
   .login-card {
-    padding: 26px 20px;
-    border-radius: 16px;
+    padding: 24px 18px;
+    border-radius: 14px;
+  }
+
+  .login-form {
+    gap: 17px;
+    margin-top: 24px;
+  }
+
+  .login-input-shell {
+    min-height: 50px;
+    padding: 0 12px;
+  }
+
+  .login-input-shell input {
+    min-height: 48px;
   }
 
   .login-options {
@@ -1353,6 +1379,8 @@ button {
 
   .login-footer {
     flex-wrap: wrap;
+    margin-top: 22px;
+    padding-top: 18px;
   }
 
   .register-hero h1 {
