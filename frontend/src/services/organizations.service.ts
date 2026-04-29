@@ -1,5 +1,7 @@
 import type {
   ApiResponse,
+  OrganizationListPaginationDto,
+  OrganizationListQueryDto,
   OrganizationListResponseDto,
   OrganizationResponseDto,
 } from '@zdravstvo/contracts';
@@ -19,12 +21,27 @@ const mapOrganization = (organization: OrganizationResponseDto): Organization =>
   updatedAt: new Date(organization.updatedAt),
 });
 
-export class OrganizationsService {
-  public async listPublic(): Promise<Organization[]> {
-    const response =
-      await apiClient.get<ApiResponse<OrganizationListResponseDto>>('/organizations/public');
+export interface OrganizationListResult {
+  organizations: Organization[];
+  pagination: OrganizationListPaginationDto;
+}
 
-    return response.data.data.organizations.map(mapOrganization);
+export class OrganizationsService {
+  public async listPublic(query: OrganizationListQueryDto): Promise<OrganizationListResult> {
+    const response = await apiClient.get<ApiResponse<OrganizationListResponseDto>>(
+      '/organizations/public',
+      {
+        params: {
+          page: query.page,
+          search: query.search || undefined,
+        },
+      },
+    );
+
+    return {
+      organizations: response.data.data.organizations.map(mapOrganization),
+      pagination: response.data.data.pagination,
+    };
   }
 }
 

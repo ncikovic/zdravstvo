@@ -8,6 +8,7 @@ import { authenticateRequest, authorizeRoles } from '../shared/middleware/index.
 import {
   createOrganizationValidationSchemas,
   deleteOrganizationValidationSchemas,
+  listOrganizationsValidationSchemas,
   organizationIdValidationSchemas,
   updateOrganizationValidationSchemas,
 } from '../validations/index.js';
@@ -41,8 +42,9 @@ organizationsRouter.get(
 
 organizationsRouter.get(
   '/organizations/public',
+  validateRequest(listOrganizationsValidationSchemas),
   asyncHandler(async (request, response) => {
-    await organizationsController.list(request, response);
+    await organizationsController.listPublic(request, response);
   }),
 );
 

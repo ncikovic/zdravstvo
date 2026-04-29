@@ -2,6 +2,7 @@ import type {
   ApiResponse,
   CreateOrganizationRequestDto,
   OrganizationIdParamsDto,
+  OrganizationListQueryDto,
   OrganizationListResponseDto,
   OrganizationResponseDto,
   UpdateOrganizationRequestDto,
@@ -27,6 +28,18 @@ export class OrganizationsController {
     response: Response<ApiResponse<OrganizationListResponseDto>>,
   ): Promise<void> {
     const organizations = await organizationsService.list();
+
+    response.status(200).json({
+      data: organizations,
+    });
+  }
+
+  public async listPublic(
+    request: Request,
+    response: Response<ApiResponse<OrganizationListResponseDto>>,
+  ): Promise<void> {
+    const query = request.query as unknown as OrganizationListQueryDto;
+    const organizations = await organizationsService.listPublic(query);
 
     response.status(200).json({
       data: organizations,

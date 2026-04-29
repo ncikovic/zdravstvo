@@ -5,7 +5,7 @@ import type {
 } from '@zdravstvo/contracts';
 import { loginRequestSchema } from '@zdravstvo/contracts';
 import type { ReactElement } from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import type { z } from 'zod';
@@ -40,19 +40,6 @@ const resolveRedirectPath = (state: LocationState | null | undefined): string =>
   return redirectPath && redirectPath !== '/login' ? redirectPath : '/';
 };
 
-const matchesOrganizationSearch = (
-  organization: Organization,
-  normalizedSearch: string,
-): boolean => {
-  if (!normalizedSearch) {
-    return true;
-  }
-
-  return [organization.name, organization.city, organization.address]
-    .filter(Boolean)
-    .some((value) => value?.toLowerCase().includes(normalizedSearch));
-};
-
 const OrganizationCardIcon = (): ReactElement => (
   <span className="organization-card__icon" aria-hidden="true">
     <svg viewBox="0 0 24 24" role="img">
@@ -85,7 +72,6 @@ export function LoginPage({ initialStep = 'login' }: LoginPageProps): ReactEleme
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const loginMutation = useLoginMutation();
   const selectOrganizationMutation = useSelectOrganizationMutation();
-  const organizationsQuery = usePublicOrganizationsQuery();
   const locationState = location.state as LocationState | null;
   const [authStep, setAuthStep] = useState<AuthStep>(initialStep);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -93,8 +79,16 @@ export function LoginPage({ initialStep = 'login' }: LoginPageProps): ReactEleme
     useState<LoginOrganizationSelectionRequiredResponseDto | null>(null);
   const [selectedOrganizationId, setSelectedOrganizationId] = useState<string | null>(null);
   const [organizationSearch, setOrganizationSearch] = useState('');
+  const [organizationPage, setOrganizationPage] = useState(1);
   const [selectedRegistrationOrganization, setSelectedRegistrationOrganization] =
     useState<Organization | null>(null);
+  const organizationsQuery = usePublicOrganizationsQuery(
+    {
+      page: organizationPage,
+      search: organizationSearch,
+    },
+    authStep === 'organizationSelection' && !organizationSelection,
+  );
   const {
     register,
     handleSubmit,
@@ -116,14 +110,6 @@ export function LoginPage({ initialStep = 'login' }: LoginPageProps): ReactEleme
       replace: true,
     });
   }, [isAuthenticated, locationState, navigate]);
-
-  const filteredOrganizations = useMemo(() => {
-    const normalizedSearch = organizationSearch.trim().toLowerCase();
-
-    return (organizationsQuery.data ?? []).filter((organization) =>
-      matchesOrganizationSearch(organization, normalizedSearch),
-    );
-  }, [organizationSearch, organizationsQuery.data]);
 
   const onSubmit = async (values: LoginRequestDto): Promise<void> => {
     setOrganizationSelection(null);
@@ -161,6 +147,7 @@ export function LoginPage({ initialStep = 'login' }: LoginPageProps): ReactEleme
     setSelectedOrganizationId(null);
     setSelectedRegistrationOrganization(null);
     setOrganizationSearch('');
+    setOrganizationPage(1);
     setAuthStep('organizationSelection');
   };
 
@@ -169,6 +156,7 @@ export function LoginPage({ initialStep = 'login' }: LoginPageProps): ReactEleme
     setSelectedOrganizationId(null);
     setSelectedRegistrationOrganization(null);
     setOrganizationSearch('');
+    setOrganizationPage(1);
     setAuthStep('login');
   };
 
@@ -181,6 +169,7 @@ export function LoginPage({ initialStep = 'login' }: LoginPageProps): ReactEleme
     setAuthStep('login');
     setSelectedRegistrationOrganization(null);
     setOrganizationSearch('');
+    setOrganizationPage(1);
     navigate('/login', {
       replace: true,
       state: {
@@ -192,6 +181,12 @@ export function LoginPage({ initialStep = 'login' }: LoginPageProps): ReactEleme
 
   const isPending = loginMutation.isPending || isSubmitting;
   const isSelecting = selectOrganizationMutation.isPending;
+  const organizations = organizationsQuery.data?.organizations ?? [];
+  const organizationsPagination = organizationsQuery.data?.pagination;
+  const hasPreviousOrganizationPage = (organizationsPagination?.page ?? organizationPage) > 1;
+  const hasNextOrganizationPage = organizationsPagination
+    ? organizationsPagination.page < organizationsPagination.totalPages
+    : false;
   const isRegistrationFlow = !organizationSelection && authStep !== 'login';
   const pageClassName = isRegistrationFlow
     ? `login-page register-page ${authStep === 'register' ? 'patient-register-page' : 'organization-register-page'}`
@@ -507,21 +502,22 @@ export function LoginPage({ initialStep = 'login' }: LoginPageProps): ReactEleme
                   pacijentski račun.
                 </p>
 
-                {(organizationsQuery.data?.length ?? 0) > 1 ? (
-                  <div className="organization-search">
-                    <SearchIcon />
-                    <label className="sr-only" htmlFor="organizationSearch">
-                      Pretražite ustanovu
-                    </label>
-                    <input
-                      id="organizationSearch"
-                      type="search"
-                      placeholder="Pretražite ustanovu"
-                      value={organizationSearch}
-                      onChange={(event) => setOrganizationSearch(event.target.value)}
-                    />
-                  </div>
-                ) : null}
+                <div className="organization-search">
+                  <SearchIcon />
+                  <label className="sr-only" htmlFor="organizationSearch">
+                    Pretražite ustanovu
+                  </label>
+                  <input
+                    id="organizationSearch"
+                    type="search"
+                    placeholder="Pretražite ustanovu"
+                    value={organizationSearch}
+                    onChange={(event) => {
+                      setOrganizationSearch(event.target.value);
+                      setOrganizationPage(1);
+                    }}
+                  />
+                </div>
 
                 {organizationsQuery.isLoading ? (
                   <div className="form-success" role="status">
@@ -537,7 +533,7 @@ export function LoginPage({ initialStep = 'login' }: LoginPageProps): ReactEleme
 
                 {!organizationsQuery.isLoading && !organizationsQuery.error ? (
                   <div className="organization-list" aria-label="Dostupne ustanove">
-                    {filteredOrganizations.map((organization) => (
+                    {organizations.map((organization) => (
                       <button
                         className="organization-card"
                         type="button"
@@ -567,10 +563,32 @@ export function LoginPage({ initialStep = 'login' }: LoginPageProps): ReactEleme
 
                 {!organizationsQuery.isLoading &&
                 !organizationsQuery.error &&
-                filteredOrganizations.length === 0 ? (
+                organizations.length === 0 ? (
                   <div className="form-banner" role="status">
                     Nema ustanova koje odgovaraju pretrazi.
                   </div>
+                ) : null}
+
+                {organizationsPagination && organizationsPagination.totalPages > 1 ? (
+                  <nav className="organization-pagination" aria-label="Stranice ustanova">
+                    <button
+                      type="button"
+                      disabled={!hasPreviousOrganizationPage || organizationsQuery.isFetching}
+                      onClick={() => setOrganizationPage((page) => Math.max(1, page - 1))}
+                    >
+                      Prethodna
+                    </button>
+                    <span>
+                      {organizationsPagination.page} / {organizationsPagination.totalPages}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={!hasNextOrganizationPage || organizationsQuery.isFetching}
+                      onClick={() => setOrganizationPage((page) => page + 1)}
+                    >
+                      Sljedeća
+                    </button>
+                  </nav>
                 ) : null}
 
                 <p className="login-footer register-footer">

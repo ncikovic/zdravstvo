@@ -1168,6 +1168,46 @@ button {
   stroke-width: 2.2;
 }
 
+.organization-pagination {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  margin-top: 18px;
+  color: #66738a;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.organization-pagination button {
+  min-height: 40px;
+  padding: 8px 14px;
+  border: 1px solid #d9e0eb;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #166bc1;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.organization-pagination button:first-child {
+  justify-self: end;
+}
+
+.organization-pagination button:last-child {
+  justify-self: start;
+}
+
+.organization-pagination button:hover:not(:disabled) {
+  border-color: rgba(22, 99, 196, 0.34);
+  background: #f5faff;
+}
+
+.organization-pagination button:disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
+}
+
 .selected-organization {
   display: flex;
   align-items: center;
@@ -2409,6 +2449,20 @@ button {
   .organization-card__action {
     grid-column: 1 / -1;
     width: 100%;
+  }
+
+  .organization-pagination {
+    grid-template-columns: 1fr;
+    justify-items: stretch;
+  }
+
+  .organization-pagination button:first-child,
+  .organization-pagination button:last-child {
+    justify-self: stretch;
+  }
+
+  .organization-pagination span {
+    text-align: center;
   }
 
   .selected-organization {

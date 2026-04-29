@@ -27,9 +27,24 @@ export interface UpdateOrganizationRecordInput {
   timezone?: string;
 }
 
+export interface FindOrganizationsPageInput {
+  search: string | null;
+  limit: number;
+  offset: number;
+}
+
+export interface OrganizationPageRecord {
+  organizations: OrganizationRecord[];
+  totalItems: number;
+}
+
 interface MinimalOrganizationRow {
   id: Buffer;
   name: string;
+}
+
+interface CountRow {
+  total: string | number | bigint;
 }
 
 interface OrganizationRow {
@@ -81,6 +96,16 @@ const mapOrganizationRecord = (row: OrganizationRow): OrganizationRecord => {
   };
 };
 
+const escapeLikeSearch = (value: string): string => value.replace(/[\\%_]/g, '\\$&');
+
+const mapCount = (row: CountRow | undefined): number => {
+  if (!row) {
+    return 0;
+  }
+
+  return Number(row.total);
+};
+
 export class OrganizationsRepository {
   public constructor(private readonly executor: DatabaseExecutor) {}
 
@@ -114,6 +139,36 @@ export class OrganizationsRepository {
       .orderBy('id', 'asc');
 
     return rows.map(mapOrganizationRecord);
+  }
+
+  public async findPage(input: FindOrganizationsPageInput): Promise<OrganizationPageRecord> {
+    const query = this.executor<OrganizationRow>('organizations');
+
+    if (input.search) {
+      const searchTerm = `%${escapeLikeSearch(input.search)}%`;
+
+      query.where((builder) => {
+        builder
+          .where('name', 'like', searchTerm)
+          .orWhere('city', 'like', searchTerm)
+          .orWhere('address', 'like', searchTerm);
+      });
+    }
+
+    const countRow = await query.clone().count<CountRow[]>({ total: '*' }).first();
+    const rows = await query
+      .clone()
+      .select(...ORGANIZATION_COLUMNS)
+      .orderBy('name', 'asc')
+      .orderBy('created_at', 'asc')
+      .orderBy('id', 'asc')
+      .limit(input.limit)
+      .offset(input.offset);
+
+    return {
+      organizations: rows.map(mapOrganizationRecord),
+      totalItems: mapCount(countRow),
+    };
   }
 
   public async findById(organizationId: string): Promise<OrganizationRecord | null> {

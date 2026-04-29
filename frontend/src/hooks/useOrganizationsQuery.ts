@@ -1,16 +1,22 @@
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
+import type { OrganizationListQueryDto } from '@zdravstvo/contracts';
 
-import { organizationsService } from '@/services';
-import type { AppApiError, Organization } from '@/types';
+import { organizationsService, type OrganizationListResult } from '@/services';
+import type { AppApiError } from '@/types';
 
 export const organizationsQueryKeys = {
   all: ['organizations'] as const,
-  publicList: () => [...organizationsQueryKeys.all, 'public'] as const,
+  publicList: (query: OrganizationListQueryDto) =>
+    [...organizationsQueryKeys.all, 'public', query] as const,
 };
 
-export const usePublicOrganizationsQuery = (): UseQueryResult<Organization[], AppApiError> => {
+export const usePublicOrganizationsQuery = (
+  query: OrganizationListQueryDto,
+  enabled = true,
+): UseQueryResult<OrganizationListResult, AppApiError> => {
   return useQuery({
-    queryKey: organizationsQueryKeys.publicList(),
-    queryFn: () => organizationsService.listPublic(),
+    queryKey: organizationsQueryKeys.publicList(query),
+    queryFn: () => organizationsService.listPublic(query),
+    enabled,
   });
 };
