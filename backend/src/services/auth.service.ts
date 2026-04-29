@@ -56,10 +56,9 @@ const normalizeOptionalString = (value: string | null | undefined): string | nul
   return trimmedValue.length > 0 ? trimmedValue : null;
 };
 
-const normalizeRegistrationInput = (
-  input: RegisterRequestDto
-): RegisterRequestDto => {
+const normalizeRegistrationInput = (input: RegisterRequestDto): RegisterRequestDto => {
   return {
+    organizationId: input.organizationId,
     email: input.email.trim().toLowerCase(),
     phone: input.phone.trim(),
     password: input.password,
@@ -79,10 +78,7 @@ const normalizeLoginIdentifier = (value: string): string => {
   return trimmedValue.includes('@') ? trimmedValue.toLowerCase() : trimmedValue;
 };
 
-const mapAuthUser = (
-  user: UserRecord,
-  profile: PatientProfileRecord | null
-): AuthUserDto => {
+const mapAuthUser = (user: UserRecord, profile: PatientProfileRecord | null): AuthUserDto => {
   return {
     userId: user.id,
     email: user.email,
@@ -118,13 +114,11 @@ const mapDuplicateDatabaseError = (error: DatabaseErrorLike): AppError | null =>
 
   return AppError.conflict(
     'REGISTRATION_CONFLICT',
-    'Registration could not be completed because the account already exists.'
+    'Registration could not be completed because the account already exists.',
   );
 };
 
-const resolveRegistrationOrganizationId = async (
-  repository: AuthRepository
-): Promise<string> => {
+const resolveRegistrationOrganizationId = async (repository: AuthRepository): Promise<string> => {
   const existingOrganizationId = await repository.findDefaultOrganizationId();
 
   if (existingOrganizationId) {
@@ -140,7 +134,7 @@ const resolveRegistrationOrganizationId = async (
 const mapAuthenticatedResponse = (
   user: UserRecord,
   profile: PatientProfileRecord | null,
-  membership: OrganizationUserRecord
+  membership: OrganizationUserRecord,
 ): AuthenticatedAuthResponseDto => {
   const accessToken = signAccessToken({
     sub: user.id,
@@ -161,14 +155,14 @@ const mapAuthenticatedResponse = (
 };
 
 const mapSelectableMemberships = async (
-  memberships: readonly OrganizationUserRecord[]
+  memberships: readonly OrganizationUserRecord[],
 ): Promise<SelectableOrganizationMembershipDto[]> => {
   const organizationRepository = new OrganizationsRepository(db);
   const organizations = await organizationRepository.findMinimalByIds(
-    memberships.map((membership) => membership.organizationId)
+    memberships.map((membership) => membership.organizationId),
   );
   const organizationsById = new Map(
-    organizations.map((organization) => [organization.id, organization])
+    organizations.map((organization) => [organization.id, organization]),
   );
 
   return memberships.map((membership) => {
@@ -190,9 +184,7 @@ const mapSelectableMemberships = async (
 export class AuthService {
   public async login(payload: LoginRequestDto): Promise<LoginResponseDto> {
     const identifier = normalizeLoginIdentifier(payload.identifier);
-    const invalidCredentialsError = AppError.unauthorized(
-      'Invalid email/phone or password.'
-    );
+    const invalidCredentialsError = AppError.unauthorized('Invalid email/phone or password.');
     const usersRepository = new UsersRepository(db);
     const organizationUsersRepository = new OrganizationUsersRepository(db);
     const authRepository = new AuthRepository(db);
@@ -208,8 +200,7 @@ export class AuthService {
       throw invalidCredentialsError;
     }
 
-    const memberships =
-      await organizationUsersRepository.findActiveMembershipsByUserId(user.id);
+    const memberships = await organizationUsersRepository.findActiveMembershipsByUserId(user.id);
 
     if (memberships.length === 0) {
       throw AppError.unauthorized('Account is not allowed to sign in.');
@@ -233,7 +224,7 @@ export class AuthService {
   }
 
   public async selectOrganization(
-    payload: SelectOrganizationRequestDto
+    payload: SelectOrganizationRequestDto,
   ): Promise<SelectOrganizationResponseDto> {
     const claims = verifyOrganizationSelectionToken(payload.selectionToken);
     const usersRepository = new UsersRepository(db);
@@ -244,7 +235,7 @@ export class AuthService {
       usersRepository.findById(claims.sub),
       organizationUsersRepository.findActiveMembershipByUserIdAndOrganizationId(
         claims.sub,
-        payload.organizationId
+        payload.organizationId,
       ),
     ]);
 
@@ -261,9 +252,7 @@ export class AuthService {
     return mapAuthenticatedResponse(user, patientProfile, membership);
   }
 
-  public async register(
-    payload: RegisterRequestDto
-  ): Promise<RegisterResponseDto> {
+  public async register(payload: RegisterRequestDto): Promise<RegisterResponseDto> {
     const input = normalizeRegistrationInput(payload);
 
     const existingRepository = new AuthRepository(db);
@@ -286,7 +275,17 @@ export class AuthService {
     try {
       return await db.transaction(async (transaction) => {
         const repository = new AuthRepository(transaction);
-        const organizationId = await resolveRegistrationOrganizationId(repository);
+        const organizationsRepository = new OrganizationsRepository(transaction);
+        const organizationId =
+          input.organizationId ?? (await resolveRegistrationOrganizationId(repository));
+
+        if (input.organizationId) {
+          const organization = await organizationsRepository.findById(input.organizationId);
+
+          if (!organization) {
+            throw AppError.notFound('Organization not found.');
+          }
+        }
 
         const user = await repository.createUser({
           email: input.email,

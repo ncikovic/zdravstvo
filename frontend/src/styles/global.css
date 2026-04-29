@@ -96,6 +96,18 @@ button {
   margin: 0;
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .auth-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(340px, 440px);
@@ -770,6 +782,32 @@ button {
   overflow-wrap: anywhere;
 }
 
+.auth-flow-card {
+  width: min(100%, 640px);
+  min-height: 620px;
+  transform: translateX(-24px);
+}
+
+.auth-flow-card--register {
+  min-height: 760px;
+}
+
+.auth-step {
+  animation: auth-step-enter 220ms ease both;
+}
+
+@keyframes auth-step-enter {
+  from {
+    opacity: 0;
+    transform: translateX(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 .login-card__eyebrow {
   margin: 0 0 12px;
   color: #168f87;
@@ -919,14 +957,21 @@ button {
 }
 
 .login-options a,
-.login-footer a {
+.login-footer a,
+.login-footer button {
   color: #166bc1;
+  border: 0;
+  background: transparent;
+  font: inherit;
   font-weight: 600;
+  padding: 0;
   text-decoration: none;
+  cursor: pointer;
 }
 
 .login-options a:hover,
-.login-footer a:hover {
+.login-footer a:hover,
+.login-footer button:hover {
   text-decoration: underline;
 }
 
@@ -979,6 +1024,207 @@ button {
   border-top: 1px solid #e4eaf2;
   color: #70788a;
   font-size: 0.9rem;
+}
+
+.organization-search {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  align-items: center;
+  min-height: 52px;
+  margin-top: 28px;
+  padding: 0 15px;
+  border: 1px solid #d9e0eb;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #748098;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.organization-search:focus-within {
+  border-color: #51a9db;
+  box-shadow: 0 0 0 4px rgba(81, 169, 219, 0.12);
+}
+
+.organization-search svg,
+.organization-card svg {
+  display: block;
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.9;
+}
+
+.organization-search input {
+  width: 100%;
+  min-width: 0;
+  min-height: 50px;
+  padding: 0 12px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #46536c;
+  font-weight: 600;
+}
+
+.organization-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.organization-card {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  min-height: 88px;
+  padding: 18px;
+  border: 1px solid #e0e8f2;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #07183a;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 12px 32px rgba(22, 42, 83, 0.08);
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.organization-card:hover:not(:disabled),
+.organization-card:focus-visible {
+  border-color: rgba(22, 99, 196, 0.34);
+  box-shadow: 0 16px 38px rgba(22, 99, 196, 0.14);
+  transform: translateY(-1px);
+}
+
+.organization-card:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.organization-card--compact {
+  min-height: 78px;
+}
+
+.organization-card__icon {
+  display: grid;
+  width: 54px;
+  height: 54px;
+  place-items: center;
+  border-radius: 50%;
+  background: #ddf6f8;
+  color: #139891;
+}
+
+.organization-card__body {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.organization-card__body strong {
+  color: #07183a;
+  font-size: 1rem;
+  line-height: 1.25;
+}
+
+.organization-card__body span,
+.organization-card__body small {
+  color: #66738a;
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.organization-card__action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 96px;
+  min-height: 42px;
+  padding: 10px 14px;
+  border-radius: 9px;
+  background: linear-gradient(135deg, #0e9a9a 0%, #1663c4 100%);
+  color: #ffffff;
+  font-size: 0.92rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.organization-card__action svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2.2;
+}
+
+.selected-organization {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 22px;
+  padding: 14px 16px;
+  border: 1px solid #dbe7f2;
+  border-radius: 9px;
+  background: #f7fbff;
+}
+
+.selected-organization div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.selected-organization span {
+  color: #168f87;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.selected-organization strong {
+  color: #07183a;
+  line-height: 1.3;
+}
+
+.selected-organization p {
+  margin: 0;
+  color: #66738a;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.selected-organization button {
+  flex: 0 0 auto;
+  min-height: 38px;
+  padding: 8px 12px;
+  border: 1px solid #d9e0eb;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #166bc1;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.selected-organization button:hover {
+  border-color: rgba(22, 99, 196, 0.34);
+  background: #f5faff;
+}
+
+.auth-flow-card--register .register-grid {
+  grid-template-columns: 1fr;
+}
+
+.auth-flow-card--register .register-grid-span-2 {
+  grid-column: span 1;
 }
 
 .register-page {
@@ -1237,6 +1483,10 @@ button {
     transform: none;
   }
 
+  .auth-flow-card {
+    transform: none;
+  }
+
   .register-hero {
     min-height: auto;
     padding: 42px 28px;
@@ -1313,6 +1563,10 @@ button {
     transform: none;
   }
 
+  .auth-flow-card {
+    width: min(100%, 680px);
+  }
+
   .register-hero .medical-illustration {
     display: none;
   }
@@ -1381,6 +1635,27 @@ button {
     flex-wrap: wrap;
     margin-top: 22px;
     padding-top: 18px;
+  }
+
+  .organization-card {
+    grid-template-columns: 48px minmax(0, 1fr);
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .organization-card__icon {
+    width: 46px;
+    height: 46px;
+  }
+
+  .organization-card__action {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .selected-organization {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .register-hero h1 {

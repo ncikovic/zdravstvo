@@ -1,10 +1,7 @@
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
 import { ZodError, type ZodType } from 'zod';
 
-import {
-  AppError,
-  type ValidationErrorDetail,
-} from '../errors/AppError.js';
+import { AppError, type ValidationErrorDetail } from '../errors/AppError.js';
 
 interface ValidationSchemas {
   body?: ZodType<unknown>;
@@ -14,10 +11,16 @@ interface ValidationSchemas {
 
 type RequestPart = keyof ValidationSchemas;
 
-const formatZodError = (
-  part: RequestPart,
-  error: ZodError
-): ValidationErrorDetail[] => {
+const assignParsedRequestPart = (request: Request, part: RequestPart, value: unknown): void => {
+  Object.defineProperty(request, part, {
+    value,
+    writable: true,
+    enumerable: true,
+    configurable: true,
+  });
+};
+
+const formatZodError = (part: RequestPart, error: ZodError): ValidationErrorDetail[] => {
   return error.issues.map((issue) => ({
     field: issue.path.length > 0 ? issue.path.join('.') : part,
     message: issue.message,
@@ -33,7 +36,7 @@ export const validateRequest =
       const result = schemas.body.safeParse(request.body);
 
       if (result.success) {
-        request.body = result.data as Request['body'];
+        assignParsedRequestPart(request, 'body', result.data);
       } else {
         validationErrors.push(...formatZodError('body', result.error));
       }
@@ -43,7 +46,7 @@ export const validateRequest =
       const result = schemas.query.safeParse(request.query);
 
       if (result.success) {
-        request.query = result.data as Request['query'];
+        assignParsedRequestPart(request, 'query', result.data);
       } else {
         validationErrors.push(...formatZodError('query', result.error));
       }
@@ -53,7 +56,7 @@ export const validateRequest =
       const result = schemas.params.safeParse(request.params);
 
       if (result.success) {
-        request.params = result.data as Request['params'];
+        assignParsedRequestPart(request, 'params', result.data);
       } else {
         validationErrors.push(...formatZodError('params', result.error));
       }

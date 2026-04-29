@@ -16,6 +16,7 @@ export interface AuthUserDto {
 }
 
 export const registerRequestSchema = z.object({
+  organizationId: z.uuid().optional(),
   email: z.email(),
   phone: z.string().trim().min(1).max(60),
   password: z.string().min(8).max(255),
@@ -50,7 +51,7 @@ export const loginRequestSchema = z
     z.object({
       identifier: z.string().trim().min(1).max(255),
       password: z.string().min(1).max(255),
-    })
+    }),
   );
 
 export type LoginRequestDto = z.infer<typeof loginRequestSchema>;
@@ -89,8 +90,6 @@ export const selectOrganizationRequestSchema = z.object({
   organizationId: z.uuid(),
 });
 
-export type SelectOrganizationRequestDto = z.infer<
-  typeof selectOrganizationRequestSchema
->;
+export type SelectOrganizationRequestDto = z.infer<typeof selectOrganizationRequestSchema>;
 
 export type SelectOrganizationResponseDto = AuthenticatedAuthResponseDto;
