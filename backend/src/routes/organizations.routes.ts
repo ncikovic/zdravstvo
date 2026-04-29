@@ -40,6 +40,13 @@ organizationsRouter.get(
 );
 
 organizationsRouter.get(
+  '/organizations/public',
+  asyncHandler(async (request, response) => {
+    await organizationsController.list(request, response);
+  }),
+);
+
+organizationsRouter.get(
   '/organizations/:id',
   authenticateRequest,
   canReadOrganizations,
