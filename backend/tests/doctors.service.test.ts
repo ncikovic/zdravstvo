@@ -529,6 +529,31 @@ test("creates a doctor for the current organization", async () => {
   assert.equal(doctor.isActive, true);
 });
 
+test("links an existing base user when creating a doctor", async () => {
+  const { repository, service } = createService();
+
+  repository.users.push({
+    id: DOCTOR_ID,
+    email: "existing.doctor@example.test",
+    phone: "+385911111112",
+    passwordHash: null,
+    status: UserStatus.ACTIVE,
+  });
+
+  const doctor = await service.create(createContext(), {
+    userId: DOCTOR_ID,
+    firstName: "Existing",
+    lastName: "Doctor",
+    licenseNumber: "HR-EXISTING",
+  });
+
+  assert.equal(repository.users.length, 1);
+  assert.equal(repository.profiles.length, 1);
+  assert.equal(repository.organizationDoctors.length, 1);
+  assert.equal(doctor.id, DOCTOR_ID);
+  assert.equal(doctor.email, "existing.doctor@example.test");
+});
+
 test("rejects duplicate license numbers", async () => {
   const { repository, service } = createService();
 
@@ -572,6 +597,18 @@ test("lists only doctors from the current organization", async () => {
   );
 });
 
+test("gets a doctor within the current organization", async () => {
+  const { repository, service } = createService();
+
+  seedDoctor(repository);
+
+  const doctor = await service.getById(createContext(), DOCTOR_ID);
+
+  assert.equal(doctor.id, DOCTOR_ID);
+  assert.equal(doctor.firstName, "Ana");
+  assert.equal(doctor.licenseNumber, "HR-123");
+});
+
 test("returns not found when a doctor is outside organization scope", async () => {
   const { repository, service } = createService();
 
@@ -583,6 +620,37 @@ test("returns not found when a doctor is outside organization scope", async () =
     () => service.getById(createContext(ORGANIZATION_ID), DOCTOR_ID),
     404,
     "NOT_FOUND",
+  );
+});
+
+test("filters doctors by active state", async () => {
+  const { repository, service } = createService();
+
+  seedDoctor(repository, {
+    id: DOCTOR_ID,
+    isActive: true,
+    email: "active.doctor@example.test",
+    licenseNumber: "HR-ACTIVE",
+  });
+  seedDoctor(repository, {
+    id: SECOND_DOCTOR_ID,
+    isActive: false,
+    email: "inactive.doctor@example.test",
+    licenseNumber: "HR-INACTIVE",
+  });
+
+  const activeResponse = await service.list(createContext(), { active: true });
+  const inactiveResponse = await service.list(createContext(), {
+    active: false,
+  });
+
+  assert.deepEqual(
+    activeResponse.doctors.map((doctor) => doctor.id),
+    [DOCTOR_ID],
+  );
+  assert.deepEqual(
+    inactiveResponse.doctors.map((doctor) => doctor.id),
+    [SECOND_DOCTOR_ID],
   );
 });
 
@@ -605,6 +673,32 @@ test("updates only allowed doctor fields", async () => {
   assert.equal(doctor.email, "doctor@example.test");
   assert.equal(repository.users[0].email, "doctor@example.test");
   assert.equal(repository.organizationUsers[0].isActive, false);
+});
+
+test("rejects duplicate working-hours days in one replacement payload", async () => {
+  const { repository, service } = createService();
+
+  seedDoctor(repository);
+
+  await assertAppError(
+    () =>
+      service.replaceWorkingHours(createContext(), DOCTOR_ID, {
+        workingHours: [
+          {
+            dayOfWeek: 1,
+            startTime: "08:00",
+            endTime: "12:00",
+          },
+          {
+            dayOfWeek: 1,
+            startTime: "13:00",
+            endTime: "16:00",
+          },
+        ],
+      }),
+    400,
+    "DOCTOR_WORKING_HOURS_DUPLICATE_DAY",
+  );
 });
 
 test("rejects invalid working-hours ranges", async () => {
@@ -660,6 +754,14 @@ test("replaces working hours without duplicating a doctor day", async () => {
   assert.equal(repository.workingHours.length, 1);
   assert.equal(response.workingHours[0].dayOfWeek, 1);
   assert.equal(response.workingHours[0].startTime, "09:00:00");
+
+  const listResponse = await service.listWorkingHours(
+    createContext(),
+    DOCTOR_ID,
+  );
+
+  assert.equal(listResponse.workingHours.length, 1);
+  assert.equal(listResponse.workingHours[0].endTime, "13:00:00");
 });
 
 test("rejects invalid time-off ranges", async () => {
@@ -676,6 +778,27 @@ test("rejects invalid time-off ranges", async () => {
     400,
     "DOCTOR_TIME_OFF_INVALID_RANGE",
   );
+});
+
+test("creates, lists, and deletes doctor time off", async () => {
+  const { repository, service } = createService();
+
+  seedDoctor(repository);
+
+  const timeOff = await service.createTimeOff(createContext(), DOCTOR_ID, {
+    startAt: "2026-04-22T10:00:00.000Z",
+    endAt: "2026-04-22T12:00:00.000Z",
+    reason: "Conference",
+  });
+  const listResponse = await service.listTimeOff(createContext(), DOCTOR_ID);
+
+  assert.equal(timeOff.id, TIME_OFF_ID);
+  assert.equal(timeOff.reason, "Conference");
+  assert.equal(listResponse.timeOff.length, 1);
+
+  await service.deleteTimeOff(createContext(), DOCTOR_ID, TIME_OFF_ID);
+
+  assert.equal(repository.timeOff.length, 0);
 });
 
 test("maps raw duplicate license database errors to stable app errors", async () => {
