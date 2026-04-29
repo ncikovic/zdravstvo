@@ -296,18 +296,18 @@ button {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(488px, 39.5vw);
   min-height: 100vh;
-  min-height: 100svh;
+  min-height: 100lvh;
   background: #f7fbff;
   color: #07183a;
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
 .login-hero {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(320px, 0.78fr) minmax(280px, 0.72fr);
+  grid-template-columns: minmax(500px, 0.96fr) minmax(260px, 0.54fr);
   align-items: center;
-  gap: clamp(24px, 4vw, 56px);
+  gap: clamp(16px, 2.6vw, 36px);
   min-width: 0;
   padding: clamp(40px, 6.2vw, 80px) clamp(32px, 4.8vw, 60px);
   background:
@@ -345,21 +345,23 @@ button {
 }
 
 .login-brand {
-  margin: 0 0 28px;
-  color: #1aa5e8;
-  font-size: 0.82rem;
-  font-weight: 800;
-  letter-spacing: 0.34em;
+  display: block;
+  width: clamp(150px, 12vw, 232px);
+  height: auto;
+  margin: 0 0 clamp(28px, 3.2vw, 42px);
+  object-fit: contain;
+  object-position: left center;
+  mix-blend-mode: multiply;
 }
 
 .login-hero h1 {
-  max-width: 10.6ch;
+  max-width: 15.4ch;
   margin: 0;
   color: #07183a;
-  font-size: clamp(2.55rem, 4vw, 4.08rem);
+  font-size: clamp(2.55rem, 3.4vw, 3.55rem);
   font-weight: 800;
   line-height: 1.07;
-  overflow-wrap: break-word;
+  overflow-wrap: normal;
 }
 
 .login-hero__lead {
@@ -772,18 +774,18 @@ button {
 }
 
 .login-card {
-  width: min(100%, 462px);
-  min-height: 586px;
-  padding: clamp(30px, 4.4vw, 44px) clamp(30px, 4.2vw, 54px);
-  border-radius: 18px;
+  width: min(100%, 560px);
+  min-height: min(790px, calc(100lvh - 96px));
+  padding: clamp(36px, 4.4vw, 60px) clamp(34px, 4.2vw, 72px);
+  border-radius: 26px;
   background: rgba(255, 255, 255, 0.96);
   box-shadow: 0 22px 62px rgba(22, 42, 83, 0.12);
-  transform: translateX(-32px);
+  transform: translateX(-24px);
   overflow-wrap: anywhere;
 }
 
 .auth-flow-card {
-  width: min(100%, 640px);
+  width: min(100%, 664px);
   min-height: 620px;
   transform: translateX(-24px);
 }
@@ -851,8 +853,8 @@ button {
   display: grid;
   grid-template-columns: 24px minmax(0, 1fr) auto;
   align-items: center;
-  min-height: 54px;
-  padding: 0 14px;
+  min-height: 64px;
+  padding: 0 18px;
   border: 1px solid #d9e0eb;
   border-radius: 9px;
   background: #ffffff;
@@ -870,7 +872,7 @@ button {
 .login-input-shell input {
   width: 100%;
   min-width: 0;
-  min-height: 52px;
+  min-height: 62px;
   border: 0;
   outline: 0;
   background: transparent;
@@ -981,8 +983,8 @@ button {
   justify-content: center;
   gap: 12px;
   width: 100%;
-  min-height: 48px;
-  padding: 12px 18px;
+  min-height: 64px;
+  padding: 14px 20px;
   border: 0;
   border-radius: 10px;
   background: linear-gradient(135deg, #0e9a9a 0%, #1663c4 100%);
@@ -1219,14 +1221,6 @@ button {
   background: #f5faff;
 }
 
-.auth-flow-card--register .register-grid {
-  grid-template-columns: 1fr;
-}
-
-.auth-flow-card--register .register-grid-span-2 {
-  grid-column: span 1;
-}
-
 .register-page {
   grid-template-columns: minmax(0, 54.5vw) minmax(720px, 1fr);
 }
@@ -1244,6 +1238,14 @@ button {
 .register-hero h1 {
   max-width: 11.2ch;
   font-size: clamp(3rem, 4.2vw, 4.35rem);
+}
+
+.organization-register-page .register-hero h1 {
+  max-width: 9.2ch;
+}
+
+.patient-register-page .register-hero h1 {
+  max-width: 13.2ch;
 }
 
 .register-hero .login-hero__lead {
@@ -1449,7 +1451,498 @@ button {
   content: '';
 }
 
+.forgot-page {
+  display: grid;
+  grid-template-columns: minmax(420px, 43.5vw) minmax(0, 1fr);
+  min-height: 100vh;
+  min-height: 100lvh;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 94% 86%, rgba(184, 222, 247, 0.5), transparent 25%),
+    #f7fbff;
+  color: #07183a;
+}
+
+.forgot-hero {
+  position: relative;
+  min-width: 0;
+  min-height: calc(100lvh - 36px);
+  margin: 18px 0 18px 18px;
+  padding: clamp(48px, 5vw, 72px) clamp(40px, 4.6vw, 56px);
+  border-radius: 34px;
+  background:
+    radial-gradient(circle at 20% 16%, rgba(255, 255, 255, 0.98), transparent 36%),
+    linear-gradient(180deg, #f0f9ff 0%, #deeffb 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82);
+  overflow: hidden;
+}
+
+.forgot-hero::after {
+  position: absolute;
+  inset: auto -18% -14% -12%;
+  height: 36%;
+  border-radius: 50% 50% 0 0;
+  background: linear-gradient(90deg, rgba(130, 225, 211, 0.44), rgba(135, 207, 245, 0.46));
+  content: '';
+}
+
+.forgot-hero__content {
+  position: relative;
+  z-index: 1;
+}
+
+.forgot-hero .login-brand {
+  position: relative;
+  z-index: 2;
+}
+
+.forgot-hero h1 {
+  max-width: 16.5ch;
+  margin: 0;
+  color: #0a2b63;
+  font-size: clamp(2.45rem, 3.2vw, 3.4rem);
+  font-weight: 800;
+  line-height: 1.08;
+}
+
+.forgot-hero__content > p {
+  max-width: 34rem;
+  margin: 18px 0 0;
+  color: #45607e;
+  font-size: clamp(1.05rem, 1.3vw, 1.32rem);
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.forgot-feature-list {
+  display: grid;
+  gap: 10px;
+  width: min(100%, 476px);
+  margin-top: 20px;
+}
+
+.forgot-feature {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  min-height: 98px;
+  padding: 16px 18px;
+  border: 1px solid rgba(222, 235, 246, 0.92);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 14px 32px rgba(42, 77, 116, 0.11);
+  backdrop-filter: blur(12px);
+}
+
+.forgot-feature__icon {
+  display: grid;
+  width: 56px;
+  height: 56px;
+  place-items: center;
+  border-radius: 50%;
+  background: #e7f4ff;
+  color: #0a83df;
+}
+
+.forgot-feature__icon--shield {
+  color: #147ad6;
+}
+
+.forgot-feature svg,
+.forgot-input-shell svg,
+.forgot-back-link svg,
+.forgot-note svg {
+  display: block;
+  width: 25px;
+  height: 25px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.9;
+}
+
+.forgot-feature h2 {
+  margin: 0;
+  color: #0a1b3c;
+  font-size: 0.98rem;
+  font-weight: 800;
+}
+
+.forgot-feature p {
+  margin: 5px 0 0;
+  color: #455b7c;
+  font-size: 0.94rem;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+.forgot-hospital {
+  position: absolute;
+  z-index: 1;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 264px;
+  pointer-events: none;
+}
+
+.forgot-cloud {
+  position: absolute;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.forgot-cloud::before,
+.forgot-cloud::after {
+  position: absolute;
+  border-radius: 50%;
+  background: inherit;
+  content: '';
+}
+
+.forgot-cloud--one {
+  left: 8%;
+  top: 62px;
+  width: 76px;
+  height: 18px;
+}
+
+.forgot-cloud--one::before {
+  left: 12px;
+  bottom: 4px;
+  width: 28px;
+  height: 28px;
+}
+
+.forgot-cloud--one::after {
+  right: 10px;
+  bottom: 2px;
+  width: 20px;
+  height: 20px;
+}
+
+.forgot-cloud--two {
+  left: 31%;
+  top: 72px;
+  width: 52px;
+  height: 14px;
+}
+
+.forgot-cloud--two::before {
+  left: 10px;
+  bottom: 2px;
+  width: 22px;
+  height: 22px;
+}
+
+.forgot-cloud--two::after {
+  right: 8px;
+  bottom: 1px;
+  width: 17px;
+  height: 17px;
+}
+
+.forgot-cloud--three {
+  right: 26%;
+  top: 56px;
+  width: 96px;
+  height: 23px;
+}
+
+.forgot-cloud--three::before {
+  left: 16px;
+  bottom: 4px;
+  width: 38px;
+  height: 38px;
+}
+
+.forgot-cloud--three::after {
+  right: 14px;
+  bottom: 2px;
+  width: 30px;
+  height: 30px;
+}
+
+.forgot-shield {
+  position: absolute;
+  left: 15%;
+  bottom: 28px;
+  display: grid;
+  width: 148px;
+  height: 172px;
+  place-items: center;
+  border-radius: 46% 46% 52% 52% / 22% 22% 62% 62%;
+  background: linear-gradient(180deg, #69b7f7, #2382df);
+  clip-path: polygon(50% 0, 92% 18%, 86% 70%, 50% 100%, 14% 70%, 8% 18%);
+  box-shadow: 0 18px 30px rgba(31, 118, 207, 0.23);
+}
+
+.forgot-shield span,
+.forgot-shield span::before {
+  display: block;
+  border-radius: 5px;
+  background: #ffffff;
+  content: '';
+}
+
+.forgot-shield span {
+  width: 66px;
+  height: 22px;
+}
+
+.forgot-shield span::before {
+  width: 22px;
+  height: 66px;
+  margin: -22px auto 0;
+}
+
+.forgot-building {
+  position: absolute;
+  bottom: 26px;
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  padding: 24px 26px 0;
+  border-radius: 6px 6px 0 0;
+  background: linear-gradient(180deg, #d9ecff, #b9dcf9);
+  box-shadow: 0 14px 26px rgba(48, 126, 195, 0.14);
+}
+
+.forgot-building::before {
+  position: absolute;
+  top: -16px;
+  left: 50%;
+  width: 76%;
+  height: 22px;
+  border-radius: 6px 6px 0 0;
+  background: #7eb7ef;
+  content: '';
+  transform: translateX(-50%);
+}
+
+.forgot-building--main {
+  right: 29%;
+  width: 160px;
+  height: 150px;
+  grid-template-columns: repeat(3, 18px);
+}
+
+.forgot-building--side {
+  right: 12%;
+  width: 132px;
+  height: 116px;
+  grid-template-columns: repeat(2, 18px);
+  opacity: 0.72;
+}
+
+.forgot-building span {
+  width: 15px;
+  height: 20px;
+  border-radius: 3px;
+  background: #76b7ee;
+}
+
+.forgot-building--main span:nth-last-child(1) {
+  width: 48px;
+  height: 38px;
+  grid-column: 1 / -1;
+  margin-top: 2px;
+}
+
+.forgot-tree {
+  position: absolute;
+  bottom: 24px;
+  width: 24px;
+  height: 64px;
+  border-radius: 999px 999px 5px 5px;
+  background: linear-gradient(180deg, #76d6b6, #49af91);
+}
+
+.forgot-tree::after {
+  position: absolute;
+  bottom: 0;
+  left: 10px;
+  width: 4px;
+  height: 28px;
+  border-radius: 999px;
+  background: #7d8a91;
+  content: '';
+}
+
+.forgot-tree--one {
+  left: 10%;
+  transform: scale(0.82);
+}
+
+.forgot-tree--two {
+  right: 18%;
+}
+
+.forgot-form-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  padding: clamp(42px, 6vw, 86px) clamp(30px, 5.5vw, 86px);
+}
+
+.forgot-card {
+  width: min(100%, 748px);
+  min-height: min(706px, calc(100lvh - 128px));
+  padding: clamp(44px, 5.2vw, 78px) clamp(34px, 5vw, 72px);
+  border: 1px solid #dfe8f2;
+  border-radius: 17px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 22px 52px rgba(26, 55, 92, 0.14);
+}
+
+.forgot-card__eyebrow {
+  margin: 0 0 18px;
+  color: #0aa7a7;
+  font-size: 0.92rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.forgot-card h2 {
+  margin: 0;
+  color: #0a2b63;
+  font-size: clamp(2rem, 2.65vw, 2.55rem);
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.forgot-card__subtitle {
+  max-width: 36rem;
+  margin: 18px 0 0;
+  color: #4f6382;
+  font-size: clamp(1rem, 1.2vw, 1.12rem);
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.forgot-form {
+  display: grid;
+  gap: 34px;
+  margin-top: 44px;
+}
+
+.forgot-input-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 24px;
+  align-items: center;
+  min-height: 62px;
+  padding: 0 18px;
+  border: 1px solid #d3deea;
+  border-radius: 7px;
+  background: #ffffff;
+  color: #60708d;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.forgot-input-shell:focus-within {
+  border-color: #51a9db;
+  box-shadow: 0 0 0 4px rgba(81, 169, 219, 0.12);
+}
+
+.forgot-input-shell input {
+  min-width: 0;
+  min-height: 60px;
+  padding: 0 12px 0 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #53617a;
+  font-weight: 600;
+}
+
+.forgot-input-shell input::placeholder {
+  color: #8a96ac;
+  opacity: 1;
+}
+
+.forgot-submit {
+  min-height: 58px;
+  border-radius: 6px;
+}
+
+.forgot-divider {
+  height: 1px;
+  margin: 34px 0 24px;
+  background: #e1e8f2;
+}
+
+.forgot-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: #1570d4;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.forgot-back-link:hover {
+  text-decoration: underline;
+}
+
+.forgot-back-link svg {
+  width: 24px;
+  height: 24px;
+  stroke-width: 2.2;
+}
+
+.forgot-note {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  align-items: start;
+  gap: 14px;
+  margin-top: 28px;
+  padding: 16px 18px;
+  border: 1px solid #cfe2f6;
+  border-radius: 7px;
+  background: #f4fbff;
+  color: #51627d;
+}
+
+.forgot-note svg {
+  width: 22px;
+  height: 22px;
+  margin-top: 2px;
+  color: #1687e2;
+}
+
+.forgot-note p {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 500;
+  line-height: 1.48;
+}
+
 @media (max-width: 1120px) {
+  .forgot-page {
+    grid-template-columns: 1fr;
+    overflow: visible;
+  }
+
+  .forgot-hero {
+    min-height: auto;
+    margin: 18px 18px 0;
+    padding-bottom: 240px;
+  }
+
+  .forgot-form-panel {
+    padding: 32px 24px 44px;
+  }
+
+  .forgot-card {
+    min-height: auto;
+  }
+
   .login-page:not(.register-page) {
     grid-template-columns: 1fr;
     min-height: 100svh;
@@ -1525,6 +2018,30 @@ button {
 }
 
 @media (max-width: 900px) {
+  .forgot-hero {
+    padding: 36px 28px 220px;
+  }
+
+  .forgot-hero h1 {
+    max-width: 14ch;
+  }
+
+  .forgot-feature-list {
+    width: 100%;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .forgot-feature {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    min-height: 170px;
+    text-align: center;
+  }
+
+  .forgot-hospital {
+    opacity: 0.72;
+  }
+
   .login-page {
     grid-template-columns: 1fr;
     min-height: 100svh;
@@ -1577,12 +2094,86 @@ button {
 }
 
 @media (max-width: 640px) {
+  .forgot-hero {
+    margin: 10px 10px 0;
+    padding: 28px 18px 180px;
+    border-radius: 24px;
+  }
+
+  .forgot-hero h1 {
+    max-width: 100%;
+    font-size: clamp(2.15rem, 11vw, 3rem);
+  }
+
+  .forgot-hero__content > p {
+    font-size: 1rem;
+  }
+
+  .forgot-feature-list {
+    grid-template-columns: 1fr;
+  }
+
+  .forgot-feature {
+    grid-template-columns: 52px minmax(0, 1fr);
+    justify-items: stretch;
+    min-height: 86px;
+    padding: 14px;
+    text-align: left;
+  }
+
+  .forgot-feature__icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .forgot-feature p {
+    font-size: 0.9rem;
+  }
+
+  .forgot-hospital {
+    height: 190px;
+    transform: scale(0.82);
+    transform-origin: bottom center;
+  }
+
+  .forgot-form-panel {
+    padding: 20px 14px 30px;
+  }
+
+  .forgot-card {
+    padding: 30px 18px;
+    border-radius: 14px;
+  }
+
+  .forgot-form {
+    gap: 22px;
+    margin-top: 28px;
+  }
+
+  .forgot-input-shell {
+    min-height: 54px;
+    padding: 0 14px;
+  }
+
+  .forgot-input-shell input {
+    min-height: 52px;
+  }
+
+  .forgot-submit {
+    min-height: 54px;
+  }
+
+  .forgot-note {
+    grid-template-columns: 1fr;
+  }
+
   .login-hero {
     padding: 28px 18px 22px;
   }
 
   .login-brand {
     margin-bottom: 20px;
+    width: 172px;
   }
 
   .login-hero h1 {
@@ -1813,6 +2404,20 @@ button {
 }
 
 @media (max-width: 420px) {
+  .forgot-hero {
+    padding-bottom: 162px;
+  }
+
+  .forgot-feature {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .forgot-hospital {
+    transform: scale(0.72);
+  }
+
   .app-shell,
   .auth-panel {
     padding: 14px;

@@ -46,6 +46,7 @@ interface PatientRegistrationFormProps {
   selectedOrganization?: Organization | null;
   onChangeOrganization?: () => void;
   onRegistrationSuccess: (registeredEmail: string) => void;
+  showSelectedOrganizationSummary?: boolean;
   footer?: ReactNode;
 }
 
@@ -126,6 +127,7 @@ export function PatientRegistrationForm({
   selectedOrganization,
   onChangeOrganization,
   onRegistrationSuccess,
+  showSelectedOrganizationSummary = true,
   footer,
 }: PatientRegistrationFormProps): ReactElement {
   const registerMutation = useRegisterMutation();
@@ -189,7 +191,7 @@ export function PatientRegistrationForm({
 
   return (
     <>
-      {selectedOrganization ? (
+      {selectedOrganization && showSelectedOrganizationSummary ? (
         <section className="selected-organization" aria-label="Odabrana ustanova">
           <div>
             <span>Odabrana ustanova</span>

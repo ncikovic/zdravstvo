@@ -7,10 +7,10 @@ import { loginRequestSchema } from '@zdravstvo/contracts';
 import type { ReactElement } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import type { z } from 'zod';
 
-import { PatientRegistrationForm } from '@/components';
+import { AuthBrandLogo, PatientRegistrationForm } from '@/components';
 import {
   useLoginMutation,
   usePublicOrganizationsQuery,
@@ -193,18 +193,28 @@ export function LoginPage({ initialStep = 'login' }: LoginPageProps): ReactEleme
   const isPending = loginMutation.isPending || isSubmitting;
   const isSelecting = selectOrganizationMutation.isPending;
   const isRegistrationFlow = !organizationSelection && authStep !== 'login';
+  const pageClassName = isRegistrationFlow
+    ? `login-page register-page ${authStep === 'register' ? 'patient-register-page' : 'organization-register-page'}`
+    : 'login-page';
+  const formPanelClassName = isRegistrationFlow
+    ? 'login-form-panel register-form-panel'
+    : 'login-form-panel';
+  const heroClassName = isRegistrationFlow ? 'login-hero register-hero' : 'login-hero';
+  const heroContentClassName = isRegistrationFlow
+    ? 'login-hero__content register-hero__content'
+    : 'login-hero__content';
   const cardClassName =
     authStep === 'login' && !organizationSelection
       ? 'login-card'
       : authStep === 'register'
-        ? 'login-card auth-flow-card auth-flow-card--register'
+        ? 'login-card register-card auth-flow-card auth-flow-card--register'
         : 'login-card auth-flow-card';
 
   return (
-    <main className="login-page">
-      <section className="login-hero" aria-label="Informacije o prijavi">
-        <div className="login-hero__content">
-          <p className="login-brand">ZDRAVSTVO</p>
+    <main className={pageClassName}>
+      <section className={heroClassName} aria-label="Informacije o prijavi">
+        <div className={heroContentClassName}>
+          <AuthBrandLogo />
           <h1>
             {isRegistrationFlow
               ? 'Otvorite pacijentski račun jednostavno i sigurno'
@@ -327,7 +337,7 @@ export function LoginPage({ initialStep = 'login' }: LoginPageProps): ReactEleme
         </div>
       </section>
 
-      <section className="login-form-panel" aria-label="Prijava">
+      <section className={formPanelClassName} aria-label="Prijava">
         <div className={cardClassName}>
           <div className="auth-step" key={organizationSelection ? 'loginOrganization' : authStep}>
             {organizationSelection ? (
@@ -462,7 +472,7 @@ export function LoginPage({ initialStep = 'login' }: LoginPageProps): ReactEleme
                       <span aria-hidden="true" />
                       Zapamti me
                     </label>
-                    <a href="#forgot-password">Zaboravili ste lozinku?</a>
+                    <Link to="/forgot-password">Zaboravili ste lozinku?</Link>
                   </div>
 
                   <button className="login-submit" type="submit" disabled={isPending}>
@@ -581,6 +591,7 @@ export function LoginPage({ initialStep = 'login' }: LoginPageProps): ReactEleme
                   selectedOrganization={selectedRegistrationOrganization}
                   onChangeOrganization={() => setAuthStep('organizationSelection')}
                   onRegistrationSuccess={handleRegistrationSuccess}
+                  showSelectedOrganizationSummary={false}
                   footer={
                     <p className="login-footer register-footer">
                       Već imate račun?

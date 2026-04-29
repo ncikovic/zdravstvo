@@ -2,6 +2,8 @@ import type {
   ApiResponse,
   LoginRequestDto,
   LoginResponseDto,
+  ForgotPasswordRequestDto,
+  ForgotPasswordResponseDto,
   RegisterRequestDto,
   RegisterResponseDto,
   SelectOrganizationRequestDto,
@@ -37,6 +39,16 @@ export class AuthService {
       '/auth/register',
       payload,
     )
+
+    return response.data.data
+  }
+
+  public async requestPasswordReset(
+    payload: ForgotPasswordRequestDto,
+  ): Promise<ForgotPasswordResponseDto> {
+    const response = await apiClient.post<
+      ApiResponse<ForgotPasswordResponseDto>
+    >('/auth/forgot-password', payload)
 
     return response.data.data
   }

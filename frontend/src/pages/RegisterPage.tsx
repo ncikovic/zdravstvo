@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
-import { FieldIcon, PatientRegistrationForm } from '@/components';
+import { AuthBrandLogo, FieldIcon, PatientRegistrationForm } from '@/components';
 
 const MedicalIllustration = (): ReactElement => (
   <div className="medical-illustration" aria-hidden="true">
@@ -74,7 +74,7 @@ export function RegisterPage(): ReactElement {
     <main className="login-page register-page">
       <section className="login-hero register-hero" aria-label="Informacije o registraciji">
         <div className="login-hero__content register-hero__content">
-          <p className="login-brand">ZDRAVSTVO</p>
+          <AuthBrandLogo />
           <h1>Otvorite pacijentski račun jednostavno i sigurno</h1>
           <p className="login-hero__lead">
             Registrirajte se kako biste upravljali terminima, pratili obavijesti i imali pregled
