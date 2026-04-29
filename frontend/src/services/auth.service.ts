@@ -4,6 +4,8 @@ import type {
   LoginResponseDto,
   RegisterRequestDto,
   RegisterResponseDto,
+  SelectOrganizationRequestDto,
+  SelectOrganizationResponseDto,
 } from '@zdravstvo/contracts'
 
 import { apiClient } from '@/services/api'
@@ -14,6 +16,16 @@ export class AuthService {
       '/auth/login',
       payload,
     )
+
+    return response.data.data
+  }
+
+  public async selectOrganization(
+    payload: SelectOrganizationRequestDto,
+  ): Promise<SelectOrganizationResponseDto> {
+    const response = await apiClient.post<
+      ApiResponse<SelectOrganizationResponseDto>
+    >('/auth/select-organization', payload)
 
     return response.data.data
   }

@@ -4,6 +4,8 @@ import type {
   LoginResponseDto,
   RegisterRequestDto,
   RegisterResponseDto,
+  SelectOrganizationRequestDto,
+  SelectOrganizationResponseDto,
 } from '@zdravstvo/contracts';
 import type { Request, Response } from 'express';
 
@@ -29,6 +31,21 @@ export class AuthController {
 
     response.status(200).json({
       data: loginResponse,
+    });
+  }
+
+  public async selectOrganization(
+    request: Request<
+      unknown,
+      ApiResponse<SelectOrganizationResponseDto>,
+      SelectOrganizationRequestDto
+    >,
+    response: Response<ApiResponse<SelectOrganizationResponseDto>>
+  ): Promise<void> {
+    const authResponse = await authService.selectOrganization(request.body);
+
+    response.status(200).json({
+      data: authResponse,
     });
   }
 }

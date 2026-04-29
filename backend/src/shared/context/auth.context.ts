@@ -18,12 +18,18 @@ export interface AuthenticatedRequestContext {
   token: AuthTokenMetadata;
 }
 
+type RequestWithAuth = Request & {
+  auth?: AuthenticatedRequestContext;
+};
+
 export const requireAuthenticatedUser = (
   request: Request
 ): AuthenticatedRequestContext => {
-  if (!request.auth) {
+  const authenticatedRequest = request as RequestWithAuth;
+
+  if (!authenticatedRequest.auth) {
     throw AppError.unauthorized();
   }
 
-  return request.auth;
+  return authenticatedRequest.auth;
 };
