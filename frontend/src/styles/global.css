@@ -2133,8 +2133,12 @@ button {
 .public-status-page {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(540px, 38.5vw);
+  height: 100vh;
+  height: 100lvh;
+  height: 100dvh;
   min-height: 100vh;
   min-height: 100lvh;
+  min-height: 100dvh;
   overflow: hidden;
   background:
     radial-gradient(circle at 73% 44%, rgba(167, 224, 248, 0.42), transparent 28%),
@@ -2699,14 +2703,15 @@ button {
   align-items: center;
   justify-content: center;
   min-width: 0;
-  padding: clamp(42px, 5vw, 64px) clamp(24px, 4vw, 58px) clamp(42px, 5vw, 64px) 0;
+  min-height: 0;
+  padding: clamp(24px, 4vh, 44px) clamp(24px, 4vw, 58px) clamp(24px, 4vh, 44px) 0;
   background: linear-gradient(180deg, #ffffff, #f9fbfe);
 }
 
 .public-status-card {
   width: min(100%, 696px);
-  min-height: min(960px, calc(100lvh - 96px));
-  padding: clamp(46px, 4.8vw, 78px) clamp(42px, 4.4vw, 74px);
+  min-height: min(820px, calc(100lvh - 88px));
+  padding: clamp(34px, 5vh, 58px) clamp(42px, 4.4vw, 74px);
   border: 1px solid rgba(224, 234, 244, 0.88);
   border-radius: 28px;
   background: rgba(255, 255, 255, 0.97);
@@ -2716,7 +2721,7 @@ button {
 
 .public-status-page--success .public-status-card {
   min-height: 0;
-  padding-block: clamp(34px, 4.4vh, 58px);
+  padding-block: clamp(28px, 4.2vh, 48px);
 }
 
 .public-status-card__eyebrow {
@@ -2914,6 +2919,11 @@ button {
   height: 240px;
 }
 
+.public-card-visual--not-found {
+  height: 226px;
+  margin-block: 30px 26px;
+}
+
 .public-card-visual__number {
   font-size: clamp(5.9rem, 8vw, 8.8rem);
   font-weight: 900;
@@ -2929,6 +2939,14 @@ button {
   background: linear-gradient(135deg, #19c0b2, #176bd3);
   background-clip: text;
   color: transparent;
+}
+
+.public-card-visual--not-found .public-card-visual__number {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  font-size: clamp(4.8rem, 6.1vw, 6.7rem);
+  transform: translateX(-50%);
 }
 
 .public-card-visual__shield {
@@ -2953,14 +2971,14 @@ button {
 .public-card-visual__document {
   position: absolute;
   left: 50%;
-  bottom: 24px;
-  width: 120px;
-  height: 142px;
+  bottom: 8px;
+  width: 92px;
+  height: 104px;
   border-radius: 10px;
   background:
-    linear-gradient(90deg, #c2e0f7 0 72px, transparent 72px) 34px 44px / 76px 8px no-repeat,
-    linear-gradient(90deg, #d4edf9 0 86px, transparent 86px) 34px 72px / 86px 8px no-repeat,
-    linear-gradient(90deg, #d4edf9 0 58px, transparent 58px) 34px 100px / 58px 8px no-repeat,
+    linear-gradient(90deg, #c2e0f7 0 50px, transparent 50px) 24px 32px / 54px 7px no-repeat,
+    linear-gradient(90deg, #d4edf9 0 58px, transparent 58px) 24px 52px / 58px 7px no-repeat,
+    linear-gradient(90deg, #d4edf9 0 42px, transparent 42px) 24px 72px / 42px 7px no-repeat,
     linear-gradient(135deg, #f9fdff 0 70%, #83c5f4 70% 100%);
   box-shadow: 0 18px 34px rgba(64, 140, 199, 0.13);
   transform: translateX(-50%);
@@ -2968,19 +2986,19 @@ button {
 
 .public-card-visual__plus-badge {
   position: absolute;
-  right: 92px;
-  bottom: 20px;
+  right: 126px;
+  bottom: 10px;
   display: grid;
-  width: 70px;
-  height: 70px;
+  width: 56px;
+  height: 56px;
   place-items: center;
   border-radius: 50%;
   background: linear-gradient(180deg, #69d5e2, #319bd4);
   color: #ffffff;
-  font-size: 3rem;
+  font-size: 2.35rem;
   font-weight: 800;
   line-height: 1;
-  box-shadow: 0 0 0 8px rgba(255, 255, 255, 0.82);
+  box-shadow: 0 0 0 7px rgba(255, 255, 255, 0.82);
 }
 
 .public-status-actions {
@@ -3366,11 +3384,94 @@ button {
     font-size: 0.9rem;
     line-height: 1.38;
   }
+
+  .public-status-page--not-found .public-status-panel {
+    padding-block: 12px;
+  }
+
+  .public-status-page--not-found .public-status-card {
+    width: min(100%, 620px);
+    padding: 26px 54px;
+    border-radius: 22px;
+  }
+
+  .public-status-page--not-found .public-status-card__eyebrow {
+    margin-bottom: 10px;
+    font-size: 0.86rem;
+  }
+
+  .public-status-page--not-found .public-status-card h2 {
+    font-size: clamp(1.95rem, 4.4vh, 2.25rem);
+  }
+
+  .public-status-page--not-found .public-status-card__subtitle {
+    margin-top: 12px;
+    font-size: 0.96rem;
+    line-height: 1.42;
+  }
+
+  .public-status-page--not-found .public-card-visual {
+    height: 148px;
+    margin-block: 16px 14px;
+  }
+
+  .public-status-page--not-found .public-card-visual__number {
+    font-size: clamp(4.2rem, 9vh, 5.2rem);
+  }
+
+  .public-status-page--not-found .public-card-visual__document {
+    bottom: 0;
+    width: 76px;
+    height: 76px;
+    background:
+      linear-gradient(90deg, #c2e0f7 0 42px, transparent 42px) 20px 24px / 44px 6px no-repeat,
+      linear-gradient(90deg, #d4edf9 0 48px, transparent 48px) 20px 39px / 48px 6px no-repeat,
+      linear-gradient(90deg, #d4edf9 0 34px, transparent 34px) 20px 54px / 34px 6px no-repeat,
+      linear-gradient(135deg, #f9fdff 0 70%, #83c5f4 70% 100%);
+  }
+
+  .public-status-page--not-found .public-card-visual__plus-badge {
+    right: 138px;
+    bottom: 0;
+    width: 44px;
+    height: 44px;
+    font-size: 1.9rem;
+    box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.82);
+  }
+
+  .public-status-page--not-found .public-status-actions {
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .public-status-page--not-found .public-status-button {
+    min-height: 52px;
+    padding-block: 12px;
+    font-size: 1rem;
+  }
+
+  .public-status-page--not-found .public-status-divider {
+    gap: 14px;
+    font-size: 0.92rem;
+  }
+
+  .public-status-page--not-found .public-status-note {
+    gap: 12px;
+    margin-top: 16px;
+    padding: 12px 16px;
+  }
+
+  .public-status-page--not-found .public-status-note p {
+    font-size: 0.9rem;
+    line-height: 1.38;
+  }
 }
 
 @media (max-width: 1120px) {
   .public-status-page {
     grid-template-columns: 1fr;
+    height: auto;
+    min-height: 100svh;
     overflow: visible;
   }
 
