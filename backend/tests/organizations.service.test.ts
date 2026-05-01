@@ -4,6 +4,8 @@ import test from 'node:test';
 import { AppError } from '../src/errors/AppError.js';
 import type {
   CreateOrganizationRecordInput,
+  FindOrganizationsPageInput,
+  OrganizationPageRecord,
   UpdateOrganizationRecordInput,
 } from '../src/repositories/index.js';
 import { OrganizationsService } from '../src/services/organizations.service.js';
@@ -54,6 +56,22 @@ class InMemoryOrganizationsRepository {
 
   public async findAll(): Promise<OrganizationRecord[]> {
     return this.records;
+  }
+
+  public async findPage(input: FindOrganizationsPageInput): Promise<OrganizationPageRecord> {
+    const normalizedSearch = input.search?.toLowerCase() ?? null;
+    const organizations = normalizedSearch
+      ? this.records.filter((organization) =>
+          [organization.name, organization.city, organization.address].some((value) =>
+            value?.toLowerCase().includes(normalizedSearch),
+          ),
+        )
+      : this.records;
+
+    return {
+      organizations: organizations.slice(input.offset, input.offset + input.limit),
+      totalItems: organizations.length,
+    };
   }
 
   public async findById(organizationId: string): Promise<OrganizationRecord | null> {

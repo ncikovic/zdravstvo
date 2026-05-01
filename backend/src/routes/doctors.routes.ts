@@ -6,7 +6,7 @@ import { asyncHandler } from "../middleware/asyncHandler.js";
 import { validateRequest } from "../middleware/validateRequest.js";
 import {
   authenticateRequest,
-  authorizeRoles,
+  requireRoles,
 } from "../shared/middleware/index.js";
 import {
   createDoctorTimeOffValidationSchemas,
@@ -18,13 +18,15 @@ import {
   updateDoctorValidationSchemas,
 } from "../validations/index.js";
 
-const canManageDoctors = authorizeRoles(OrganizationUserRole.ADMIN);
-const canReadDoctors = authorizeRoles(
+const canManageDoctors = requireRoles(
   OrganizationUserRole.ADMIN,
   OrganizationUserRole.RECEPTION,
-  OrganizationUserRole.DOCTOR,
 );
-const canManageDoctorSchedules = authorizeRoles(
+const canReadDoctors = requireRoles(
+  OrganizationUserRole.ADMIN,
+  OrganizationUserRole.RECEPTION,
+);
+const canManageDoctorSchedules = requireRoles(
   OrganizationUserRole.ADMIN,
   OrganizationUserRole.RECEPTION,
 );

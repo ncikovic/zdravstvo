@@ -4,7 +4,10 @@ import { Router } from 'express';
 import { organizationsController } from '../controllers/index.js';
 import { asyncHandler } from '../middleware/asyncHandler.js';
 import { validateRequest } from '../middleware/validateRequest.js';
-import { authenticateRequest, authorizeRoles } from '../shared/middleware/index.js';
+import {
+  authenticateRequest,
+  requireRoles,
+} from '../shared/middleware/index.js';
 import {
   createOrganizationValidationSchemas,
   deleteOrganizationValidationSchemas,
@@ -13,11 +16,7 @@ import {
   updateOrganizationValidationSchemas,
 } from '../validations/index.js';
 
-const canManageOrganizations = authorizeRoles(OrganizationUserRole.ADMIN);
-const canReadOrganizations = authorizeRoles(
-  OrganizationUserRole.ADMIN,
-  OrganizationUserRole.RECEPTION,
-);
+const canManageOrganizations = requireRoles(OrganizationUserRole.ADMIN);
 
 export const organizationsRouter = Router();
 
@@ -34,7 +33,7 @@ organizationsRouter.post(
 organizationsRouter.get(
   '/organizations',
   authenticateRequest,
-  canReadOrganizations,
+  canManageOrganizations,
   asyncHandler(async (request, response) => {
     await organizationsController.list(request, response);
   }),
@@ -51,7 +50,7 @@ organizationsRouter.get(
 organizationsRouter.get(
   '/organizations/:id',
   authenticateRequest,
-  canReadOrganizations,
+  canManageOrganizations,
   validateRequest(organizationIdValidationSchemas),
   asyncHandler(async (request, response) => {
     await organizationsController.getById(request, response);

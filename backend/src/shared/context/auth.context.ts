@@ -10,6 +10,7 @@ export interface AuthTokenMetadata {
 
 export interface AuthenticatedRequestContext {
   userId: string;
+  orgUserId: string;
   organizationUserId: string;
   organizationId: string;
   role: OrganizationUserRole;
