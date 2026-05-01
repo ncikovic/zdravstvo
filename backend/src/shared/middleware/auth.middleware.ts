@@ -1,4 +1,4 @@
-import { OrganizationUserRole, UserStatus } from '@zdravstvo/contracts';
+import { UserStatus } from '@zdravstvo/contracts';
 import type { RequestHandler } from 'express';
 import jwt from 'jsonwebtoken';
 
@@ -41,6 +41,7 @@ const mapAuthContext = (
 ): AuthenticatedRequestContext => {
   return {
     userId: context.userId,
+    orgUserId: context.organizationUserId,
     organizationUserId: context.organizationUserId,
     organizationId: context.organizationId,
     role: context.role,
@@ -114,23 +115,3 @@ export const authenticateRequest: RequestHandler = async (
     next(error);
   }
 };
-
-export const authorizeRoles =
-  (...allowedRoles: readonly OrganizationUserRole[]): RequestHandler =>
-  (request, _response, next): void => {
-    try {
-      const authenticatedRequest = request as RequestWithAuth;
-
-      if (!authenticatedRequest.auth) {
-        throw AppError.unauthorized();
-      }
-
-      if (!allowedRoles.includes(authenticatedRequest.auth.role)) {
-        throw AppError.forbidden();
-      }
-
-      next();
-    } catch (error: unknown) {
-      next(error);
-    }
-  };

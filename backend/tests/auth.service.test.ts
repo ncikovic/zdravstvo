@@ -6,6 +6,7 @@ import { OrganizationUserRole, UserStatus } from "@zdravstvo/contracts";
 import { AppError } from "../src/errors/AppError.js";
 import { AuthService } from "../src/services/auth.service.js";
 import type {
+  OrganizationRecord,
   OrganizationUserRecord,
   PatientProfileRecord,
   UserRecord,
@@ -19,11 +20,6 @@ const ORG_USER_ID = "55555555-5555-4555-8555-555555555555";
 const SECOND_ORG_USER_ID = "66666666-6666-4666-8666-666666666666";
 const PASSWORD = "Demo1234!";
 const PASSWORD_HASH = "hashed-password";
-
-interface MinimalOrganizationRecord {
-  id: string;
-  name: string;
-}
 
 interface CreateUserInput {
   email: string;
@@ -64,7 +60,7 @@ class InMemoryAuthStore {
   public users: UserRecord[] = [];
   public profiles: PatientProfileRecord[] = [];
   public memberships: OrganizationUserRecord[] = [];
-  public organizations: MinimalOrganizationRecord[] = [];
+  public organizations: OrganizationRecord[] = [];
   public nextDatabaseError: DatabaseErrorLike | null = null;
 
   private nextId = 0;
@@ -151,6 +147,13 @@ class InMemoryAuthRepository {
     this.store.organizations.push({
       id,
       name: input.name,
+      address: null,
+      city: null,
+      phone: null,
+      email: null,
+      timezone: input.timezone,
+      createdAt: new Date("2026-04-21T18:00:00.000Z"),
+      updatedAt: new Date("2026-04-21T18:00:00.000Z"),
     });
 
     return id;
@@ -217,7 +220,7 @@ class InMemoryOrganizationsRepository {
 
   public async findMinimalByIds(
     organizationIds: readonly string[],
-  ): Promise<MinimalOrganizationRecord[]> {
+  ): Promise<Array<Pick<OrganizationRecord, "id" | "name">>> {
     return this.store.organizations.filter((organization) =>
       organizationIds.includes(organization.id),
     );
@@ -225,7 +228,7 @@ class InMemoryOrganizationsRepository {
 
   public async findById(
     organizationId: string,
-  ): Promise<MinimalOrganizationRecord | null> {
+  ): Promise<OrganizationRecord | null> {
     return (
       this.store.organizations.find(
         (organization) => organization.id === organizationId,
@@ -254,11 +257,18 @@ const seedUser = (
 
 const seedOrganization = (
   store: InMemoryAuthStore,
-  overrides: Partial<MinimalOrganizationRecord> = {},
-): MinimalOrganizationRecord => {
+  overrides: Partial<OrganizationRecord> = {},
+): OrganizationRecord => {
   const organization = {
     id: ORGANIZATION_ID,
     name: "Poliklinika Zagreb",
+    address: null,
+    city: null,
+    phone: null,
+    email: null,
+    timezone: "Europe/Zagreb",
+    createdAt: new Date("2026-04-21T18:00:00.000Z"),
+    updatedAt: new Date("2026-04-21T18:00:00.000Z"),
     ...overrides,
   };
 
