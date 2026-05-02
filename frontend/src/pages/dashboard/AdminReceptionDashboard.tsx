@@ -1,14 +1,9 @@
 import type { ReactElement } from 'react'
 
 import { AppIcon } from '@/components'
+import type { AdminReceptionDashboard as AdminReceptionDashboardData } from '@/types'
 
-import {
-  adminActivityMetrics,
-  adminAvailableSlots,
-  adminNotifications,
-  adminScheduleRows,
-  adminStats,
-} from './dashboard.data'
+import { mapAdminReceptionDashboard } from './dashboard.mappers'
 import {
   AvatarBadge,
   DashboardSection,
@@ -17,7 +12,15 @@ import {
   StatusBadge,
 } from './DashboardPrimitives'
 
-export function AdminReceptionDashboard(): ReactElement {
+interface AdminReceptionDashboardProps {
+  dashboard: AdminReceptionDashboardData
+}
+
+export function AdminReceptionDashboard({
+  dashboard,
+}: AdminReceptionDashboardProps): ReactElement {
+  const view = mapAdminReceptionDashboard(dashboard)
+
   return (
     <div className="dashboard-page dashboard-page--admin">
       <div className="dashboard-page__hero">
@@ -27,13 +30,13 @@ export function AdminReceptionDashboard(): ReactElement {
         </div>
         <button className="dashboard-date-button" type="button">
           <AppIcon name="calendar" />
-          Petak, 23. svibnja 2025.
+          {view.dateLabel}
           <AppIcon name="chevronDown" />
         </button>
       </div>
 
       <div className="dashboard-stat-grid dashboard-stat-grid--four">
-        {adminStats.map((stat) => (
+        {view.stats.map((stat) => (
           <DashboardStatCard key={stat.label} stat={stat} />
         ))}
       </div>
@@ -55,7 +58,7 @@ export function AdminReceptionDashboard(): ReactElement {
               <span>Status</span>
               <span aria-hidden="true" />
             </div>
-            {adminScheduleRows.map((row) => (
+            {view.scheduleRows.length > 0 ? view.scheduleRows.map((row) => (
               <div className="dashboard-table__row" role="row" key={`${row.time}-${row.patientName}`}>
                 <strong className="dashboard-table__time">{row.time}</strong>
                 <span className="dashboard-table__person">
@@ -75,7 +78,25 @@ export function AdminReceptionDashboard(): ReactElement {
                   <AppIcon name="chevronRight" />
                 </button>
               </div>
-            ))}
+            )) : (
+              <div className="dashboard-table__row" role="row">
+                <strong className="dashboard-table__time">--:--</strong>
+                <span className="dashboard-table__person">
+                  <strong>Nema termina za danas</strong>
+                  <small>Raspored je prazan</small>
+                </span>
+                <span className="dashboard-table__doctor">
+                  <AvatarBadge initials="--" tone="blue" />
+                  <span>
+                    <strong>Nema liječnika</strong>
+                    <small>Današnji raspored</small>
+                  </span>
+                </span>
+                <StatusBadge tone="blue">Nema unosa</StatusBadge>
+                <StatusBadge tone="teal">Mirno</StatusBadge>
+                <span aria-hidden="true" />
+              </div>
+            )}
           </div>
         </DashboardSection>
 
@@ -86,8 +107,8 @@ export function AdminReceptionDashboard(): ReactElement {
             footerLabel="Pogledaj sve dostupne termine"
           >
             <div className="dashboard-compact-list">
-              {adminAvailableSlots.map((slot) => (
-                <div className="dashboard-compact-row" key={slot.title}>
+              {view.availableSlots.map((slot) => (
+                <div className="dashboard-compact-row" key={`${slot.title}-${slot.meta}`}>
                   <IconTile icon={slot.icon} tone={slot.tone} />
                   <span>
                     <strong>{slot.title}</strong>
@@ -109,8 +130,8 @@ export function AdminReceptionDashboard(): ReactElement {
             footerLabel="Pogledaj sve obavijesti"
           >
             <div className="dashboard-compact-list">
-              {adminNotifications.map((notification) => (
-                <div className="dashboard-compact-row" key={notification.title}>
+              {view.notifications.map((notification) => (
+                <div className="dashboard-compact-row" key={`${notification.title}-${notification.meta}`}>
                   <IconTile icon={notification.icon} tone={notification.tone} />
                   <span>
                     <strong>{notification.title}</strong>
@@ -133,7 +154,7 @@ export function AdminReceptionDashboard(): ReactElement {
         className="dashboard-section--activity"
       >
         <div className="dashboard-metric-strip">
-          {adminActivityMetrics.map((metric) => (
+          {view.activityMetrics.map((metric) => (
             <div className="dashboard-metric" key={metric.label}>
               <IconTile icon={metric.icon} tone={metric.tone} />
               <span>
