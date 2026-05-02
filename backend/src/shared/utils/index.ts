@@ -1,2 +1,2 @@
-export * from './uuid.js';
-export * from './jwt.js';
+export * from "./jwt.js";
+export { bufferToUuid, uuidToBuffer } from "./binaryUuid.js";
