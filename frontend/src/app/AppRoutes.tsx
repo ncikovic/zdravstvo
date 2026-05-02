@@ -1,18 +1,85 @@
 import type { ReactElement } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 
+import { AppLayout } from '@/components';
 import {
   AccessDeniedPage,
   AccountCreatedPage,
   ConfirmEmailPage,
+  DashboardPage,
   ForgotPasswordPage,
-  HomePage,
+  InternalPlaceholderPage,
   LoginPage,
   NotFoundPage,
 } from '@/pages';
+import type { AppIconName } from '@/types';
 
 import { ProtectedRoute, PublicOnlyRoute } from './AuthRoutes';
 import { APP_ROUTES } from './routes';
+
+interface InternalRouteDefinition {
+  path: string;
+  title: string;
+  description: string;
+  icon: AppIconName;
+}
+
+const INTERNAL_PLACEHOLDER_ROUTES: readonly InternalRouteDefinition[] = [
+  {
+    path: APP_ROUTES.appointments,
+    title: 'Termini',
+    description: 'Pregled i upravljanje terminima bit će povezani s postojećom servisnom arhitekturom.',
+    icon: 'calendar',
+  },
+  {
+    path: APP_ROUTES.doctors,
+    title: 'Liječnici',
+    description: 'Administracija liječničkih profila ostaje odvojena od nadzorne ploče.',
+    icon: 'doctor',
+  },
+  {
+    path: APP_ROUTES.patients,
+    title: 'Pacijenti',
+    description: 'Kartoni i popisi pacijenata bit će dostupni kroz namjenske interne stranice.',
+    icon: 'patients',
+  },
+  {
+    path: APP_ROUTES.appointmentTypes,
+    title: 'Vrste termina',
+    description: 'Konfiguracija usluga i vrsta termina ima zasebni radni tok.',
+    icon: 'tag',
+  },
+  {
+    path: APP_ROUTES.audit,
+    title: 'Audit',
+    description: 'Sigurnosni trag aktivnosti prikazivat ce se ovdje kada stranica bude spojena.',
+    icon: 'shieldCheck',
+  },
+  {
+    path: APP_ROUTES.settings,
+    title: 'Postavke',
+    description: 'Postavke računa i ustanove ostaju dostupne kroz zajednički aplikacijski okvir.',
+    icon: 'settings',
+  },
+  {
+    path: APP_ROUTES.schedule,
+    title: 'Moj raspored',
+    description: 'Raspored liječnika bit će izdvojen iz dnevnog pregleda na nadzornoj ploči.',
+    icon: 'calendarCheck',
+  },
+  {
+    path: APP_ROUTES.myAppointments,
+    title: 'Moji termini',
+    description: 'Pacijentov popis termina bit će prikazan na zasebnoj stranici.',
+    icon: 'calendar',
+  },
+  {
+    path: APP_ROUTES.accessibility,
+    title: 'Pristupacnost',
+    description: 'Postavke pristupačnosti bit će dostupne bez utjecaja na zdravstvene podatke.',
+    icon: 'accessibility',
+  },
+];
 
 export function AppRoutes(): ReactElement {
   return (
@@ -31,7 +98,22 @@ export function AppRoutes(): ReactElement {
           <Route path={APP_ROUTES.forgotPassword} element={<ForgotPasswordPage />} />
         </Route>
         <Route element={<ProtectedRoute />}>
-          <Route path={APP_ROUTES.home} element={<HomePage />} />
+          <Route element={<AppLayout />}>
+            <Route path={APP_ROUTES.dashboard} element={<DashboardPage />} />
+            {INTERNAL_PLACEHOLDER_ROUTES.map((route) => (
+              <Route
+                key={route.path}
+                path={route.path}
+                element={
+                  <InternalPlaceholderPage
+                    title={route.title}
+                    description={route.description}
+                    icon={route.icon}
+                  />
+                }
+              />
+            ))}
+          </Route>
         </Route>
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
