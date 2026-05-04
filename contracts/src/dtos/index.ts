@@ -1,5 +1,6 @@
 export * from "./appointment-types/index.js";
 export * from "./auth.dto.js";
+export * from "./dashboard/index.js";
 export * from "./doctors/index.js";
 export * from "./health/index.js";
 export * from "./organizations/index.js";
