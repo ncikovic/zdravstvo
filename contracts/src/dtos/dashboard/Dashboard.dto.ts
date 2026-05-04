@@ -1,4 +1,12 @@
+import { z } from 'zod';
+
 import type { OrganizationUserRole } from '../../enums/index.js';
+
+export const dashboardQuerySchema = z.object({
+  date: z.iso.date().optional(),
+});
+
+export type DashboardQueryDto = z.infer<typeof dashboardQuerySchema>;
 
 export type DashboardAppointmentStatusDto =
   | 'SCHEDULED'

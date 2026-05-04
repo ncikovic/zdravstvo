@@ -7,6 +7,7 @@ import {
   type DashboardFreeSlotDto,
   type DashboardOrganizationDto,
   type DashboardPatientDto,
+  type DashboardQueryDto,
   type DashboardReminderDto,
   type DashboardReminderSummaryDto,
   type DashboardResponseDto,
@@ -226,6 +227,16 @@ const getDayOfWeek = (dateParts: ZonedDateParts): number => {
   ).getUTCDay();
 };
 
+const parseDateOnlyParts = (date: string): ZonedDateParts => {
+  const [year = "0", month = "0", day = "0"] = date.split("-");
+
+  return {
+    year: Number(year),
+    month: Number(month),
+    day: Number(day),
+  };
+};
+
 const parseTimeParts = (value: string): TimeParts => {
   const [hours = "0", minutes = "0", seconds = "0"] = value
     .split(":")
@@ -419,15 +430,22 @@ export class DashboardService {
 
   public async getCurrent(
     context: DashboardRequestContext,
+    query: DashboardQueryDto = {},
   ): Promise<DashboardResponseDto> {
-    const now = new Date();
+    const generatedAt = new Date();
     const organization = await this.dashboardRepository.findOrganization(
       context.organizationId,
     );
     const timeZone = organization?.timezone ?? DEFAULT_TIMEZONE;
-    const today = createDayWindow(now, timeZone);
+    const selectedDateParts = query.date
+      ? parseDateOnlyParts(query.date)
+      : getZonedDateParts(generatedAt, timeZone);
+    const today = query.date
+      ? createDayWindowFromParts(selectedDateParts, timeZone)
+      : createDayWindow(generatedAt, timeZone);
+    const referenceDate = query.date ? today.start : generatedAt;
     const base = {
-      generatedAt: now.toISOString(),
+      generatedAt: generatedAt.toISOString(),
       todayStart: today.start.toISOString(),
       todayEnd: today.end.toISOString(),
       organization: organization
@@ -444,15 +462,27 @@ export class DashboardService {
       context.role === OrganizationUserRole.ADMIN ||
       context.role === OrganizationUserRole.RECEPTION
     ) {
-      return this.getAdminReceptionDashboard(context, timeZone, now, today, base);
+      return this.getAdminReceptionDashboard(
+        context,
+        timeZone,
+        referenceDate,
+        today,
+        base,
+      );
     }
 
     if (context.role === OrganizationUserRole.DOCTOR) {
-      return this.getDoctorDashboard(context, timeZone, now, today, base);
+      return this.getDoctorDashboard(
+        context,
+        timeZone,
+        referenceDate,
+        today,
+        base,
+      );
     }
 
     if (context.role === OrganizationUserRole.PATIENT) {
-      return this.getPatientDashboard(context, now, today, base);
+      return this.getPatientDashboard(context, referenceDate, today, base);
     }
 
     throw AppError.forbidden();

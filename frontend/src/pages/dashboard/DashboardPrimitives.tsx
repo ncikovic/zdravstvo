@@ -1,4 +1,4 @@
-import type { ReactElement, ReactNode } from 'react'
+import { useState, type ReactElement, type ReactNode } from 'react'
 
 import { AppIcon } from '@/components'
 import type { AppIconName } from '@/types'
@@ -31,6 +31,30 @@ interface AvatarBadgeProps {
 interface IconTileProps {
   icon: AppIconName
   tone: DashboardTone
+}
+
+interface DashboardDateDropdownProps {
+  label: string
+  value: string
+  onChange: (value: string) => void
+}
+
+const formatDateInput = (date: Date): string => {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+
+  return `${year}-${month}-${day}`
+}
+
+const shiftDateInput = (value: string, days: number): string => {
+  const [yearValue = '0', monthValue = '1', dayValue = '1'] = value.split('-')
+  const year = Number(yearValue)
+  const month = Number(monthValue)
+  const day = Number(dayValue)
+  const date = new Date(Date.UTC(year, month - 1, day + days))
+
+  return date.toISOString().slice(0, 10)
 }
 
 export function IconTile({ icon, tone }: IconTileProps): ReactElement {
@@ -101,4 +125,56 @@ export function StatusBadge({ children, tone }: StatusBadgeProps): ReactElement 
 
 export function AvatarBadge({ initials, tone = 'blue' }: AvatarBadgeProps): ReactElement {
   return <span className={`dashboard-avatar dashboard-avatar--${tone}`}>{initials}</span>
+}
+
+export function DashboardDateDropdown({
+  label,
+  value,
+  onChange,
+}: DashboardDateDropdownProps): ReactElement {
+  const [isOpen, setIsOpen] = useState(false)
+
+  const selectDate = (date: string): void => {
+    onChange(date)
+    setIsOpen(false)
+  }
+
+  return (
+    <div className="dashboard-date-dropdown">
+      <button
+        className="dashboard-date-button"
+        type="button"
+        aria-expanded={isOpen}
+        onClick={() => setIsOpen((currentValue) => !currentValue)}
+      >
+        <AppIcon name="calendar" />
+        {label}
+        <AppIcon name="chevronDown" />
+      </button>
+
+      {isOpen ? (
+        <div className="dashboard-date-menu">
+          <label>
+            <span>Datum</span>
+            <input
+              type="date"
+              value={value}
+              onChange={(event) => selectDate(event.target.value)}
+            />
+          </label>
+          <div className="dashboard-date-menu__actions">
+            <button type="button" onClick={() => selectDate(shiftDateInput(value, -1))}>
+              Prethodni dan
+            </button>
+            <button type="button" onClick={() => selectDate(formatDateInput(new Date()))}>
+              Danas
+            </button>
+            <button type="button" onClick={() => selectDate(shiftDateInput(value, 1))}>
+              Sljedeći dan
+            </button>
+          </div>
+        </div>
+      ) : null}
+    </div>
+  )
 }

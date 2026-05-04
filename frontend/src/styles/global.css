@@ -4336,7 +4336,7 @@ button {
 
 .clinic-switcher {
   display: inline-grid;
-  grid-template-columns: 38px minmax(0, 1fr) 20px;
+  grid-template-columns: 38px minmax(0, 1fr);
   align-items: center;
   gap: 12px;
   width: min(100%, 320px);
@@ -4349,7 +4349,6 @@ button {
   font-weight: 800;
   text-align: left;
   box-shadow: 0 12px 28px rgba(26, 77, 124, 0.06);
-  cursor: pointer;
 }
 
 .clinic-switcher__icon {
@@ -4388,6 +4387,15 @@ button {
   gap: 10px;
   color: #75839c;
   font-weight: 700;
+}
+
+.app-topbar__date-button {
+  min-height: 42px;
+  padding: 0 10px;
+  border: 1px solid #dce8f3;
+  border-radius: 8px;
+  background: #ffffff;
+  cursor: pointer;
 }
 
 .app-search {
@@ -4436,6 +4444,74 @@ button {
   justify-content: flex-end;
   gap: 18px;
   min-width: 0;
+}
+
+.topbar-dropdown {
+  position: relative;
+  min-width: 0;
+}
+
+.topbar-dropdown__menu {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 10px);
+  left: 0;
+  display: grid;
+  gap: 8px;
+  min-width: 240px;
+  padding: 14px;
+  border: 1px solid #dce8f3;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 18px 38px rgba(22, 55, 99, 0.13);
+}
+
+.topbar-dropdown__menu--right {
+  right: 0;
+  left: auto;
+}
+
+.topbar-dropdown__menu strong {
+  color: #17254b;
+  font-size: 0.95rem;
+}
+
+.topbar-dropdown__menu span {
+  color: #697890;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.topbar-dropdown__menu label {
+  display: grid;
+  gap: 8px;
+}
+
+.topbar-dropdown__menu input {
+  min-height: 40px;
+  padding: 0 10px;
+  border: 1px solid #dce8f3;
+  border-radius: 8px;
+  color: #17254b;
+  font: inherit;
+  font-weight: 800;
+}
+
+.topbar-dropdown__menu button,
+.topbar-dropdown__actions button {
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid #dce8f3;
+  border-radius: 8px;
+  background: #f5faff;
+  color: #1176d0;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.topbar-dropdown__actions {
+  display: grid;
+  gap: 8px;
 }
 
 .notification-button,
@@ -4568,6 +4644,60 @@ button {
   border-radius: 8px;
   background: #ffffff;
   color: #60708c;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.dashboard-date-dropdown {
+  position: relative;
+  width: fit-content;
+}
+
+.dashboard-date-menu {
+  position: absolute;
+  z-index: 15;
+  top: calc(100% + 10px);
+  right: 0;
+  display: grid;
+  gap: 12px;
+  min-width: 260px;
+  padding: 14px;
+  border: 1px solid #dce8f3;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 18px 38px rgba(22, 55, 99, 0.13);
+}
+
+.dashboard-date-menu label {
+  display: grid;
+  gap: 8px;
+  color: #697890;
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.dashboard-date-menu input {
+  min-height: 42px;
+  padding: 0 10px;
+  border: 1px solid #dce8f3;
+  border-radius: 8px;
+  color: #17254b;
+  font: inherit;
+  font-weight: 800;
+}
+
+.dashboard-date-menu__actions {
+  display: grid;
+  gap: 8px;
+}
+
+.dashboard-date-menu__actions button {
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid #dce8f3;
+  border-radius: 8px;
+  background: #f5faff;
+  color: #1176d0;
   font-weight: 800;
   cursor: pointer;
 }

@@ -7,6 +7,7 @@ import type {
   DashboardDoctorDto,
   DashboardFreeSlotDto,
   DashboardPatientDto,
+  DashboardQueryDto,
   DashboardReminderDto,
   DashboardReminderSummaryDto,
   DashboardResponseDto,
@@ -173,9 +174,13 @@ const mapDashboard = (dashboard: DashboardResponseDto): DashboardData => {
 }
 
 export class DashboardService {
-  public async getCurrent(): Promise<DashboardData> {
+  public async getCurrent(query: DashboardQueryDto = {}): Promise<DashboardData> {
     const response =
-      await apiClient.get<ApiResponse<DashboardResponseDto>>('/dashboard')
+      await apiClient.get<ApiResponse<DashboardResponseDto>>('/dashboard', {
+        params: {
+          date: query.date,
+        },
+      })
 
     return mapDashboard(response.data.data)
   }

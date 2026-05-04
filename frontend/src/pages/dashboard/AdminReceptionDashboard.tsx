@@ -6,6 +6,7 @@ import type { AdminReceptionDashboard as AdminReceptionDashboardData } from '@/t
 import { mapAdminReceptionDashboard } from './dashboard.mappers'
 import {
   AvatarBadge,
+  DashboardDateDropdown,
   DashboardSection,
   DashboardStatCard,
   IconTile,
@@ -14,10 +15,14 @@ import {
 
 interface AdminReceptionDashboardProps {
   dashboard: AdminReceptionDashboardData
+  selectedDate: string
+  onSelectedDateChange: (date: string) => void
 }
 
 export function AdminReceptionDashboard({
   dashboard,
+  selectedDate,
+  onSelectedDateChange,
 }: AdminReceptionDashboardProps): ReactElement {
   const view = mapAdminReceptionDashboard(dashboard)
 
@@ -28,11 +33,11 @@ export function AdminReceptionDashboard({
           <h1>Nadzorna ploča</h1>
           <p>Pregled ključnih informacija i aktivnosti vaše ustanove.</p>
         </div>
-        <button className="dashboard-date-button" type="button">
-          <AppIcon name="calendar" />
-          {view.dateLabel}
-          <AppIcon name="chevronDown" />
-        </button>
+        <DashboardDateDropdown
+          label={view.dateLabel}
+          value={selectedDate}
+          onChange={onSelectedDateChange}
+        />
       </div>
 
       <div className="dashboard-stat-grid dashboard-stat-grid--four">
