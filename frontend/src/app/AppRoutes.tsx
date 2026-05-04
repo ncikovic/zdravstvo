@@ -13,6 +13,7 @@ import {
   InternalPlaceholderPage,
   LoginPage,
   NotFoundPage,
+  PatientsPage,
 } from '@/pages';
 import type { AppIconName } from '@/types';
 
@@ -27,12 +28,6 @@ interface InternalRouteDefinition {
 }
 
 const INTERNAL_PLACEHOLDER_ROUTES: readonly InternalRouteDefinition[] = [
-  {
-    path: APP_ROUTES.patients,
-    title: 'Pacijenti',
-    description: 'Kartoni i popisi pacijenata bit će dostupni kroz namjenske interne stranice.',
-    icon: 'patients',
-  },
   {
     path: APP_ROUTES.appointmentTypes,
     title: 'Vrste termina',
@@ -92,6 +87,7 @@ export function AppRoutes(): ReactElement {
             <Route path={APP_ROUTES.dashboard} element={<DashboardPage />} />
             <Route path={APP_ROUTES.appointments} element={<AppointmentsPage />} />
             <Route path={APP_ROUTES.doctors} element={<DoctorsPage />} />
+            <Route path={APP_ROUTES.patients} element={<PatientsPage />} />
             {INTERNAL_PLACEHOLDER_ROUTES.map((route) => (
               <Route
                 key={route.path}
