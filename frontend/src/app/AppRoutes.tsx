@@ -8,6 +8,7 @@ import {
   AppointmentsPage,
   ConfirmEmailPage,
   DashboardPage,
+  DoctorsPage,
   ForgotPasswordPage,
   InternalPlaceholderPage,
   LoginPage,
@@ -26,12 +27,6 @@ interface InternalRouteDefinition {
 }
 
 const INTERNAL_PLACEHOLDER_ROUTES: readonly InternalRouteDefinition[] = [
-  {
-    path: APP_ROUTES.doctors,
-    title: 'Liječnici',
-    description: 'Administracija liječničkih profila ostaje odvojena od nadzorne ploče.',
-    icon: 'doctor',
-  },
   {
     path: APP_ROUTES.patients,
     title: 'Pacijenti',
@@ -96,6 +91,7 @@ export function AppRoutes(): ReactElement {
           <Route element={<AppLayout />}>
             <Route path={APP_ROUTES.dashboard} element={<DashboardPage />} />
             <Route path={APP_ROUTES.appointments} element={<AppointmentsPage />} />
+            <Route path={APP_ROUTES.doctors} element={<DoctorsPage />} />
             {INTERNAL_PLACEHOLDER_ROUTES.map((route) => (
               <Route
                 key={route.path}
