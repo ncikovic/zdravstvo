@@ -4399,6 +4399,8 @@ button {
 }
 
 .app-topbar {
+  position: relative;
+  z-index: 30;
   display: grid;
   grid-template-columns: minmax(250px, 1fr) minmax(320px, 620px) auto;
   align-items: center;
