@@ -5,6 +5,7 @@ import { AppLayout } from '@/components';
 import {
   AccessDeniedPage,
   AccountCreatedPage,
+  AppointmentsPage,
   ConfirmEmailPage,
   DashboardPage,
   ForgotPasswordPage,
@@ -25,12 +26,6 @@ interface InternalRouteDefinition {
 }
 
 const INTERNAL_PLACEHOLDER_ROUTES: readonly InternalRouteDefinition[] = [
-  {
-    path: APP_ROUTES.appointments,
-    title: 'Termini',
-    description: 'Pregled i upravljanje terminima bit će povezani s postojećom servisnom arhitekturom.',
-    icon: 'calendar',
-  },
   {
     path: APP_ROUTES.doctors,
     title: 'Liječnici',
@@ -100,6 +95,7 @@ export function AppRoutes(): ReactElement {
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
             <Route path={APP_ROUTES.dashboard} element={<DashboardPage />} />
+            <Route path={APP_ROUTES.appointments} element={<AppointmentsPage />} />
             {INTERNAL_PLACEHOLDER_ROUTES.map((route) => (
               <Route
                 key={route.path}
