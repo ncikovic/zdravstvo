@@ -6,7 +6,7 @@ import type {
   DashboardReminder,
   DoctorDashboard,
   PatientDashboard,
-} from '@/types'
+} from "@/types";
 
 import type {
   ActivityMetric,
@@ -21,192 +21,233 @@ import type {
   PatientAppointmentDetails,
   PatientDashboardView,
   PatientReminder,
-} from './dashboard.types'
+} from "./dashboard.types";
 
-const timeFormatter = new Intl.DateTimeFormat('hr-HR', {
-  hour: '2-digit',
-  minute: '2-digit',
-})
+const timeFormatter = new Intl.DateTimeFormat("hr-HR", {
+  hour: "2-digit",
+  minute: "2-digit",
+});
 
-const dateFormatter = new Intl.DateTimeFormat('hr-HR', {
-  day: 'numeric',
-  month: 'long',
-  year: 'numeric',
-})
+const dateFormatter = new Intl.DateTimeFormat("hr-HR", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+});
 
-const shortDateFormatter = new Intl.DateTimeFormat('hr-HR', {
-  day: 'numeric',
-  month: 'long',
-})
+const shortDateFormatter = new Intl.DateTimeFormat("hr-HR", {
+  day: "numeric",
+  month: "long",
+});
 
-const weekdayFormatter = new Intl.DateTimeFormat('hr-HR', {
-  weekday: 'long',
-})
+const weekdayFormatter = new Intl.DateTimeFormat("hr-HR", {
+  weekday: "long",
+});
 
-const dateButtonFormatter = new Intl.DateTimeFormat('hr-HR', {
-  weekday: 'long',
-  day: 'numeric',
-  month: 'long',
-  year: 'numeric',
-})
+const dateButtonFormatter = new Intl.DateTimeFormat("hr-HR", {
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+});
 
-const dateKeyFormatter = new Intl.DateTimeFormat('en-CA', {
-  year: 'numeric',
-  month: '2-digit',
-  day: '2-digit',
-})
+const dateKeyFormatter = new Intl.DateTimeFormat("en-CA", {
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
 
 const appointmentTypeTones: readonly DashboardTone[] = [
-  'blue',
-  'teal',
-  'purple',
-  'orange',
-  'green',
-]
+  "blue",
+  "teal",
+  "purple",
+  "orange",
+  "green",
+];
+
+const doctorTitleLabels: Record<string, string> = {
+  "spec. obiteljske medicine": "Obiteljska medicina",
+  "spec. interne medicine": "Interna medicina",
+  "spec. pedijatrije": "Pedijatrija",
+  "spec. dermatologije": "Dermatologija",
+  "spec. ginekologije": "Ginekologija",
+  "spec. kardiologije": "Kardiologija",
+  "spec. ortopedije": "Ortopedija",
+  "spec. neurologije": "Neurologija",
+  "spec. otorinolaringologije": "Otorinolaringologija",
+  "spec. oftalmologije": "Oftalmologija",
+  "spec. fizikalne medicine": "Fizikalna medicina",
+  "spec. psihijatrije": "Psihijatrija",
+};
 
 const capitalize = (value: string): string =>
-  value ? `${value[0]?.toUpperCase() ?? ''}${value.slice(1)}` : value
+  value ? `${value[0]?.toUpperCase() ?? ""}${value.slice(1)}` : value;
 
-const formatTime = (date: Date): string => timeFormatter.format(date)
+const formatTime = (date: Date): string => timeFormatter.format(date);
 
-const formatDate = (date: Date): string => dateFormatter.format(date)
+const formatDate = (date: Date): string => dateFormatter.format(date);
 
-const formatShortDate = (date: Date): string => shortDateFormatter.format(date)
+const formatShortDate = (date: Date): string => shortDateFormatter.format(date);
 
-const formatWeekday = (date: Date): string => weekdayFormatter.format(date)
+const formatWeekday = (date: Date): string => weekdayFormatter.format(date);
 
 const formatDateButton = (date: Date): string =>
-  capitalize(dateButtonFormatter.format(date))
+  capitalize(dateButtonFormatter.format(date));
 
 const formatPersonName = (person: {
-  firstName: string
-  lastName: string
-}): string => `${person.firstName} ${person.lastName}`
+  firstName: string;
+  lastName: string;
+}): string => `${person.firstName} ${person.lastName}`;
 
 const formatDoctorName = (appointment: DashboardAppointment): string =>
-  `dr. ${formatPersonName(appointment.doctor)}`
+  `dr. ${formatPersonName(appointment.doctor)}`;
+
+const formatDoctorTitle = (title: string | null | undefined): string => {
+  const normalizedTitle = title?.trim().toLowerCase();
+
+  if (!normalizedTitle) {
+    return "Liječnik";
+  }
+
+  return (
+    doctorTitleLabels[normalizedTitle] ??
+    capitalize(normalizedTitle.replace(/^spec\.\s*/u, ""))
+  );
+};
 
 const getInitials = (name: string): string =>
   name
-    .split(' ')
+    .split(" ")
     .filter(Boolean)
     .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? '')
-    .join('') || 'K'
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("") || "K";
 
 const getPatientMeta = (appointment: DashboardAppointment): string => {
   const birthYear = appointment.patient.dateOfBirth
     ? `${appointment.patient.dateOfBirth.getFullYear()}.`
-    : null
-  const parts = [birthYear, appointment.patient.oib].filter(Boolean)
+    : null;
+  const parts = [birthYear, appointment.patient.oib].filter(Boolean);
 
-  return parts.length > 0 ? parts.join(' • ') : 'Pacijent'
-}
+  return parts.length > 0 ? parts.join(" • ") : "Pacijent";
+};
 
 const getAppointmentTypeTone = (name: string): DashboardTone => {
-  const score = [...name].reduce((sum, character) => sum + character.charCodeAt(0), 0)
+  const score = [...name].reduce(
+    (sum, character) => sum + character.charCodeAt(0),
+    0,
+  );
 
-  return appointmentTypeTones[score % appointmentTypeTones.length] ?? 'blue'
-}
+  return appointmentTypeTones[score % appointmentTypeTones.length] ?? "blue";
+};
 
-const getStatusLabel = (status: DashboardAppointment['status']): string => {
-  if (status === 'COMPLETED') {
-    return 'Obavljeno'
+const getStatusLabel = (status: DashboardAppointment["status"]): string => {
+  if (status === "COMPLETED") {
+    return "Obavljeno";
   }
 
-  if (status === 'CANCELLED') {
-    return 'Otkazano'
+  if (status === "CANCELLED") {
+    return "Otkazano";
   }
 
-  if (status === 'NO_SHOW') {
-    return 'Nije došao'
+  if (status === "NO_SHOW") {
+    return "Nije došao";
   }
 
-  return 'Potvrđeno'
-}
+  return "Potvrđeno";
+};
 
-const getStatusTone = (status: DashboardAppointment['status']): DashboardTone => {
-  if (status === 'COMPLETED') {
-    return 'green'
+const getStatusTone = (
+  status: DashboardAppointment["status"],
+): DashboardTone => {
+  if (status === "COMPLETED") {
+    return "green";
   }
 
-  if (status === 'CANCELLED') {
-    return 'red'
+  if (status === "CANCELLED") {
+    return "red";
   }
 
-  if (status === 'NO_SHOW') {
-    return 'orange'
+  if (status === "NO_SHOW") {
+    return "orange";
   }
 
-  return 'teal'
-}
+  return "teal";
+};
 
-const getReminderStatusLabel = (status: DashboardReminder['status']): string => {
-  if (status === 'SENT') {
-    return 'Poslano'
+const getReminderStatusLabel = (
+  status: DashboardReminder["status"],
+): string => {
+  if (status === "SENT") {
+    return "Poslano";
   }
 
-  if (status === 'FAILED') {
-    return 'Neuspjelo'
+  if (status === "FAILED") {
+    return "Neuspjelo";
   }
 
-  return 'Aktivno'
-}
+  return "Aktivno";
+};
 
-const getReminderStatusTone = (status: DashboardReminder['status']): DashboardTone => {
-  if (status === 'SENT') {
-    return 'green'
+const getReminderStatusTone = (
+  status: DashboardReminder["status"],
+): DashboardTone => {
+  if (status === "SENT") {
+    return "green";
   }
 
-  if (status === 'FAILED') {
-    return 'orange'
+  if (status === "FAILED") {
+    return "orange";
   }
 
-  return 'teal'
-}
+  return "teal";
+};
 
-const formatRelativeAppointmentTime = (appointment: DashboardAppointment): string => {
-  const now = Date.now()
-  const start = appointment.startAt.getTime()
-  const end = appointment.endAt.getTime()
+const formatRelativeAppointmentTime = (
+  appointment: DashboardAppointment,
+): string => {
+  const now = Date.now();
+  const start = appointment.startAt.getTime();
+  const end = appointment.endAt.getTime();
 
   if (now >= start && now <= end) {
-    return 'u tijeku'
+    return "u tijeku";
   }
 
-  const minutes = Math.round((start - now) / 60000)
+  const minutes = Math.round((start - now) / 60000);
 
   if (minutes <= 0) {
-    return 'završeno'
+    return "završeno";
   }
 
   if (minutes < 60) {
-    return `za ${minutes} min`
+    return `za ${minutes} min`;
   }
 
-  const hours = Math.round(minutes / 60)
+  const hours = Math.round(minutes / 60);
 
-  return `za ${hours} h`
-}
+  return `za ${hours} h`;
+};
 
 const formatDuration = (appointment: DashboardAppointment): string => {
   const durationMinutes = Math.max(
     1,
-    Math.round((appointment.endAt.getTime() - appointment.startAt.getTime()) / 60000),
-  )
+    Math.round(
+      (appointment.endAt.getTime() - appointment.startAt.getTime()) / 60000,
+    ),
+  );
 
-  return `${durationMinutes} min`
-}
+  return `${durationMinutes} min`;
+};
 
 const isSameDate = (firstDate: Date, secondDate: Date): boolean =>
-  dateKeyFormatter.format(firstDate) === dateKeyFormatter.format(secondDate)
+  dateKeyFormatter.format(firstDate) === dateKeyFormatter.format(secondDate);
 
 const isTomorrow = (date: Date): boolean => {
-  const tomorrow = new Date()
-  tomorrow.setDate(tomorrow.getDate() + 1)
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
 
-  return isSameDate(date, tomorrow)
-}
+  return isSameDate(date, tomorrow);
+};
 
 const mapAvailableSlots = (
   slots: readonly DashboardFreeSlot[],
@@ -214,30 +255,30 @@ const mapAvailableSlots = (
   if (slots.length === 0) {
     return [
       {
-        icon: 'calendar',
-        title: 'Nema slobodnih termina',
-        meta: 'Radni raspored je trenutno popunjen',
-        tone: 'blue',
+        icon: "calendar",
+        title: "Nema slobodnih termina",
+        meta: "Radni raspored je trenutno popunjen",
+        tone: "blue",
       },
-    ]
+    ];
   }
 
   return slots.map((slot, index) => {
     const dateLabel = isSameDate(slot.startAt, new Date())
-      ? 'Danas'
+      ? "Danas"
       : isTomorrow(slot.startAt)
-        ? 'Sutra'
-        : formatShortDate(slot.startAt)
+        ? "Sutra"
+        : formatShortDate(slot.startAt);
 
     return {
-      icon: 'calendar',
+      icon: "calendar",
       title: `${dateLabel} • ${formatTime(slot.startAt)}`,
-      meta: `dr. ${slot.doctorName} • ${slot.doctorTitle ?? 'Liječnik'} • ${slot.durationMinutes} min`,
-      tone: appointmentTypeTones[index % appointmentTypeTones.length] ?? 'blue',
-      actionLabel: 'Rezerviraj',
-    }
-  })
-}
+      meta: `dr. ${slot.doctorName} • ${formatDoctorTitle(slot.doctorTitle)} • ${slot.durationMinutes} min`,
+      tone: appointmentTypeTones[index % appointmentTypeTones.length] ?? "blue",
+      actionLabel: "Rezerviraj",
+    };
+  });
+};
 
 const mapAdminScheduleRow = (
   appointment: DashboardAppointment,
@@ -246,13 +287,13 @@ const mapAdminScheduleRow = (
   patientName: formatPersonName(appointment.patient),
   patientMeta: getPatientMeta(appointment),
   doctorName: formatDoctorName(appointment),
-  doctorSpecialty: appointment.doctor.title ?? 'Liječnik',
+  doctorSpecialty: formatDoctorTitle(appointment.doctor.title),
   doctorInitials: getInitials(formatPersonName(appointment.doctor)),
   type: appointment.appointmentType.name,
   typeTone: getAppointmentTypeTone(appointment.appointmentType.name),
   status: getStatusLabel(appointment.status),
   statusTone: getStatusTone(appointment.status),
-})
+});
 
 const mapDoctorScheduleRow = (
   appointment: DashboardAppointment,
@@ -263,8 +304,10 @@ const mapDoctorScheduleRow = (
   meta: getPatientMeta(appointment),
   type: appointment.appointmentType.name,
   tone: getAppointmentTypeTone(appointment.appointmentType.name),
-  current: Date.now() >= appointment.startAt.getTime() && Date.now() < appointment.endAt.getTime(),
-})
+  current:
+    Date.now() >= appointment.startAt.getTime() &&
+    Date.now() < appointment.endAt.getTime(),
+});
 
 const mapAdminNotifications = (
   dashboard: AdminReceptionDashboard,
@@ -272,106 +315,107 @@ const mapAdminNotifications = (
   if (dashboard.reminderSummary.total === 0) {
     return [
       {
-        icon: 'bell',
-        title: 'Nema podsjetnika za danas',
-        meta: 'Nisu zakazana slanja podsjetnika',
-        tone: 'blue',
+        icon: "bell",
+        title: "Nema podsjetnika za danas",
+        meta: "Nisu zakazana slanja podsjetnika",
+        tone: "blue",
       },
-    ]
+    ];
   }
 
   return [
     {
-      icon: 'mail',
+      icon: "mail",
       title: `${dashboard.reminderSummary.total} podsjetnika zakazano za danas`,
       meta: `${dashboard.reminderSummary.pending} na čekanju, ${dashboard.reminderSummary.sent} poslano`,
-      tone: 'orange',
+      tone: "orange",
     },
     {
-      icon: dashboard.reminderSummary.failed > 0 ? 'warning' : 'send',
+      icon: dashboard.reminderSummary.failed > 0 ? "warning" : "send",
       title:
         dashboard.reminderSummary.failed > 0
           ? `${dashboard.reminderSummary.failed} neuspješnih podsjetnika`
-          : 'Nema neuspješnih podsjetnika',
-      meta: 'Sažetak današnjih slanja',
-      tone: dashboard.reminderSummary.failed > 0 ? 'orange' : 'teal',
+          : "Nema neuspješnih podsjetnika",
+      meta: "Sažetak današnjih slanja",
+      tone: dashboard.reminderSummary.failed > 0 ? "orange" : "teal",
     },
-  ]
-}
+  ];
+};
 
 const mapActivityMetrics = (
   dashboard: AdminReceptionDashboard,
 ): ActivityMetric[] => {
-  const total = dashboard.stats.todayAppointmentCount
-  const completedRate = total > 0
-    ? Math.round((dashboard.stats.completedAppointmentCount / total) * 100)
-    : 0
+  const total = dashboard.stats.todayAppointmentCount;
+  const completedRate =
+    total > 0
+      ? Math.round((dashboard.stats.completedAppointmentCount / total) * 100)
+      : 0;
 
   return [
     {
-      icon: 'calendar',
-      label: 'Ukupno termina (danas)',
+      icon: "calendar",
+      label: "Ukupno termina (danas)",
       value: String(total),
-      meta: 'Prema današnjem rasporedu',
-      tone: 'blue',
+      meta: "Prema današnjem rasporedu",
+      tone: "blue",
     },
     {
-      icon: 'user',
-      label: 'Završeni termini (danas)',
+      icon: "user",
+      label: "Završeni termini (danas)",
       value: String(dashboard.stats.completedAppointmentCount),
       meta: `${completedRate}% od ukupno`,
-      tone: 'teal',
+      tone: "teal",
     },
     {
-      icon: 'users',
-      label: 'Zakazani termini',
+      icon: "users",
+      label: "Zakazani termini",
       value: String(dashboard.stats.scheduledAppointmentCount),
-      meta: 'Trenutno potvrđeni',
-      tone: 'purple',
+      meta: "Trenutno potvrđeni",
+      tone: "purple",
     },
     {
-      icon: 'warning',
-      label: 'Otkazani termini',
+      icon: "warning",
+      label: "Otkazani termini",
       value: String(dashboard.stats.cancelledAppointmentCount),
-      meta: 'Danas',
-      tone: 'orange',
+      meta: "Danas",
+      tone: "orange",
     },
     {
-      icon: 'mail',
-      label: 'Poslani podsjetnici',
+      icon: "mail",
+      label: "Poslani podsjetnici",
       value: String(dashboard.stats.sentReminderCount),
-      meta: 'Danas',
-      tone: 'green',
+      meta: "Danas",
+      tone: "green",
     },
-  ]
-}
+  ];
+};
 
 const mapActivity = (activity: DashboardActivity): CompactItem => {
   const entityLabel =
-    activity.entityType === 'APPOINTMENT'
-      ? 'termin'
-      : activity.entityType === 'PATIENT'
-        ? 'pacijent'
-        : activity.entityType === 'DOCTOR'
-          ? 'liječnik'
-          : 'zapis'
+    activity.entityType === "APPOINTMENT"
+      ? "termin"
+      : activity.entityType === "PATIENT"
+        ? "pacijent"
+        : activity.entityType === "DOCTOR"
+          ? "liječnik"
+          : "zapis";
   const actionLabel =
-    activity.action === 'CREATE'
-      ? 'Dodan'
-      : activity.action === 'UPDATE'
-        ? 'Ažuriran'
-        : activity.action === 'CANCEL'
-          ? 'Otkazan'
-          : 'Promijenjen status za'
+    activity.action === "CREATE"
+      ? "Dodan"
+      : activity.action === "UPDATE"
+        ? "Ažuriran"
+        : activity.action === "CANCEL"
+          ? "Otkazan"
+          : "Promijenjen status za";
 
   return {
-    icon: activity.entityType === 'APPOINTMENT' ? 'calendar' : 'activity',
+    icon: activity.entityType === "APPOINTMENT" ? "calendar" : "activity",
     title: `${actionLabel} ${entityLabel}`,
     meta: `${formatDate(activity.createdAt)} u ${formatTime(activity.createdAt)}`,
-    tone: activity.action === 'CANCEL' ? 'orange' : 'blue',
+    tone: activity.action === "CANCEL" ? "orange" : "blue",
     actionLabel: formatTime(activity.createdAt),
-  }
-}
+  };
+};
 
 const mapDoctorActivities = (
   activities: readonly DashboardActivity[],
@@ -379,22 +423,22 @@ const mapDoctorActivities = (
   if (activities.length === 0) {
     return [
       {
-        icon: 'activity',
-        title: 'Nema nedavnih aktivnosti',
-        meta: 'Aktivnosti će se prikazati nakon promjena u rasporedu',
-        tone: 'blue',
+        icon: "activity",
+        title: "Nema nedavnih aktivnosti",
+        meta: "Aktivnosti će se prikazati nakon promjena u rasporedu",
+        tone: "blue",
       },
-    ]
+    ];
   }
 
-  return activities.map(mapActivity)
-}
+  return activities.map(mapActivity);
+};
 
 const mapDoctorNextPatient = (
   appointment: DashboardAppointment | null,
 ): DoctorNextPatient | null => {
   if (!appointment) {
-    return null
+    return null;
   }
 
   return {
@@ -404,17 +448,17 @@ const mapDoctorNextPatient = (
     time: formatTime(appointment.startAt),
     relativeTime: formatRelativeAppointmentTime(appointment),
     appointmentType: appointment.appointmentType.name,
-    note: appointment.notes ?? 'Nema dodatne napomene',
-  }
-}
+    note: appointment.notes ?? "Nema dodatne napomene",
+  };
+};
 
 const mapPatientAppointmentDetails = (
   dashboard: PatientDashboard,
 ): PatientAppointmentDetails | null => {
-  const appointment = dashboard.nextAppointment
+  const appointment = dashboard.nextAppointment;
 
   if (!appointment) {
-    return null
+    return null;
   }
 
   const organizationAddress = [
@@ -422,32 +466,35 @@ const mapPatientAppointmentDetails = (
     dashboard.organization.city,
   ]
     .filter(Boolean)
-    .join(', ')
+    .join(", ");
 
   return {
     status: getStatusLabel(appointment.status),
     statusTone: getStatusTone(appointment.status),
     doctorInitials: getInitials(formatPersonName(appointment.doctor)),
     doctorName: formatDoctorName(appointment),
-    doctorTitle: appointment.doctor.title ?? 'Liječnik',
+    doctorTitle: formatDoctorTitle(appointment.doctor.title),
     date: formatDate(appointment.startAt),
     weekday: formatWeekday(appointment.startAt),
     time: formatTime(appointment.startAt),
     duration: formatDuration(appointment),
-    location: dashboard.organization.name || 'Odabrana ustanova',
-    locationMeta: organizationAddress || 'Detalji lokacije dostupni su u ustanovi',
+    location: dashboard.organization.name || "Odabrana ustanova",
+    locationMeta:
+      organizationAddress || "Detalji lokacije dostupni su u ustanovi",
     appointmentType: appointment.appointmentType.name,
-    note: appointment.notes ?? 'Molimo dođite 10 minuta ranije i ponesite zdravstvenu iskaznicu.',
-  }
-}
+    note:
+      appointment.notes ??
+      "Molimo dođite 10 minuta ranije i ponesite zdravstvenu iskaznicu.",
+  };
+};
 
 const mapPatientReminder = (reminder: DashboardReminder): PatientReminder => ({
-  icon: reminder.status === 'FAILED' ? 'warning' : 'bell',
+  icon: reminder.status === "FAILED" ? "warning" : "bell",
   title: `Podsjetnik: ${reminder.appointment.appointmentType.name}`,
   meta: `${formatDate(reminder.scheduledFor)} u ${formatTime(reminder.scheduledFor)}`,
   status: getReminderStatusLabel(reminder.status),
   tone: getReminderStatusTone(reminder.status),
-})
+});
 
 export const mapAdminReceptionDashboard = (
   dashboard: AdminReceptionDashboard,
@@ -455,120 +502,120 @@ export const mapAdminReceptionDashboard = (
   dateLabel: formatDateButton(dashboard.todayStart),
   stats: [
     {
-      icon: 'calendar',
-      label: 'Današnji termini',
+      icon: "calendar",
+      label: "Današnji termini",
       value: String(dashboard.stats.todayAppointmentCount),
-      meta: 'Prema današnjem rasporedu',
-      tone: 'blue',
+      meta: "Prema današnjem rasporedu",
+      tone: "blue",
     },
     {
-      icon: 'user',
-      label: 'Aktivni liječnici',
+      icon: "user",
+      label: "Aktivni liječnici",
       value: String(dashboard.stats.activeDoctorCount),
-      meta: 'Aktivno u ustanovi',
-      tone: 'teal',
+      meta: "Aktivno u ustanovi",
+      tone: "teal",
     },
     {
-      icon: 'users',
-      label: 'Novi pacijenti',
+      icon: "users",
+      label: "Novi pacijenti",
       value: String(dashboard.stats.recentPatientCount),
-      meta: 'U zadnjih 30 dana',
-      tone: 'purple',
+      meta: "U zadnjih 30 dana",
+      tone: "purple",
     },
     {
-      icon: 'bell',
-      label: 'Podsjetnici za danas',
+      icon: "bell",
+      label: "Podsjetnici za danas",
       value: String(dashboard.stats.reminderCount),
       meta: `${dashboard.reminderSummary.pending} na čekanju`,
-      tone: 'green',
+      tone: "green",
     },
   ],
   scheduleRows: dashboard.todaySchedule.map(mapAdminScheduleRow),
   availableSlots: mapAvailableSlots(dashboard.availableSlots),
   notifications: mapAdminNotifications(dashboard),
   activityMetrics: mapActivityMetrics(dashboard),
-})
+});
 
 export const mapDoctorDashboard = (
   dashboard: DoctorDashboard,
 ): DoctorDashboardView => ({
   stats: [
     {
-      icon: 'calendar',
-      label: 'Današnji termini',
+      icon: "calendar",
+      label: "Današnji termini",
       value: String(dashboard.stats.todayAppointmentCount),
-      meta: 'Prema današnjem rasporedu',
-      tone: 'blue',
+      meta: "Prema današnjem rasporedu",
+      tone: "blue",
     },
     {
-      icon: 'user',
-      label: 'Pacijenti danas',
+      icon: "user",
+      label: "Pacijenti danas",
       value: String(dashboard.stats.patientsTodayCount),
-      meta: 'Jedinstveni pacijenti',
-      tone: 'teal',
+      meta: "Jedinstveni pacijenti",
+      tone: "teal",
     },
     {
-      icon: 'clock',
-      label: 'Slobodni blokovi',
+      icon: "clock",
+      label: "Slobodni blokovi",
       value: String(dashboard.stats.freeBlockCount),
       meta: dashboard.availableSlots[0]
         ? `Sljedeći u ${formatTime(dashboard.availableSlots[0].startAt)}`
-        : 'Nema slobodnih blokova',
-      tone: 'orange',
+        : "Nema slobodnih blokova",
+      tone: "orange",
     },
     {
-      icon: 'checkCircle',
-      label: 'Označeno kao obavljeno',
+      icon: "checkCircle",
+      label: "Označeno kao obavljeno",
       value: String(dashboard.stats.completedAppointmentCount),
-      meta: 'Danas',
-      tone: 'purple',
+      meta: "Danas",
+      tone: "purple",
     },
   ],
   scheduleRows: dashboard.todaySchedule.map(mapDoctorScheduleRow),
   activities: mapDoctorActivities(dashboard.recentActivity),
   nextPatient: mapDoctorNextPatient(dashboard.nextAppointment),
   availableSlots: mapAvailableSlots(dashboard.availableSlots),
-})
+});
 
 export const mapPatientDashboard = (
   dashboard: PatientDashboard,
 ): PatientDashboardView => ({
   stats: [
     {
-      icon: 'calendarCheck',
-      label: 'Sljedeći termin',
+      icon: "calendarCheck",
+      label: "Sljedeći termin",
       value: dashboard.nextAppointment
         ? formatShortDate(dashboard.nextAppointment.startAt)
-        : 'Nema termina',
+        : "Nema termina",
       meta: dashboard.nextAppointment
         ? `${formatWeekday(dashboard.nextAppointment.startAt)} u ${formatTime(dashboard.nextAppointment.startAt)}`
-        : 'Nema potvrđenih termina',
-      tone: 'teal',
-      actionLabel: dashboard.nextAppointment ? 'Pogledaj detalje' : undefined,
+        : "Nema potvrđenih termina",
+      tone: "teal",
+      actionLabel: dashboard.nextAppointment ? "Pogledaj detalje" : undefined,
     },
     {
-      icon: 'heartPulse',
-      label: 'Potvrđeni termini',
+      icon: "heartPulse",
+      label: "Potvrđeni termini",
       value: String(dashboard.stats.confirmedFutureAppointmentCount),
-      meta: 'U narednih 30 dana',
-      tone: 'blue',
-      actionLabel: 'Pregledaj termine',
+      meta: "U narednih 30 dana",
+      tone: "blue",
+      actionLabel: "Pregledaj termine",
     },
     {
-      icon: 'bell',
-      label: 'Podsjetnici',
+      icon: "bell",
+      label: "Podsjetnici",
       value: String(dashboard.stats.reminderCount),
       meta: `${dashboard.reminderSummary.pending} aktivno`,
-      tone: 'green',
-      actionLabel: 'Pogledaj podsjetnike',
+      tone: "green",
+      actionLabel: "Pogledaj podsjetnike",
     },
     {
-      icon: 'megaphone',
-      label: 'Obavijesti',
-      value: '0',
-      meta: 'Nema novih obavijesti',
-      tone: 'blue',
-      actionLabel: 'Pogledaj obavijesti',
+      icon: "megaphone",
+      label: "Obavijesti",
+      value: "0",
+      meta: "Nema novih obavijesti",
+      tone: "blue",
+      actionLabel: "Pogledaj obavijesti",
     },
   ],
   nextAppointment: mapPatientAppointmentDetails(dashboard),
@@ -577,11 +624,11 @@ export const mapPatientDashboard = (
       ? dashboard.reminders.map(mapPatientReminder)
       : [
           {
-            icon: 'bell',
-            title: 'Nema aktivnih podsjetnika',
-            meta: 'Podsjetnici će se prikazati uz nadolazeće termine',
-            status: 'Mirno',
-            tone: 'blue',
+            icon: "bell",
+            title: "Nema aktivnih podsjetnika",
+            meta: "Podsjetnici će se prikazati uz nadolazeće termine",
+            status: "Mirno",
+            tone: "blue",
           },
         ],
-})
+});
