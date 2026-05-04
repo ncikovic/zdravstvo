@@ -7,6 +7,7 @@ import {
   AccountCreatedPage,
   AppointmentTypesPage,
   AppointmentsPage,
+  AuditPage,
   ConfirmEmailPage,
   DashboardPage,
   DoctorsPage,
@@ -29,12 +30,6 @@ interface InternalRouteDefinition {
 }
 
 const INTERNAL_PLACEHOLDER_ROUTES: readonly InternalRouteDefinition[] = [
-  {
-    path: APP_ROUTES.audit,
-    title: 'Audit',
-    description: 'Sigurnosni trag aktivnosti prikazivat ce se ovdje kada stranica bude spojena.',
-    icon: 'shieldCheck',
-  },
   {
     path: APP_ROUTES.settings,
     title: 'Postavke',
@@ -84,6 +79,7 @@ export function AppRoutes(): ReactElement {
             <Route path={APP_ROUTES.doctors} element={<DoctorsPage />} />
             <Route path={APP_ROUTES.patients} element={<PatientsPage />} />
             <Route path={APP_ROUTES.appointmentTypes} element={<AppointmentTypesPage />} />
+            <Route path={APP_ROUTES.audit} element={<AuditPage />} />
             {INTERNAL_PLACEHOLDER_ROUTES.map((route) => (
               <Route
                 key={route.path}
