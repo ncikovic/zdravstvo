@@ -1,6 +1,8 @@
 import type { ReactElement } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import { AppIcon } from '@/components'
+import { APP_ROUTES } from '@/app/routes'
 
 import './patients.css'
 
@@ -98,6 +100,8 @@ const upcomingAppointments = [
 ] as const
 
 function PatientsPage(): ReactElement {
+  const navigate = useNavigate()
+
   return (
     <div className="patients-page">
       <div className="patients-page__hero">
@@ -116,7 +120,7 @@ function PatientsPage(): ReactElement {
                 <AppIcon name="search" />
                 <input type="search" placeholder="Pretražite pacijente po imenu, OIB-u ili telefonu..." />
               </label>
-              <button className="patients-primary-button" type="button">
+              <button className="patients-primary-button" type="button" onClick={() => navigate(APP_ROUTES.patientsNew)}>
                 <AppIcon name="plus" />
                 Novi pacijent
               </button>
@@ -177,6 +181,8 @@ function PatientsPage(): ReactElement {
                 }
                 role="row"
                 key={patient.oib}
+                onClick={() => navigate(APP_ROUTES.patientEdit.replace(':patientId', patient.oib))}
+                style={{ cursor: 'pointer' }}
               >
                 <span className={`patients-avatar patients-avatar--${patient.tone}`}>
                   {patient.initials}

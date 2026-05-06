@@ -19,6 +19,8 @@ import {
   LoginPage,
   NotFoundPage,
   PatientsPage,
+  NewPatientPage,
+  EditPatientPage,
   SettingsPage,
 } from '@/pages';
 import type { AppIconName } from '@/types';
@@ -79,6 +81,8 @@ export function AppRoutes(): ReactElement {
             <Route path={APP_ROUTES.doctorSchedule} element={<DoctorSchedulePage />} />
             <Route path={APP_ROUTES.doctorExceptions} element={<DoctorExceptionsPage />} />
             <Route path={APP_ROUTES.patients} element={<PatientsPage />} />
+            <Route path={APP_ROUTES.patientsNew} element={<NewPatientPage />} />
+            <Route path={APP_ROUTES.patientEdit} element={<EditPatientPage />} />
             <Route path={APP_ROUTES.appointmentTypes} element={<AppointmentTypesPage />} />
             <Route path={APP_ROUTES.audit} element={<AuditPage />} />
             <Route path={APP_ROUTES.settings} element={<SettingsPage />} />
