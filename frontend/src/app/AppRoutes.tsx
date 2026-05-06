@@ -5,15 +5,21 @@ import { AppLayout } from '@/components';
 import {
   AccessDeniedPage,
   AccountCreatedPage,
+  AppointmentDetailsPage,
   AppointmentTypesPage,
   AppointmentsPage,
   AuditPage,
+  CancelAppointmentPage,
+  ChangeAppointmentPage,
   ConfirmEmailPage,
+  CreateAppointmentTypePage,
+  CreateAppointmentPage,
   CreateDoctorPage,
   DashboardPage,
   DoctorExceptionsPage,
   DoctorSchedulePage,
   DoctorsPage,
+  EditAppointmentTypePage,
   ForgotPasswordPage,
   InternalPlaceholderPage,
   LoginPage,
@@ -77,6 +83,10 @@ export function AppRoutes(): ReactElement {
           <Route element={<AppLayout />}>
             <Route path={APP_ROUTES.dashboard} element={<DashboardPage />} />
             <Route path={APP_ROUTES.appointments} element={<AppointmentsPage />} />
+            <Route path={APP_ROUTES.createAppointment} element={<CreateAppointmentPage />} />
+            <Route path={APP_ROUTES.changeAppointment} element={<ChangeAppointmentPage />} />
+            <Route path={APP_ROUTES.cancelAppointment} element={<CancelAppointmentPage />} />
+            <Route path={APP_ROUTES.appointmentDetails} element={<AppointmentDetailsPage />} />
             <Route path={APP_ROUTES.doctors} element={<DoctorsPage />} />
             <Route path={APP_ROUTES.doctorsCreate} element={<CreateDoctorPage />} />
             <Route path={APP_ROUTES.doctorSchedule} element={<DoctorSchedulePage />} />
@@ -86,6 +96,8 @@ export function AppRoutes(): ReactElement {
             <Route path={APP_ROUTES.patientDetails} element={<PatientDetailsPage />} />
             <Route path={APP_ROUTES.patientEdit} element={<EditPatientPage />} />
             <Route path={APP_ROUTES.appointmentTypes} element={<AppointmentTypesPage />} />
+            <Route path={APP_ROUTES.createAppointmentType} element={<CreateAppointmentTypePage />} />
+            <Route path={APP_ROUTES.editAppointmentType} element={<EditAppointmentTypePage />} />
             <Route path={APP_ROUTES.audit} element={<AuditPage />} />
             <Route path={APP_ROUTES.settings} element={<SettingsPage />} />
             {INTERNAL_PLACEHOLDER_ROUTES.map((route) => (
