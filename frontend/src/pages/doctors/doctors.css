@@ -723,3 +723,446 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Create Doctor Page */
+
+.create-doctor-page {
+  display: grid;
+  gap: 22px;
+  max-width: 1540px;
+  margin: 0 auto;
+  color: #07183a;
+}
+
+.create-doctor-page__hero {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.create-doctor-page__hero h1 {
+  margin: 0;
+  color: #07183a;
+  font-size: 2.32rem;
+  line-height: 1.04;
+  font-weight: 900;
+}
+
+.create-doctor-page__hero p {
+  margin: 0;
+  color: #667590;
+  font-size: 1rem;
+  font-weight: 650;
+}
+
+.create-doctor-content-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 350px);
+  gap: 22px;
+  align-items: start;
+}
+
+.create-doctor-card {
+  border: 1px solid #dce8f3;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 16px 34px rgba(22, 55, 99, 0.07);
+  overflow: hidden;
+  display: grid;
+  gap: 0;
+}
+
+.create-doctor-card__section {
+  padding: 24px;
+  display: grid;
+  gap: 16px;
+  border-bottom: 1px solid #dce8f3;
+}
+
+.create-doctor-card__section:last-of-type {
+  border-bottom: none;
+  padding-bottom: 20px;
+}
+
+.create-doctor-card__section-title {
+  margin: 0;
+  color: #07183a;
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.create-doctor-profile-photo {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  padding: 20px;
+  border: 2px dashed #d9e6f2;
+  border-radius: 8px;
+  background: #fafbfc;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.create-doctor-profile-photo:hover {
+  border-color: #0ca4a0;
+  background: #e5f7f6;
+}
+
+.create-doctor-profile-photo__placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100px;
+  height: 100px;
+  margin: 0 auto;
+  border-radius: 8px;
+  background: #e5f7f6;
+  color: #0ca4a0;
+}
+
+.create-doctor-profile-photo__placeholder .app-icon {
+  width: 40px;
+  height: 40px;
+}
+
+.create-doctor-profile-photo__label {
+  display: block;
+  color: #07183a;
+  font-weight: 700;
+  margin-top: 8px;
+}
+
+.create-doctor-profile-photo__hint {
+  margin: 0;
+  color: #8a97af;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.create-doctor-fields-row {
+  display: grid;
+  gap: 16px;
+}
+
+.create-doctor-fields-row--2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.create-doctor-field {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.create-doctor-field__label {
+  color: #697890;
+  font-size: 0.84rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.create-doctor-required {
+  color: #d32f2f;
+}
+
+.create-doctor-field__input,
+.create-doctor-field__select,
+.create-doctor-field__textarea {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid #d9e6f2;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #46567a;
+  font-size: 0.95rem;
+  font-weight: 500;
+  font-family: inherit;
+}
+
+.create-doctor-field__input:focus,
+.create-doctor-field__select:focus,
+.create-doctor-field__textarea:focus {
+  outline: none;
+  border-color: #0ca4a0;
+  box-shadow: inset 0 0 0 1px #0ca4a0;
+}
+
+.create-doctor-field__select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%238a97af' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 16px;
+  padding-right: 36px;
+}
+
+.create-doctor-field__textarea {
+  padding: 12px 14px;
+  min-height: 100px;
+  resize: vertical;
+}
+
+.create-doctor-field__count {
+  display: block;
+  margin-top: 4px;
+  color: #8a97af;
+  font-size: 0.8rem;
+  text-align: right;
+}
+
+.create-doctor-phone-input {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px;
+  align-items: stretch;
+}
+
+.create-doctor-phone-code {
+  min-width: 100px;
+  padding: 0 10px;
+  border: 1px solid #d9e6f2;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #46567a;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.create-doctor-card__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 20px 24px;
+  border-top: 1px solid #dce8f3;
+  background: #fafbfc;
+}
+
+.create-doctor-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 20px;
+  border: 1px solid #d9e6f2;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #07183a;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.create-doctor-btn:hover {
+  border-color: #c5d5e8;
+  background: #f8fafc;
+}
+
+.create-doctor-btn--primary {
+  border: 0;
+  background: linear-gradient(135deg, #0ca4a0, #096ee2);
+  color: #ffffff;
+  box-shadow: 0 12px 26px rgba(10, 109, 211, 0.2);
+}
+
+.create-doctor-btn--primary:hover {
+  box-shadow: 0 12px 26px rgba(10, 109, 211, 0.3);
+}
+
+.create-doctor-btn--primary .app-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.create-doctor-sidebar {
+  display: grid;
+  gap: 18px;
+  align-content: start;
+}
+
+.create-doctor-info-card {
+  border: 1px solid #dce8f3;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 16px 34px rgba(22, 55, 99, 0.07);
+  padding: 20px;
+}
+
+.create-doctor-info-card__title {
+  margin: 0 0 16px;
+  color: #07183a;
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.create-doctor-info-preview {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #dce8f3;
+  border-radius: 8px;
+  background: #fafbfc;
+  margin-bottom: 16px;
+}
+
+.create-doctor-preview-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  border-radius: 6px;
+  background: #e5f7f6;
+  color: #0ca4a0;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.create-doctor-preview-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+}
+
+.create-doctor-preview-info strong {
+  color: #07183a;
+  font-weight: 800;
+  font-size: 0.95rem;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.create-doctor-preview-info span {
+  color: #46567a;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.create-doctor-preview-info em {
+  color: #8a97af;
+  font-style: normal;
+  font-size: 0.85rem;
+}
+
+.create-doctor-info-section {
+  display: grid;
+  gap: 6px;
+  padding: 12px 0;
+  border-top: 1px solid #dce8f3;
+}
+
+.create-doctor-info-section:first-of-type {
+  padding-top: 0;
+  border-top: none;
+}
+
+.create-doctor-info-section__title {
+  display: block;
+  color: #697890;
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.create-doctor-info-section p {
+  margin: 0;
+  color: #46567a;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: #f8fafc;
+  color: #8a97af;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.status-badge--active {
+  background: #e5f7f6;
+  color: #0ca4a0;
+}
+
+.create-doctor-quick-links {
+  border: 1px solid #dce8f3;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 16px 34px rgba(22, 55, 99, 0.07);
+  padding: 20px;
+}
+
+.create-doctor-quick-links__title {
+  margin: 0 0 14px;
+  color: #07183a;
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.create-doctor-quick-links__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1px;
+}
+
+.create-doctor-quick-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.create-doctor-quick-link:hover {
+  background: #fafbfc;
+}
+
+.create-doctor-quick-link .app-icon:first-of-type {
+  width: 24px;
+  height: 24px;
+  color: #0ca4a0;
+  flex-shrink: 0;
+}
+
+.create-doctor-quick-link > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.create-doctor-quick-link strong {
+  color: #07183a;
+  font-weight: 800;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.create-doctor-quick-link span {
+  color: #8a97af;
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+.create-doctor-quick-link .app-icon:last-of-type {
+  width: 18px;
+  height: 18px;
+  color: #d9e6f2;
+  flex-shrink: 0;
+}
