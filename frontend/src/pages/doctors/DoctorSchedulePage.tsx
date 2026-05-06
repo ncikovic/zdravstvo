@@ -197,32 +197,36 @@ function DoctorSchedulePage(): ReactElement {
 
           <div className="doctor-schedule-actions-card">
             <h3 className="doctor-schedule-actions-card__title">Brze akcije</h3>
-            <ul className="doctor-schedule-actions-list">
-              <li className="doctor-schedule-action-item">
+            <div className="doctor-schedule-actions-list">
+              <button className="doctor-schedule-action-item" type="button">
                 <AppIcon name="calendar" />
                 <div>
                   <strong>Primijeni na sve radne dane</strong>
                   <span>Kopiraj radno vrijeme na PDN - PET</span>
                 </div>
                 <AppIcon name="chevronRight" />
-              </li>
-              <li className="doctor-schedule-action-item">
+              </button>
+              <button className="doctor-schedule-action-item" type="button">
                 <AppIcon name="clock" />
                 <div>
                   <strong>Dodaj pauzu</strong>
                   <span>Dodaj pauzu za odabranog dan</span>
                 </div>
                 <AppIcon name="chevronRight" />
-              </li>
-              <li className="doctor-schedule-action-item">
+              </button>
+              <button
+                className="doctor-schedule-action-item"
+                type="button"
+                onClick={() => navigate(APP_ROUTES.doctorExceptions)}
+              >
                 <AppIcon name="calendar" />
                 <div>
                   <strong>Neradni dani i iznimke</strong>
                   <span>Upravljajte neradnim danima i iznimkama</span>
                 </div>
                 <AppIcon name="chevronRight" />
-              </li>
-            </ul>
+              </button>
+            </div>
           </div>
 
           <button className="doctor-schedule-save-btn" type="button" onClick={handleSave}>

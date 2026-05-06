@@ -1571,7 +1571,6 @@
 }
 
 .doctor-schedule-actions-list {
-  list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
@@ -1583,8 +1582,12 @@
   align-items: center;
   gap: 12px;
   padding: 12px;
+  border: 0;
   border-radius: 6px;
   background: transparent;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -1652,4 +1655,516 @@
 .doctor-schedule-save-btn .app-icon {
   width: 18px;
   height: 18px;
+}
+
+/* Doctor Exceptions Page */
+
+.doctor-exceptions-page {
+  display: grid;
+  gap: 16px;
+  max-width: 1540px;
+  margin: 0 auto;
+  color: #07183a;
+}
+
+.doctor-exceptions-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #667590;
+}
+
+.doctor-exceptions-breadcrumb-link {
+  background: none;
+  border: none;
+  color: #0ca4a0;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  padding: 0;
+  font-size: inherit;
+  font-family: inherit;
+}
+
+.doctor-exceptions-breadcrumb-link:hover {
+  text-decoration: underline;
+}
+
+.doctor-exceptions-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+  padding: 20px;
+  border: 1px solid #dce8f3;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 16px 34px rgba(22, 55, 99, 0.07);
+}
+
+.doctor-exceptions-doctor-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+.doctor-exceptions-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  min-width: 56px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #0ca4a0, #096ee2);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.doctor-exceptions-info h1 {
+  margin: 0;
+  color: #07183a;
+  font-size: 1.2rem;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.doctor-exceptions-info p {
+  margin: 4px 0;
+  color: #667590;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.doctor-exceptions-status {
+  display: inline-block;
+  margin-top: 4px;
+}
+
+.doctor-exceptions-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: 1px solid #d9e6f2;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #07183a;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.doctor-exceptions-back-btn:hover {
+  border-color: #c5d5e8;
+  background: #f8fafc;
+}
+
+.doctor-exceptions-back-btn .app-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.doctor-exceptions-content-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 360px);
+  gap: 22px;
+  align-items: start;
+}
+
+.doctor-exceptions-main {
+  border: 1px solid #dce8f3;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 16px 34px rgba(22, 55, 99, 0.07);
+  overflow: hidden;
+}
+
+.doctor-exceptions-section {
+  padding: 24px;
+  display: grid;
+  gap: 16px;
+}
+
+.doctor-exceptions-section-title {
+  margin: 0;
+  color: #07183a;
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.doctor-exceptions-filters {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr) auto;
+  gap: 12px;
+  align-items: end;
+  padding: 16px;
+  border: 1px solid #dce8f3;
+  border-radius: 8px;
+  background: #fafbfc;
+}
+
+.doctor-exceptions-filter-group {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.doctor-exceptions-filter-group span {
+  color: #697890;
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.doctor-exceptions-date-input,
+.doctor-exceptions-select {
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid #d9e6f2;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #46567a;
+  font-size: 0.9rem;
+  font-weight: 500;
+  font-family: inherit;
+}
+
+.doctor-exceptions-date-input:focus,
+.doctor-exceptions-select:focus {
+  outline: none;
+  border-color: #0ca4a0;
+}
+
+.doctor-exceptions-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%238a97af' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 16px;
+  padding-right: 36px;
+}
+
+.doctor-exceptions-filter-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid #d9e6f2;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #46567a;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.doctor-exceptions-filter-btn:hover {
+  border-color: #c5d5e8;
+  background: #f8fafc;
+}
+
+.doctor-exceptions-filter-btn .app-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.doctor-exceptions-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #ffffff;
+  margin-top: 16px;
+}
+
+.doctor-exceptions-table-head {
+  background: #fafbfc;
+  border-bottom: 1px solid #dce8f3;
+}
+
+.doctor-exceptions-table-head th {
+  padding: 12px 14px;
+  text-align: left;
+  color: #697890;
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.doctor-exceptions-table-row {
+  border-bottom: 1px solid #dce8f3;
+  transition: background 0.2s ease;
+}
+
+.doctor-exceptions-table-row:hover {
+  background: #fafbfc;
+}
+
+.doctor-exceptions-table-cell {
+  padding: 14px;
+  color: #46567a;
+  font-size: 0.9rem;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+.doctor-exceptions-table-cell--date {
+  font-size: 0.85rem;
+}
+
+.doctor-exceptions-date-type {
+  display: block;
+  color: #8a97af;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+.doctor-exceptions-type-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: #f0f5ff;
+  color: #5b7cfa;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.doctor-exceptions-table-cell--actions {
+  text-align: center;
+  width: 50px;
+}
+
+.doctor-exceptions-more-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid #d9e6f2;
+  border-radius: 6px;
+  background: transparent;
+  color: #8a97af;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.doctor-exceptions-more-btn:hover {
+  border-color: #c5d5e8;
+  background: #f8fafc;
+}
+
+.doctor-exceptions-more-btn .app-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.doctor-exceptions-pagination {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+  padding: 16px;
+  border-top: 1px solid #dce8f3;
+  margin-top: 16px;
+}
+
+.doctor-exceptions-pagination button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid #d9e6f2;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #46567a;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.doctor-exceptions-pagination button:hover {
+  border-color: #c5d5e8;
+  background: #f8fafc;
+}
+
+.doctor-exceptions-page-active {
+  background: #0ca4a0;
+  color: #ffffff;
+  border-color: #0ca4a0;
+}
+
+.doctor-exceptions-pagination span {
+  color: #8a97af;
+  font-size: 0.85rem;
+  margin-left: 8px;
+}
+
+.doctor-exceptions-sidebar {
+  display: grid;
+  gap: 18px;
+  align-content: start;
+}
+
+.doctor-exceptions-form-card {
+  border: 1px solid #dce8f3;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 16px 34px rgba(22, 55, 99, 0.07);
+  padding: 20px;
+}
+
+.doctor-exceptions-form-title {
+  margin: 0 0 16px;
+  color: #07183a;
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.doctor-exceptions-form-group {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.doctor-exceptions-label {
+  color: #697890;
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.doctor-exceptions-textarea {
+  min-height: 100px;
+  padding: 12px;
+  border: 1px solid #d9e6f2;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #46567a;
+  font-size: 0.9rem;
+  font-weight: 500;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.doctor-exceptions-textarea:focus {
+  outline: none;
+  border-color: #0ca4a0;
+}
+
+.doctor-exceptions-char-count {
+  display: block;
+  text-align: right;
+  color: #8a97af;
+  font-size: 0.8rem;
+  margin-top: 4px;
+}
+
+.doctor-exceptions-info-text {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 6px;
+  background: #fffbe5;
+  color: #8a6d00;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  margin-bottom: 14px;
+}
+
+.doctor-exceptions-info-text .app-icon {
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.doctor-exceptions-form-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.doctor-exceptions-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex: 1;
+  min-height: 40px;
+  border: 1px solid #d9e6f2;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #07183a;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.doctor-exceptions-btn:hover {
+  border-color: #c5d5e8;
+  background: #f8fafc;
+}
+
+.doctor-exceptions-btn--primary {
+  border: 0;
+  background: linear-gradient(135deg, #0ca4a0, #096ee2);
+  color: #ffffff;
+  box-shadow: 0 12px 26px rgba(10, 109, 211, 0.2);
+}
+
+.doctor-exceptions-btn--primary:hover {
+  box-shadow: 0 12px 26px rgba(10, 109, 211, 0.3);
+}
+
+.doctor-exceptions-btn--primary .app-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.doctor-exceptions-change-doctor-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #d9e6f2;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #07183a;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.doctor-exceptions-change-doctor-btn:hover {
+  border-color: #c5d5e8;
+  background: #f8fafc;
+}
+
+.doctor-exceptions-change-doctor-btn .app-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.status-badge--approved {
+  background: #e5f7f6;
+  color: #0ca4a0;
+}
+
+.status-badge--pending {
+  background: #fff3cd;
+  color: #ff9800;
 }

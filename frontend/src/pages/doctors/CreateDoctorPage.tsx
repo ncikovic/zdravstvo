@@ -321,7 +321,11 @@ function CreateDoctorPage(): ReactElement {
                 </div>
                 <AppIcon name="chevronRight" />
               </button>
-              <button className="create-doctor-quick-link" type="button">
+              <button
+                className="create-doctor-quick-link"
+                type="button"
+                onClick={() => navigate(APP_ROUTES.doctorExceptions)}
+              >
                 <AppIcon name="calendar" />
                 <div>
                   <strong>Neradni dani i iznimke</strong>
