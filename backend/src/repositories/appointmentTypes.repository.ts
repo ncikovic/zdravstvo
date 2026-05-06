@@ -1,12 +1,12 @@
 import type {
   CreateAppointmentTypeRequestDto,
   UpdateAppointmentTypeRequestDto,
-} from '@zdravstvo/contracts';
-import type { Buffer } from 'node:buffer';
+} from "@zdravstvo/contracts";
+import type { Buffer } from "node:buffer";
 
-import { db } from '../shared/db/index.js';
-import { bufferToUuid, uuidToBuffer } from '../shared/utils/index.js';
-import type { AppointmentType } from '../types/entities/index.js';
+import { db } from "../shared/db/index.js";
+import { bufferToUuid, uuidToBuffer } from "../shared/utils/index.js";
+import type { AppointmentType } from "../types/entities/index.js";
 
 interface AppointmentTypeRow {
   id: Buffer | Uint8Array | string;
@@ -19,9 +19,10 @@ interface AppointmentTypeRow {
 
 interface CreateAppointmentTypeRecord extends CreateAppointmentTypeRequestDto {
   id: string;
+  organizationId: string;
 }
 
-const TABLE_NAME = 'appointment_types';
+const TABLE_NAME = "appointment_types";
 
 const toDate = (value: Date | string): Date =>
   value instanceof Date ? value : new Date(value);
@@ -36,7 +37,7 @@ const toAppointmentType = (row: AppointmentTypeRow): AppointmentType => ({
 });
 
 const buildInsertPayload = (
-  record: CreateAppointmentTypeRecord
+  record: CreateAppointmentTypeRecord,
 ): Record<string, unknown> => ({
   id: uuidToBuffer(record.id),
   organization_id: uuidToBuffer(record.organizationId),
@@ -46,23 +47,19 @@ const buildInsertPayload = (
 });
 
 const buildUpdatePayload = (
-  record: UpdateAppointmentTypeRequestDto
+  record: UpdateAppointmentTypeRequestDto,
 ): Record<string, unknown> => {
   const payload: Record<string, unknown> = {};
 
-  if ('organizationId' in record && record.organizationId) {
-    payload.organization_id = uuidToBuffer(record.organizationId);
-  }
-
-  if ('name' in record) {
+  if ("name" in record) {
     payload.name = record.name;
   }
 
-  if ('defaultDurationMinutes' in record) {
+  if ("defaultDurationMinutes" in record) {
     payload.default_duration_minutes = record.defaultDurationMinutes;
   }
 
-  if ('isActive' in record) {
+  if ("isActive" in record) {
     payload.is_active = record.isActive;
   }
 
@@ -70,17 +67,26 @@ const buildUpdatePayload = (
 };
 
 export const appointmentTypesRepository = {
-  async findAll(): Promise<AppointmentType[]> {
+  async findAllByOrganization(
+    organizationId: string,
+  ): Promise<AppointmentType[]> {
     const rows = await db<AppointmentTypeRow>(TABLE_NAME)
-      .select('*')
-      .orderBy('name', 'asc');
+      .select("*")
+      .where({ organization_id: uuidToBuffer(organizationId) })
+      .orderBy("name", "asc");
 
     return rows.map(toAppointmentType);
   },
 
-  async findById(id: string): Promise<AppointmentType | null> {
+  async findById(
+    organizationId: string,
+    id: string,
+  ): Promise<AppointmentType | null> {
     const row = await db<AppointmentTypeRow>(TABLE_NAME)
-      .where({ id: uuidToBuffer(id) })
+      .where({
+        id: uuidToBuffer(id),
+        organization_id: uuidToBuffer(organizationId),
+      })
       .first();
 
     return row ? toAppointmentType(row) : null;
@@ -89,10 +95,13 @@ export const appointmentTypesRepository = {
   async create(record: CreateAppointmentTypeRecord): Promise<AppointmentType> {
     await db(TABLE_NAME).insert(buildInsertPayload(record));
 
-    const appointmentType = await appointmentTypesRepository.findById(record.id);
+    const appointmentType = await appointmentTypesRepository.findById(
+      record.organizationId,
+      record.id,
+    );
 
     if (!appointmentType) {
-      throw new Error('Appointment type was not created.');
+      throw new Error("Appointment type was not created.");
     }
 
     return appointmentType;
@@ -100,22 +109,29 @@ export const appointmentTypesRepository = {
 
   async update(
     id: string,
-    record: UpdateAppointmentTypeRequestDto
+    organizationId: string,
+    record: UpdateAppointmentTypeRequestDto,
   ): Promise<AppointmentType | null> {
     const affectedRows = await db(TABLE_NAME)
-      .where({ id: uuidToBuffer(id) })
+      .where({
+        id: uuidToBuffer(id),
+        organization_id: uuidToBuffer(organizationId),
+      })
       .update(buildUpdatePayload(record));
 
     if (affectedRows === 0) {
       return null;
     }
 
-    return appointmentTypesRepository.findById(id);
+    return appointmentTypesRepository.findById(organizationId, id);
   },
 
-  async delete(id: string): Promise<boolean> {
+  async delete(organizationId: string, id: string): Promise<boolean> {
     const affectedRows = await db(TABLE_NAME)
-      .where({ id: uuidToBuffer(id) })
+      .where({
+        id: uuidToBuffer(id),
+        organization_id: uuidToBuffer(organizationId),
+      })
       .delete();
 
     return affectedRows > 0;

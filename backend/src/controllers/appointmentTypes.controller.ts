@@ -1,60 +1,77 @@
-import type { Request, Response } from 'express';
+import type { Request, Response } from "express";
 
-import { appointmentTypesService } from '../services/index.js';
+import { appointmentTypesService } from "../services/index.js";
+import { requireAuthenticatedUser } from "../shared/context/index.js";
 import {
   createAppointmentTypeSchema,
   idParamsSchema,
   updateAppointmentTypeSchema,
-} from '../validations/index.js';
+} from "../validations/index.js";
 
 export const appointmentTypesController = {
   async listAppointmentTypes(
-    _request: Request,
-    response: Response
+    request: Request,
+    response: Response,
   ): Promise<void> {
+    const context = requireAuthenticatedUser(request);
     const appointmentTypes =
-      await appointmentTypesService.listAppointmentTypes();
+      await appointmentTypesService.listAppointmentTypes(context);
 
     response.status(200).json(appointmentTypes);
   },
 
-  async getAppointmentType(request: Request, response: Response): Promise<void> {
+  async getAppointmentType(
+    request: Request,
+    response: Response,
+  ): Promise<void> {
+    const context = requireAuthenticatedUser(request);
     const { id } = idParamsSchema.parse(request.params);
-    const appointmentType = await appointmentTypesService.getAppointmentType(id);
+    const appointmentType = await appointmentTypesService.getAppointmentType(
+      context,
+      id,
+    );
 
     response.status(200).json(appointmentType);
   },
 
   async createAppointmentType(
     request: Request,
-    response: Response
+    response: Response,
   ): Promise<void> {
+    const context = requireAuthenticatedUser(request);
     const payload = createAppointmentTypeSchema.parse(request.body);
-    const appointmentType =
-      await appointmentTypesService.createAppointmentType(payload);
+    const appointmentType = await appointmentTypesService.createAppointmentType(
+      context,
+      payload,
+    );
 
     response.status(201).json(appointmentType);
   },
 
   async updateAppointmentType(
     request: Request,
-    response: Response
+    response: Response,
   ): Promise<void> {
+    const context = requireAuthenticatedUser(request);
     const { id } = idParamsSchema.parse(request.params);
     const payload = updateAppointmentTypeSchema.parse(request.body);
-    const appointmentType =
-      await appointmentTypesService.updateAppointmentType(id, payload);
+    const appointmentType = await appointmentTypesService.updateAppointmentType(
+      context,
+      id,
+      payload,
+    );
 
     response.status(200).json(appointmentType);
   },
 
   async deleteAppointmentType(
     request: Request,
-    response: Response
+    response: Response,
   ): Promise<void> {
+    const context = requireAuthenticatedUser(request);
     const { id } = idParamsSchema.parse(request.params);
 
-    await appointmentTypesService.deleteAppointmentType(id);
+    await appointmentTypesService.deleteAppointmentType(context, id);
 
     response.status(204).send();
   },

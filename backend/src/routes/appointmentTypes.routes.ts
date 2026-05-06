@@ -1,11 +1,63 @@
-import { Router } from 'express';
+import { OrganizationUserRole } from "@zdravstvo/contracts";
+import { Router } from "express";
 
-import { appointmentTypesController } from '../controllers/index.js';
+import { appointmentTypesController } from "../controllers/index.js";
+import { asyncHandler } from "../middleware/asyncHandler.js";
+import {
+  authenticateRequest,
+  requireRoles,
+} from "../shared/middleware/index.js";
 
 export const appointmentTypesRouter = Router();
 
-appointmentTypesRouter.get('/', appointmentTypesController.listAppointmentTypes);
-appointmentTypesRouter.get('/:id', appointmentTypesController.getAppointmentType);
-appointmentTypesRouter.post('/', appointmentTypesController.createAppointmentType);
-appointmentTypesRouter.put('/:id', appointmentTypesController.updateAppointmentType);
-appointmentTypesRouter.delete('/:id', appointmentTypesController.deleteAppointmentType);
+const canReadAppointmentTypes = requireRoles(
+  OrganizationUserRole.ADMIN,
+  OrganizationUserRole.RECEPTION,
+  OrganizationUserRole.DOCTOR,
+  OrganizationUserRole.PATIENT,
+);
+const canManageAppointmentTypes = requireRoles(
+  OrganizationUserRole.ADMIN,
+  OrganizationUserRole.RECEPTION,
+);
+
+appointmentTypesRouter.get(
+  "/",
+  authenticateRequest,
+  canReadAppointmentTypes,
+  asyncHandler(async (request, response) => {
+    await appointmentTypesController.listAppointmentTypes(request, response);
+  }),
+);
+appointmentTypesRouter.get(
+  "/:id",
+  authenticateRequest,
+  canReadAppointmentTypes,
+  asyncHandler(async (request, response) => {
+    await appointmentTypesController.getAppointmentType(request, response);
+  }),
+);
+appointmentTypesRouter.post(
+  "/",
+  authenticateRequest,
+  canManageAppointmentTypes,
+  asyncHandler(async (request, response) => {
+    await appointmentTypesController.createAppointmentType(request, response);
+  }),
+);
+appointmentTypesRouter.put(
+  "/:id",
+  authenticateRequest,
+  canManageAppointmentTypes,
+  asyncHandler(async (request, response) => {
+    await appointmentTypesController.updateAppointmentType(request, response);
+  }),
+);
+appointmentTypesRouter.delete(
+  "/:id",
+  authenticateRequest,
+  canManageAppointmentTypes,
+  asyncHandler(async (request, response) => {
+    await appointmentTypesController.deleteAppointmentType(request, response);
+  }),
+);

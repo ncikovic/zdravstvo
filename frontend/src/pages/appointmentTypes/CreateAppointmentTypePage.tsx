@@ -1,72 +1,123 @@
-import type { ReactElement } from 'react'
+import { useMemo, useState } from "react";
+import type { ReactElement } from "react";
+import { useNavigate } from "react-router-dom";
 
-import { AppIcon } from '@/components'
-import type { AppIconName } from '@/types'
+import { APP_ROUTES } from "@/app/routes";
+import { AppIcon } from "@/components";
+import { appointmentTypesService } from "@/services";
 
-import './createAppointmentType.css'
+import "./createAppointmentType.css";
 
-interface SummaryField {
-  label: string
-  value: string
-  badge?: boolean
+interface FormData {
+  name: string;
+  defaultDurationMinutes: string;
+  isActive: boolean;
 }
 
-interface SelectField {
-  label: string
-  placeholder: string
-  icon: AppIconName
-  required?: boolean
-  dot?: boolean
-}
+const initialFormData: FormData = {
+  name: "",
+  defaultDurationMinutes: "30",
+  isActive: true,
+};
 
-const summaryFields: readonly SummaryField[] = [
-  { label: 'Trajanje', value: '-' },
-  { label: 'Online rezervacija', value: '-' },
-  { label: 'Minimalno otkazivanje', value: '-' },
-  { label: 'Podsjetnik e-mail', value: '-' },
-  { label: 'Podsjetnik SMS', value: '-' },
-  { label: 'Status', value: 'Aktivan', badge: true },
-]
+const durationOptions = [15, 20, 30, 45, 60, 90, 120];
 
-const availabilityFields: readonly SelectField[] = [
-  { label: 'Specijalizacije', placeholder: 'Odaberite specijalizacije', icon: 'stethoscope' },
-  { label: 'Liječnici', placeholder: 'Odaberite liječnike', icon: 'user' },
-  { label: 'Lokacija', placeholder: 'Odaberite lokacije', icon: 'building' },
-  { label: 'Status', placeholder: 'Aktivan', icon: 'plus', required: true, dot: true },
-]
+const getErrorMessage = (error: unknown, fallback: string): string =>
+  error instanceof Error
+    ? error.message
+    : typeof error === "object" && error !== null && "message" in error
+      ? String(error.message)
+      : fallback;
 
-function Toggle({ label, description }: { label: string; description: string }): ReactElement {
+function Toggle({
+  label,
+  description,
+  checked,
+  onChange,
+}: {
+  label: string;
+  description: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}): ReactElement {
   return (
-    <div className="appointment-type-create-toggle">
+    <label className="appointment-type-create-toggle">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(event) => onChange(event.target.checked)}
+        className="sr-only"
+      />
       <span aria-hidden="true" />
       <div>
         <strong>{label}</strong>
         <small>{description}</small>
       </div>
-    </div>
-  )
-}
-
-function SelectControl({ field }: { field: SelectField }): ReactElement {
-  return (
-    <label className="appointment-type-create-field">
-      <span>
-        {field.label}
-        {field.required ? <b> *</b> : null}
-      </span>
-      <button type="button">
-        {field.dot ? <i /> : <AppIcon name={field.icon} />}
-        {field.placeholder}
-        <AppIcon name="chevronDown" />
-      </button>
     </label>
-  )
+  );
 }
 
 function CreateAppointmentTypePage(): ReactElement {
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState<FormData>(initialFormData);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const duration = useMemo(
+    () => Number.parseInt(formData.defaultDurationMinutes, 10),
+    [formData.defaultDurationMinutes],
+  );
+
+  const updateField = <TField extends keyof FormData>(
+    field: TField,
+    value: FormData[TField],
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+    setError(null);
+  };
+
+  const handleSubmit = async () => {
+    if (!formData.name.trim()) {
+      setError("Naziv vrste termina je obavezan.");
+      return;
+    }
+
+    if (!Number.isInteger(duration) || duration <= 0) {
+      setError("Trajanje mora biti pozitivan broj minuta.");
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      const appointmentType = await appointmentTypesService.create({
+        name: formData.name.trim(),
+        defaultDurationMinutes: duration,
+        isActive: formData.isActive,
+      });
+
+      navigate(
+        APP_ROUTES.editAppointmentType.replace(
+          ":appointmentTypeId",
+          appointmentType.id,
+        ),
+      );
+    } catch (err) {
+      setError(getErrorMessage(err, "Greska pri spremanju vrste termina."));
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <div className="appointment-type-create-page">
-      <button className="appointment-type-create-back-link" type="button">
+      <button
+        className="appointment-type-create-back-link"
+        type="button"
+        onClick={() => navigate(APP_ROUTES.appointmentTypes)}
+      >
         <AppIcon name="chevronLeft" />
         Natrag na vrste termina
       </button>
@@ -79,6 +130,19 @@ function CreateAppointmentTypePage(): ReactElement {
 
       <div className="appointment-type-create-grid">
         <main className="appointment-type-create-main">
+          {error ? (
+            <div
+              style={{
+                padding: "1rem",
+                backgroundColor: "#ffebee",
+                color: "#d32f2f",
+                borderRadius: "4px",
+              }}
+            >
+              {error}
+            </div>
+          ) : null}
+
           <section className="appointment-type-create-card">
             <header>
               <span>1</span>
@@ -90,12 +154,20 @@ function CreateAppointmentTypePage(): ReactElement {
                 <span>
                   Naziv vrste termina <b>*</b>
                 </span>
-                <input placeholder="npr. Kontrolni pregled" />
+                <input
+                  placeholder="npr. Kontrolni pregled"
+                  value={formData.name}
+                  onChange={(event) => updateField("name", event.target.value)}
+                />
               </label>
 
               <label className="appointment-type-create-field appointment-type-create-field--textarea">
                 <span>Kratki opis</span>
-                <textarea placeholder="Napišite kratki opis vrste termina..." maxLength={120} />
+                <textarea
+                  placeholder="Opis nije podrzan kroz trenutni API."
+                  maxLength={120}
+                  disabled
+                />
                 <em>0/120</em>
               </label>
 
@@ -103,20 +175,25 @@ function CreateAppointmentTypePage(): ReactElement {
                 <span>
                   Trajanje <b>*</b>
                 </span>
-                <button type="button">
-                  <AppIcon name="clock" />
-                  Odaberite trajanje
-                  <AppIcon name="chevronDown" />
-                </button>
+                <select
+                  value={formData.defaultDurationMinutes}
+                  onChange={(event) =>
+                    updateField("defaultDurationMinutes", event.target.value)
+                  }
+                >
+                  {durationOptions.map((option) => (
+                    <option value={option} key={option}>
+                      {option} minuta
+                    </option>
+                  ))}
+                </select>
               </label>
 
               <label className="appointment-type-create-field appointment-type-create-color-field">
-                <span>
-                  Boja oznake <b>*</b>
-                </span>
-                <button type="button">
+                <span>Boja oznake</span>
+                <button type="button" disabled>
                   <i />
-                  Odaberite boju
+                  Nije podrzano kroz API
                   <AppIcon name="chevronDown" />
                 </button>
               </label>
@@ -130,34 +207,39 @@ function CreateAppointmentTypePage(): ReactElement {
             </header>
 
             <div className="appointment-type-create-rules-grid">
-              <Toggle label="Online rezervacija" description="Omogući online rezervaciju za ovu vrstu termina" />
+              <Toggle
+                label="Aktivna vrsta termina"
+                description="Aktivne vrste termina dostupne su pri rezervaciji."
+                checked={formData.isActive}
+                onChange={(checked) => updateField("isActive", checked)}
+              />
 
               <label className="appointment-type-create-field">
                 <span>
                   Trajanje termina <b>*</b>
                 </span>
-                <button type="button">
-                  <AppIcon name="clock" />
-                  Odaberite trajanje
-                  <AppIcon name="chevronDown" />
-                </button>
+                <select
+                  value={formData.defaultDurationMinutes}
+                  onChange={(event) =>
+                    updateField("defaultDurationMinutes", event.target.value)
+                  }
+                >
+                  {durationOptions.map((option) => (
+                    <option value={option} key={option}>
+                      {option} minuta
+                    </option>
+                  ))}
+                </select>
               </label>
 
               <label className="appointment-type-create-field">
-                <span>
-                  Minimalno vrijeme otkazivanja <b>*</b>
-                </span>
-                <button type="button">
+                <span>Minimalno vrijeme otkazivanja</span>
+                <button type="button" disabled>
                   <AppIcon name="clock" />
-                  Odaberite vrijeme
+                  Nije podrzano kroz API
                   <AppIcon name="chevronDown" />
                 </button>
               </label>
-
-              <div className="appointment-type-create-reminder-row">
-                <Toggle label="Automatski podsjetnik e-mail" description="Pošalji e-mail podsjetnik pacijentu" />
-                <Toggle label="Automatski podsjetnik SMS" description="Pošalji SMS podsjetnik pacijentu" />
-              </div>
             </div>
           </section>
 
@@ -168,68 +250,68 @@ function CreateAppointmentTypePage(): ReactElement {
             </header>
 
             <div className="appointment-type-create-availability-grid">
-              {availabilityFields.map((field) => (
-                <SelectControl field={field} key={field.label} />
-              ))}
+              <label className="appointment-type-create-field">
+                <span>Status</span>
+                <select
+                  value={formData.isActive ? "active" : "inactive"}
+                  onChange={(event) =>
+                    updateField("isActive", event.target.value === "active")
+                  }
+                >
+                  <option value="active">Aktivan</option>
+                  <option value="inactive">Neaktivan</option>
+                </select>
+              </label>
             </div>
           </section>
 
           <section className="appointment-type-create-actions">
-            <button className="appointment-type-create-cancel" type="button">
+            <button
+              className="appointment-type-create-cancel"
+              type="button"
+              onClick={() => navigate(APP_ROUTES.appointmentTypes)}
+            >
               Odustani
             </button>
-            <button className="appointment-type-create-save" type="button">
+            <button
+              className="appointment-type-create-save"
+              type="button"
+              onClick={handleSubmit}
+              disabled={isSaving}
+            >
               <AppIcon name="calendarCheck" />
-              Spremi vrstu termina
+              {isSaving ? "Sprema se..." : "Spremi vrstu termina"}
             </button>
           </section>
         </main>
 
         <aside className="appointment-type-create-side">
           <section className="appointment-type-create-summary">
-            <h2>Sažetak vrste termina</h2>
+            <h2>Sazetak vrste termina</h2>
             <div className="appointment-type-create-summary-name">
               <span />
-              <strong>Kontrolni pregled</strong>
+              <strong>{formData.name || "Nova vrsta termina"}</strong>
             </div>
 
             <div className="appointment-type-create-summary-fields">
-              {summaryFields.map((field) => (
-                <article key={field.label}>
-                  <span>{field.label}</span>
-                  {field.badge ? <em>{field.value}</em> : <strong>{field.value}</strong>}
-                </article>
-              ))}
+              <article>
+                <span>Trajanje</span>
+                <strong>{duration || "-"} min</strong>
+              </article>
+              <article>
+                <span>Online rezervacija</span>
+                <strong>Nije dostupno</strong>
+              </article>
+              <article>
+                <span>Status</span>
+                <em>{formData.isActive ? "Aktivan" : "Neaktivan"}</em>
+              </article>
             </div>
-
-            <div className="appointment-type-create-linked">
-              <span>Povezano sa</span>
-              <p>Specijalizacije: <strong>-</strong></p>
-              <p>Liječnici: <strong>-</strong></p>
-              <p>Lokacija: <strong>-</strong></p>
-            </div>
-          </section>
-
-          <section className="appointment-type-create-next">
-            <div>
-              <AppIcon name="info" />
-              <span>
-                <strong>Što slijedi?</strong>
-                <p>
-                  Nakon spremanja, ovu vrstu termina možete povezati s liječnicima i koristiti
-                  prilikom kreiranja i rezerviranja termina.
-                </p>
-              </span>
-            </div>
-            <button type="button">
-              <AppIcon name="users" />
-              Poveži liječnike
-            </button>
           </section>
         </aside>
       </div>
     </div>
-  )
+  );
 }
 
-export { CreateAppointmentTypePage }
+export { CreateAppointmentTypePage };

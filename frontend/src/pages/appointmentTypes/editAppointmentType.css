@@ -169,6 +169,7 @@
 
 .appointment-type-edit-field input,
 .appointment-type-edit-field textarea,
+.appointment-type-edit-field select,
 .appointment-type-edit-field button {
   width: 100%;
   min-width: 0;
@@ -181,7 +182,8 @@
   font-weight: 700;
 }
 
-.appointment-type-edit-field input {
+.appointment-type-edit-field input,
+.appointment-type-edit-field select {
   min-height: 42px;
   padding: 0 16px;
 }
@@ -294,7 +296,8 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.appointment-type-edit-availability-grid .appointment-type-edit-field:nth-child(4) {
+.appointment-type-edit-availability-grid
+  .appointment-type-edit-field:nth-child(4) {
   max-width: 360px;
 }
 
@@ -564,7 +567,8 @@
     grid-template-columns: 1fr;
   }
 
-  .appointment-type-edit-availability-grid .appointment-type-edit-field:nth-child(4) {
+  .appointment-type-edit-availability-grid
+    .appointment-type-edit-field:nth-child(4) {
     max-width: none;
   }
 }
