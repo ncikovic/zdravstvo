@@ -30,6 +30,76 @@ const mockDoctorDetails: DoctorDetailsData = {
   status: 'Aktivan',
 }
 
+const upcomingAppointments = [
+  {
+    date: '20',
+    month: 'svi',
+    title: 'Kontrolni pregled',
+    patient: 'Ana Marić',
+    time: '10:00',
+    status: 'Predstoji',
+  },
+  {
+    date: '10',
+    month: 'LIP',
+    title: 'Redovni pregled',
+    patient: 'Marko Horvat',
+    time: '11:30',
+    status: 'Predstoji',
+  },
+  {
+    date: '05',
+    month: 'KOL',
+    title: 'Konzultacija',
+    patient: 'Ivana Kovač',
+    time: '09:00',
+    status: 'Predstoji',
+  },
+]
+
+const appointmentHistory = [
+  {
+    date: '18.06.2024.',
+    type: 'Redovni pregled',
+    patient: 'Ana Marić',
+    status: 'Obavljen',
+  },
+  {
+    date: '10.04.2024.',
+    type: 'Kontrolni pregled',
+    patient: 'Marko Horvat',
+    status: 'Obavljen',
+  },
+  {
+    date: '22.02.2024.',
+    type: 'Konzultacija',
+    patient: 'Ivana Kovač',
+    status: 'Obavljen',
+  },
+  {
+    date: '15.01.2024.',
+    type: 'Kontrolni pregled',
+    patient: 'Ana Marić',
+    status: 'Otkazan',
+  },
+  {
+    date: '05.12.2023.',
+    type: 'Redovni pregled',
+    patient: 'Marko Horvat',
+    status: 'Obavljen',
+  },
+]
+
+const workingHours = [
+  ['Ponedjeljak', '08:00 - 16:30', true],
+  ['Utorak', '08:00 - 16:30', true],
+  ['Srijeda', '08:00 - 16:30', true],
+  ['Četvrtak', '10:00 - 18:00', true],
+  ['Petak', '08:00 - 15:00', true],
+  ['Subota', '-', false],
+  ['Nedjelja', '-', false],
+] as const
+
 function DoctorDetailsPage(): ReactElement {
   const navigate = useNavigate()
 
@@ -114,6 +184,76 @@ function DoctorDetailsPage(): ReactElement {
                   </div>
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* Working Hours Section */}
+          <div className="doctor-details-section">
+            <h3 className="doctor-details-section-title">Radno vrijeme</h3>
+            <div className="doctor-details-working-hours">
+              {workingHours.map(([day, time, active]) => (
+                <div key={day} className="doctor-details-working-hour-item">
+                  <span className="doctor-details-working-hour-day">
+                    <i className={active ? 'doctor-details-hours-dot' : 'doctor-details-hours-dot doctor-details-hours-dot--muted'} />
+                    {day}
+                  </span>
+                  <strong>{time}</strong>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Upcoming Appointments */}
+          <div className="doctor-details-section">
+            <div className="doctor-details-section-header">
+              <h3 className="doctor-details-section-title">Nadolazeci termini</h3>
+              <button type="button" className="doctor-details-show-all">Prikaži sve</button>
+            </div>
+            <div className="doctor-details-appointments">
+              {upcomingAppointments.map((apt, idx) => (
+                <div className="doctor-details-appointment-item" key={idx}>
+                  <div className="doctor-details-appointment-date">
+                    <strong>{apt.date}</strong>
+                    <small>{apt.month}</small>
+                  </div>
+                  <div className="doctor-details-appointment-info">
+                    <strong>{apt.title}</strong>
+                    <span>{apt.patient}</span>
+                  </div>
+                  <div className="doctor-details-appointment-time">
+                    <span>{apt.time}</span>
+                    <button type="button">
+                      <AppIcon name="chevronRight" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Appointment History */}
+          <div className="doctor-details-section">
+            <div className="doctor-details-section-header">
+              <h3 className="doctor-details-section-title">povijest termina</h3>
+              <button type="button" className="doctor-details-show-all">Prikaži sve</button>
+            </div>
+            <div className="doctor-details-history-table">
+              <div className="doctor-details-history-header">
+                <span>Datum</span>
+                <span>Tip termina</span>
+                <span>Pacijent</span>
+                <span>Status</span>
+              </div>
+              {appointmentHistory.map((apt, idx) => (
+                <div className="doctor-details-history-row" key={idx}>
+                  <span>{apt.date}</span>
+                  <span>{apt.type}</span>
+                  <span>{apt.patient}</span>
+                  <span className={`doctor-details-status ${apt.status === 'Obavljen' ? 'obavljen' : apt.status === 'Otkazan' ? 'otkazan' : 'predstoji'}`}>
+                    {apt.status}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
 
