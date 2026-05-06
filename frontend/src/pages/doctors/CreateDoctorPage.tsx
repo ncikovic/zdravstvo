@@ -300,32 +300,36 @@ function CreateDoctorPage(): ReactElement {
 
           <div className="create-doctor-quick-links">
             <h3 className="create-doctor-quick-links__title">Slijedeći koraci</h3>
-            <ul className="create-doctor-quick-links__list">
-              <li className="create-doctor-quick-link">
+            <div className="create-doctor-quick-links__list">
+              <button className="create-doctor-quick-link" type="button">
                 <AppIcon name="user" />
                 <div>
                   <strong>Detalji liječnika</strong>
                   <span>Upravljajte dodatnim podacima.</span>
                 </div>
                 <AppIcon name="chevronRight" />
-              </li>
-              <li className="create-doctor-quick-link">
+              </button>
+              <button
+                className="create-doctor-quick-link"
+                type="button"
+                onClick={() => navigate(APP_ROUTES.doctorSchedule)}
+              >
                 <AppIcon name="calendar" />
                 <div>
                   <strong>Radno vrijeme</strong>
                   <span>Postavite radno vrijeme liječnika.</span>
                 </div>
                 <AppIcon name="chevronRight" />
-              </li>
-              <li className="create-doctor-quick-link">
+              </button>
+              <button className="create-doctor-quick-link" type="button">
                 <AppIcon name="calendar" />
                 <div>
                   <strong>Neradni dani i iznimke</strong>
                   <span>Dodjele neradne dane i iznimke.</span>
                 </div>
                 <AppIcon name="chevronRight" />
-              </li>
-            </ul>
+              </button>
+            </div>
           </div>
         </aside>
       </div>

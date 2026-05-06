@@ -4,6 +4,7 @@ export const APP_ROUTES = {
   appointments: '/appointments',
   doctors: '/doctors',
   doctorsCreate: '/doctors/new',
+  doctorSchedule: '/doctors/schedule',
   patients: '/patients',
   appointmentTypes: '/appointment-types',
   audit: '/audit',
