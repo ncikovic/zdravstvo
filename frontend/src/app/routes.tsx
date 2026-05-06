@@ -10,6 +10,7 @@ export const APP_ROUTES = {
   patients: '/patients',
   appointmentTypes: '/appointment-types',
   createAppointmentType: '/appointment-types/create',
+  editAppointmentType: '/appointment-types/:appointmentTypeId/edit',
   audit: '/audit',
   settings: '/settings',
   schedule: '/schedule',
