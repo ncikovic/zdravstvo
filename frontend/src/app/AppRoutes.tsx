@@ -12,6 +12,7 @@ import {
   CancelAppointmentPage,
   ChangeAppointmentPage,
   ConfirmEmailPage,
+  CreateAppointmentTypePage,
   CreateAppointmentPage,
   DashboardPage,
   DoctorsPage,
@@ -87,6 +88,7 @@ export function AppRoutes(): ReactElement {
             <Route path={APP_ROUTES.doctors} element={<DoctorsPage />} />
             <Route path={APP_ROUTES.patients} element={<PatientsPage />} />
             <Route path={APP_ROUTES.appointmentTypes} element={<AppointmentTypesPage />} />
+            <Route path={APP_ROUTES.createAppointmentType} element={<CreateAppointmentTypePage />} />
             <Route path={APP_ROUTES.audit} element={<AuditPage />} />
             {INTERNAL_PLACEHOLDER_ROUTES.map((route) => (
               <Route

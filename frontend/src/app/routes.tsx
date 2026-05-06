@@ -9,6 +9,7 @@ export const APP_ROUTES = {
   doctors: '/doctors',
   patients: '/patients',
   appointmentTypes: '/appointment-types',
+  createAppointmentType: '/appointment-types/create',
   audit: '/audit',
   settings: '/settings',
   schedule: '/schedule',
