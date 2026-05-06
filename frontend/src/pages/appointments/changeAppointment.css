@@ -1,0 +1,824 @@
+.appointment-change-page {
+  display: grid;
+  gap: 20px;
+  max-width: 1510px;
+  margin: 0 auto;
+  color: #07183a;
+}
+
+.appointment-change-page button {
+  cursor: default;
+}
+
+.appointment-change-breadcrumb,
+.appointment-change-stepper,
+.appointment-change-card,
+.appointment-change-summary {
+  border: 1px solid #dce8f3;
+  background: #ffffff;
+  box-shadow: 0 18px 44px rgba(21, 53, 96, 0.08);
+}
+
+.appointment-change-breadcrumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  width: fit-content;
+  min-height: 54px;
+  padding: 0 20px;
+  border-color: #bfdcff;
+  border-radius: 8px;
+  color: #5a6d91;
+  font-size: 0.96rem;
+  font-weight: 800;
+}
+
+.appointment-change-breadcrumb span,
+.appointment-change-breadcrumb strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.appointment-change-breadcrumb span:first-child {
+  color: #0876df;
+}
+
+.appointment-change-breadcrumb strong {
+  color: #5a6d91;
+}
+
+.appointment-change-breadcrumb .app-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.appointment-change-hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 22px;
+}
+
+.appointment-change-hero h1 {
+  margin: 0;
+  color: #07183a;
+  font-size: 2.32rem;
+  font-weight: 850;
+  line-height: 1.04;
+  letter-spacing: -0.035em;
+}
+
+.appointment-change-hero p {
+  margin: 7px 0 0;
+  color: #667590;
+  font-size: 1rem;
+  font-weight: 650;
+}
+
+.appointment-change-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-width: 276px;
+  min-height: 50px;
+  padding: 0 22px;
+  border: 1px solid #91c8ff;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #0876df;
+  font-size: 0.96rem;
+  font-weight: 850;
+}
+
+.appointment-change-back .app-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.appointment-change-stepper {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  min-height: 86px;
+  padding: 0 24px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.appointment-change-step {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 20px;
+  align-items: center;
+  gap: 15px;
+  min-width: 0;
+}
+
+.appointment-change-step:last-child {
+  grid-template-columns: 44px minmax(0, 1fr);
+}
+
+.appointment-change-step > span {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 1px solid #cdd9e8;
+  border-radius: 50%;
+  background: #f4f8fc;
+  color: #314368;
+  font-size: 1rem;
+  font-weight: 850;
+}
+
+.appointment-change-step > span.is-active {
+  border-color: #0a76df;
+  background: linear-gradient(135deg, #0c85e5, #0667cf);
+  color: #ffffff;
+  box-shadow: 0 10px 20px rgba(8, 109, 226, 0.2);
+}
+
+.appointment-change-step div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.appointment-change-step strong,
+.appointment-change-step small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.appointment-change-step strong {
+  color: #07183a;
+  font-size: 0.94rem;
+  font-weight: 850;
+  line-height: 1.18;
+}
+
+.appointment-change-step:first-child strong {
+  color: #0b6fd8;
+}
+
+.appointment-change-step small {
+  color: #64728d;
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+
+.appointment-change-step .app-icon {
+  width: 19px;
+  height: 19px;
+  color: #62718c;
+}
+
+.appointment-change-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 410px;
+  gap: 36px;
+  align-items: start;
+}
+
+.appointment-change-card,
+.appointment-change-summary {
+  border-radius: 12px;
+}
+
+.appointment-change-card {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+  padding: 24px 26px 28px;
+}
+
+.appointment-change-section {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.appointment-change-section h2,
+.appointment-change-summary h2 {
+  margin: 0;
+  color: #07183a;
+  font-size: 1.04rem;
+  font-weight: 850;
+  line-height: 1.2;
+}
+
+.appointment-change-patient-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 200px;
+  gap: 18px;
+}
+
+.appointment-change-select,
+.appointment-change-doctor-select,
+.appointment-change-type-select,
+.appointment-change-new-patient,
+.appointment-change-month__header button,
+.appointment-change-calendar button,
+.appointment-change-times button,
+.appointment-change-confirm,
+.appointment-change-cancel,
+.appointment-change-return {
+  border: 1px solid #d6e2ef;
+  background: #ffffff;
+  color: #17254b;
+}
+
+.appointment-change-select,
+.appointment-change-doctor-select,
+.appointment-change-type-select {
+  display: grid;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  border-radius: 8px;
+  text-align: left;
+}
+
+.appointment-change-select {
+  grid-template-columns: 24px minmax(0, 1fr) 20px;
+  gap: 15px;
+  min-height: 52px;
+  padding: 0 18px;
+  color: #64728d;
+}
+
+.appointment-change-select span {
+  min-width: 0;
+  overflow: hidden;
+  color: #5f6e8b;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.appointment-change-select .app-icon,
+.appointment-change-doctor-select .app-icon,
+.appointment-change-type-select > .app-icon {
+  width: 19px;
+  height: 19px;
+  color: #6478a2;
+}
+
+.appointment-change-new-patient {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 52px;
+  border-color: #91c8ff;
+  border-radius: 8px;
+  color: #0876df;
+  font-size: 0.95rem;
+  font-weight: 850;
+}
+
+.appointment-change-new-patient .app-icon {
+  width: 19px;
+  height: 19px;
+  stroke-width: 2.2;
+}
+
+.appointment-change-doctor-select {
+  grid-template-columns: 54px minmax(0, 1fr) 20px;
+  gap: 16px;
+  min-height: 64px;
+  padding: 0 16px 0 10px;
+}
+
+.appointment-change-doctor-photo {
+  position: relative;
+  display: block;
+  width: 44px;
+  height: 44px;
+  overflow: hidden;
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 50% 29%, #ffd6bd 0 16%, transparent 17%),
+    linear-gradient(160deg, #f5d7c8 0 42%, #17324f 43% 100%);
+}
+
+.appointment-change-doctor-photo span {
+  position: absolute;
+  right: 9px;
+  bottom: 0;
+  left: 9px;
+  height: 20px;
+  border-radius: 9px 9px 0 0;
+  background: linear-gradient(180deg, #ffffff 0 38%, #223d5d 39% 100%);
+}
+
+.appointment-change-doctor-select span:not(.appointment-change-doctor-photo),
+.appointment-change-type-select div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.appointment-change-doctor-select strong,
+.appointment-change-doctor-select small,
+.appointment-change-type-select strong,
+.appointment-change-type-select small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.appointment-change-doctor-select strong,
+.appointment-change-type-select strong {
+  color: #07183a;
+  font-size: 1rem;
+  font-weight: 850;
+}
+
+.appointment-change-doctor-select small,
+.appointment-change-type-select small {
+  color: #667590;
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+
+.appointment-change-type-select {
+  grid-template-columns: 46px minmax(0, 1fr) 20px;
+  gap: 16px;
+  min-height: 64px;
+  padding: 0 16px 0 10px;
+}
+
+.appointment-change-type-select > span {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 50%;
+  background: #dff8f5;
+  color: #079b8d;
+}
+
+.appointment-change-type-select > span .app-icon {
+  width: 22px;
+  height: 22px;
+}
+
+.appointment-change-schedule-section {
+  gap: 12px;
+}
+
+.appointment-change-scheduler {
+  display: grid;
+  grid-template-columns: minmax(360px, 0.9fr) minmax(390px, 1fr);
+  gap: 26px;
+  min-width: 0;
+}
+
+.appointment-change-month,
+.appointment-change-times {
+  min-width: 0;
+}
+
+.appointment-change-month-panel {
+  margin-top: 8px;
+  padding: 16px 20px 18px;
+  border: 1px solid #dce8f3;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.appointment-change-month__header {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) 34px;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.appointment-change-month__header button {
+  display: grid;
+  width: 34px;
+  min-height: 34px;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  color: #07183a;
+}
+
+.appointment-change-month__header .app-icon {
+  width: 21px;
+  height: 21px;
+}
+
+.appointment-change-month__header strong {
+  color: #07183a;
+  font-size: 1.05rem;
+  font-weight: 850;
+  text-align: center;
+}
+
+.appointment-change-weekdays,
+.appointment-change-calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.appointment-change-weekdays {
+  margin-bottom: 8px;
+}
+
+.appointment-change-weekdays span {
+  color: #687893;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.appointment-change-calendar {
+  gap: 7px 10px;
+}
+
+.appointment-change-calendar button {
+  display: grid;
+  min-height: 34px;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #17254b;
+  font-size: 0.9rem;
+  font-weight: 750;
+}
+
+.appointment-change-calendar button.is-muted {
+  color: #9aa6b8;
+}
+
+.appointment-change-calendar button.is-selected {
+  width: 38px;
+  justify-self: center;
+  background: linear-gradient(135deg, #0b86e8, #086de2);
+  color: #ffffff;
+  box-shadow: 0 10px 18px rgba(8, 109, 226, 0.2);
+}
+
+.appointment-change-times {
+  padding-left: 28px;
+  border-left: 1px solid #dce8f3;
+}
+
+.appointment-change-times p {
+  margin: 12px 0 14px;
+  color: #3f5278;
+  font-size: 1rem;
+  font-weight: 650;
+}
+
+.appointment-change-times div {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px 12px;
+}
+
+.appointment-change-times button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 32px;
+  border-radius: 5px;
+  color: #17254b;
+  font-size: 0.9rem;
+  font-weight: 800;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.appointment-change-times button.is-selected {
+  border-color: #0876df;
+  background: linear-gradient(135deg, #0b86e8, #086de2);
+  color: #ffffff;
+  box-shadow: 0 8px 18px rgba(8, 109, 226, 0.18);
+}
+
+.appointment-change-times button.is-disabled {
+  background: #f8fafc;
+  color: #8795ad;
+}
+
+.appointment-change-times button.is-disabled .app-icon {
+  width: 14px;
+  height: 14px;
+  color: #8795ad;
+}
+
+.appointment-change-comparison {
+  display: grid;
+  grid-template-columns: 22px auto 90px 24px auto 90px;
+  align-items: center;
+  gap: 14px;
+  min-height: 76px;
+  margin: 0;
+  padding: 0 24px;
+  border: 1px solid #dce8f3;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #5f7194;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.appointment-change-comparison > .app-icon:first-child {
+  width: 24px;
+  height: 24px;
+  color: #0876df;
+}
+
+.appointment-change-comparison > .app-icon:not(:first-child) {
+  width: 20px;
+  height: 20px;
+  color: #0876df;
+}
+
+.appointment-change-comparison strong,
+.appointment-change-comparison em {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  border-radius: 8px;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.appointment-change-comparison strong {
+  background: #e3f3ff;
+  color: #0876df;
+}
+
+.appointment-change-comparison em {
+  background: #dff8f5;
+  color: #079b8d;
+}
+
+.appointment-change-summary {
+  display: grid;
+  gap: 20px;
+  min-width: 0;
+  padding: 28px 26px 30px;
+}
+
+.appointment-change-summary h2 {
+  font-size: 1.45rem;
+}
+
+.appointment-change-summary-list {
+  display: grid;
+  border: 1px solid #dce8f3;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.appointment-change-summary-item {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  min-height: 84px;
+  padding: 12px 16px;
+  border-top: 1px solid #dce8f3;
+  background: #ffffff;
+}
+
+.appointment-change-summary-item:first-child {
+  border-top: 0;
+}
+
+.appointment-change-summary-icon {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border-radius: 12px;
+}
+
+.appointment-change-summary-icon .app-icon {
+  width: 25px;
+  height: 25px;
+  stroke-width: 2;
+}
+
+.appointment-change-summary-icon--patient,
+.appointment-change-summary-icon--type,
+.appointment-change-summary-icon--new {
+  background: #dff8f5;
+  color: #079b8d;
+}
+
+.appointment-change-summary-icon--doctor {
+  background: #e3f3ff;
+  color: #0876df;
+}
+
+.appointment-change-summary-icon--old {
+  background: #fff0df;
+  color: #f28c16;
+}
+
+.appointment-change-summary-icon--duration {
+  background: #efe4ff;
+  color: #7d4cd7;
+}
+
+.appointment-change-summary-item div {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.appointment-change-summary-item small,
+.appointment-change-summary-item strong,
+.appointment-change-summary-item span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.appointment-change-summary-item small {
+  color: #667590;
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
+.appointment-change-summary-item strong {
+  color: #07183a;
+  font-size: 0.95rem;
+  font-weight: 850;
+}
+
+.appointment-change-summary-item span {
+  color: #65728e;
+  font-size: 0.88rem;
+  font-weight: 650;
+}
+
+.appointment-change-reminder {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  align-items: start;
+  gap: 12px;
+  min-height: 74px;
+  margin: 0;
+  padding: 16px 20px;
+  border-radius: 10px;
+  background: #e5f3ff;
+  color: #405276;
+  font-size: 0.86rem;
+  font-weight: 650;
+  line-height: 1.45;
+}
+
+.appointment-change-reminder .app-icon {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  color: #0876df;
+}
+
+.appointment-change-confirm,
+.appointment-change-cancel,
+.appointment-change-return {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 52px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 850;
+}
+
+.appointment-change-confirm {
+  border: 0;
+  background: linear-gradient(135deg, #0aa39c, #086de2);
+  color: #ffffff;
+  box-shadow: 0 14px 24px rgba(8, 109, 226, 0.22);
+}
+
+.appointment-change-confirm .app-icon {
+  width: 22px;
+  height: 22px;
+  stroke-width: 2.2;
+}
+
+.appointment-change-cancel {
+  margin-top: -8px;
+  border-color: #91c8ff;
+  color: #0876df;
+  background: #ffffff;
+}
+
+.appointment-change-return {
+  margin-top: 8px;
+  padding-top: 20px;
+  border: 0;
+  border-top: 1px solid #dce8f3;
+  border-radius: 0;
+  background: transparent;
+  color: #0876df;
+}
+
+.appointment-change-return .app-icon {
+  width: 18px;
+  height: 18px;
+}
+
+@media (max-width: 1400px) {
+  .appointment-change-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .appointment-change-summary {
+    width: min(100%, 560px);
+  }
+}
+
+@media (max-width: 1120px) {
+  .appointment-change-stepper {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding-block: 16px;
+  }
+
+  .appointment-change-scheduler {
+    grid-template-columns: 1fr;
+  }
+
+  .appointment-change-times {
+    padding-left: 0;
+    border-left: 0;
+  }
+}
+
+@media (max-width: 720px) {
+  .appointment-change-breadcrumb,
+  .appointment-change-hero {
+    width: 100%;
+  }
+
+  .appointment-change-breadcrumb {
+    overflow-x: auto;
+  }
+
+  .appointment-change-hero {
+    display: grid;
+  }
+
+  .appointment-change-hero h1 {
+    font-size: 1.9rem;
+  }
+
+  .appointment-change-back {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .appointment-change-patient-row,
+  .appointment-change-times div,
+  .appointment-change-comparison {
+    grid-template-columns: 1fr;
+  }
+
+  .appointment-change-step,
+  .appointment-change-step:last-child {
+    grid-template-columns: 44px minmax(0, 1fr);
+  }
+
+  .appointment-change-step .app-icon {
+    display: none;
+  }
+
+  .appointment-change-card,
+  .appointment-change-summary {
+    padding: 20px;
+  }
+
+  .appointment-change-scheduler {
+    min-width: 0;
+  }
+
+  .appointment-change-month-panel {
+    padding-inline: 14px;
+  }
+
+  .appointment-change-comparison {
+    justify-items: start;
+    padding-block: 18px;
+  }
+}

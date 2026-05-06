@@ -9,6 +9,7 @@ import {
   AppointmentTypesPage,
   AppointmentsPage,
   AuditPage,
+  ChangeAppointmentPage,
   ConfirmEmailPage,
   CreateAppointmentPage,
   DashboardPage,
@@ -79,6 +80,7 @@ export function AppRoutes(): ReactElement {
             <Route path={APP_ROUTES.dashboard} element={<DashboardPage />} />
             <Route path={APP_ROUTES.appointments} element={<AppointmentsPage />} />
             <Route path={APP_ROUTES.createAppointment} element={<CreateAppointmentPage />} />
+            <Route path={APP_ROUTES.changeAppointment} element={<ChangeAppointmentPage />} />
             <Route path={APP_ROUTES.appointmentDetails} element={<AppointmentDetailsPage />} />
             <Route path={APP_ROUTES.doctors} element={<DoctorsPage />} />
             <Route path={APP_ROUTES.patients} element={<PatientsPage />} />
