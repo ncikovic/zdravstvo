@@ -369,7 +369,12 @@
   gap: 12px;
 }
 
+.appointment-type-edit-danger-actions {
+  flex-wrap: wrap;
+}
+
 .appointment-type-edit-deactivate,
+.appointment-type-edit-delete,
 .appointment-type-edit-cancel,
 .appointment-type-edit-save {
   display: inline-flex;
@@ -389,6 +394,12 @@
   color: #f04438;
 }
 
+.appointment-type-edit-delete {
+  border: 0;
+  background: #f04438;
+  color: #ffffff;
+}
+
 .appointment-type-edit-cancel {
   min-width: 160px;
   border: 1px solid #d6e2ef;
@@ -405,6 +416,7 @@
 }
 
 .appointment-type-edit-deactivate .app-icon,
+.appointment-type-edit-delete .app-icon,
 .appointment-type-edit-save .app-icon {
   width: 19px;
   height: 19px;
@@ -555,6 +567,7 @@
 @media (max-width: 1020px) {
   .appointment-type-edit-hero,
   .appointment-type-edit-actions,
+  .appointment-type-edit-danger-actions,
   .appointment-type-edit-actions > div {
     display: grid;
   }
@@ -580,6 +593,7 @@
 
   .appointment-type-edit-hero button,
   .appointment-type-edit-deactivate,
+  .appointment-type-edit-delete,
   .appointment-type-edit-cancel,
   .appointment-type-edit-save {
     width: 100%;

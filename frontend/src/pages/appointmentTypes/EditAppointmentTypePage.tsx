@@ -161,6 +161,22 @@ function EditAppointmentTypePage(): ReactElement {
     }
   };
 
+  const handleDelete = async () => {
+    if (!appointmentTypeId) {
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      await appointmentTypesService.delete(appointmentTypeId);
+      navigate(APP_ROUTES.appointmentTypes);
+    } catch (err) {
+      setError(getErrorMessage(err, "Greska pri brisanju vrste termina."));
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div
@@ -345,15 +361,26 @@ function EditAppointmentTypePage(): ReactElement {
           </section>
 
           <section className="appointment-type-edit-actions">
-            <button
-              className="appointment-type-edit-deactivate"
-              type="button"
-              onClick={handleDeactivate}
-              disabled={isSaving || !formData.isActive}
-            >
-              <AppIcon name="trash" />
-              Deaktiviraj vrstu termina
-            </button>
+            <div className="appointment-type-edit-danger-actions">
+              <button
+                className="appointment-type-edit-deactivate"
+                type="button"
+                onClick={handleDeactivate}
+                disabled={isSaving || !formData.isActive}
+              >
+                <AppIcon name="shield" />
+                Deaktiviraj vrstu termina
+              </button>
+              <button
+                className="appointment-type-edit-delete"
+                type="button"
+                onClick={handleDelete}
+                disabled={isSaving}
+              >
+                <AppIcon name="trash" />
+                Izbriši termin
+              </button>
+            </div>
             <div>
               <button
                 className="appointment-type-edit-cancel"
