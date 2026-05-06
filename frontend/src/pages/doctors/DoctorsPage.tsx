@@ -9,6 +9,7 @@ import './doctors.css'
 type DoctorTone = 'teal' | 'purple' | 'red' | 'blue' | 'violet' | 'orange' | 'green' | 'amber'
 
 interface DoctorRow {
+  id: string
   initials: string
   name: string
   specialty: string
@@ -22,6 +23,7 @@ interface DoctorRow {
 
 const doctors: readonly DoctorRow[] = [
   {
+    id: 'doctor-1',
     initials: 'PB',
     name: 'Dr. Petra Barić',
     specialty: 'Ginekologija',
@@ -33,6 +35,7 @@ const doctors: readonly DoctorRow[] = [
     tone: 'teal',
   },
   {
+    id: 'doctor-2',
     initials: 'IH',
     name: 'Dr. Ivan Horvat, dr. med.',
     specialty: 'Interna medicina',
@@ -44,6 +47,7 @@ const doctors: readonly DoctorRow[] = [
     tone: 'purple',
   },
   {
+    id: 'doctor-3',
     initials: 'IB',
     name: 'Dr. Ivan Babić',
     specialty: 'Kardiologija',
@@ -55,6 +59,7 @@ const doctors: readonly DoctorRow[] = [
     tone: 'red',
   },
   {
+    id: 'doctor-4',
     initials: 'LJ',
     name: 'Dr. Luka Jurić',
     specialty: 'Ortopedija',
@@ -66,6 +71,7 @@ const doctors: readonly DoctorRow[] = [
     tone: 'blue',
   },
   {
+    id: 'doctor-5',
     initials: 'NM',
     name: 'Dr. Nives Mešić',
     specialty: 'Pedijatrija',
@@ -77,6 +83,7 @@ const doctors: readonly DoctorRow[] = [
     tone: 'violet',
   },
   {
+    id: 'doctor-6',
     initials: 'MA',
     name: 'Dr. Marija Anić',
     specialty: 'Dermatologija',
@@ -88,6 +95,7 @@ const doctors: readonly DoctorRow[] = [
     tone: 'orange',
   },
   {
+    id: 'doctor-7',
     initials: 'DV',
     name: 'Dr. Dino Vuković',
     specialty: 'Neurologija',
@@ -99,6 +107,7 @@ const doctors: readonly DoctorRow[] = [
     tone: 'green',
   },
   {
+    id: 'doctor-8',
     initials: 'KS',
     name: 'Dr. Katarina Simić',
     specialty: 'Anesteziologija',
@@ -203,7 +212,7 @@ function DoctorsPage(): ReactElement {
             </div>
 
             {doctors.map((doctor) => (
-              <div className="doctors-table doctors-table--row" role="row" key={doctor.email}>
+              <div className="doctors-table doctors-table--row" role="row" key={doctor.email} onClick={() => navigate(APP_ROUTES.doctorDetails.replace(':doctorId', doctor.id))}>
                 <span className={`doctors-avatar doctors-avatar--${doctor.tone}`}>
                   {doctor.initials}
                 </span>
@@ -230,7 +239,7 @@ function DoctorsPage(): ReactElement {
                 >
                   {doctor.status}
                 </em>
-                <button type="button" aria-label={`Opcije za ${doctor.name}`}>
+                <button type="button" aria-label={`Opcije za ${doctor.name}`} onClick={(e) => e.stopPropagation()}>
                   <AppIcon name="dots" />
                 </button>
               </div>

@@ -8,6 +8,7 @@ export const APP_ROUTES = {
   cancelAppointment: '/appointments/:appointmentId/cancel',
   doctors: '/doctors',
   doctorsCreate: '/doctors/new',
+  doctorDetails: '/doctors/:doctorId',
   doctorSchedule: '/doctors/schedule',
   doctorExceptions: '/doctors/exceptions',
   patients: '/patients',
