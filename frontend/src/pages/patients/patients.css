@@ -614,7 +614,7 @@
 
 .patients-detail-actions {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr);
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 14px;
   padding: 26px 18px 18px;
 }
@@ -991,7 +991,7 @@
 }
 
 .new-patient-toggle-switch::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 2px;
   left: 2px;
@@ -1053,7 +1053,7 @@
 }
 
 .new-patient-checkbox-input:checked + .new-patient-checkbox-mark::after {
-  content: '✓';
+  content: "✓";
   font-weight: bold;
   font-size: 0.8rem;
 }

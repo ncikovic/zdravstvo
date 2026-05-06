@@ -53,6 +53,9 @@ const getErrorMessage = (error: unknown, fallback: string): string =>
 function PatientsPage(): ReactElement {
   const navigate = useNavigate();
   const [patients, setPatients] = useState<PatientDto[]>([]);
+  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(
+    null,
+  );
   const [search, setSearch] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -63,6 +66,7 @@ function PatientsPage(): ReactElement {
         setIsLoading(true);
         const data = await patientsService.list();
         setPatients(data);
+        setSelectedPatientId((current) => current ?? data[0]?.id ?? null);
         setError(null);
       } catch (err) {
         setError(getErrorMessage(err, "Greska pri ucitavanju pacijenata."));
@@ -95,7 +99,12 @@ function PatientsPage(): ReactElement {
     );
   }, [patients, search]);
 
-  const selectedPatient = filteredPatients[0] ?? patients[0] ?? null;
+  const selectedPatient =
+    filteredPatients.find((patient) => patient.id === selectedPatientId) ??
+    filteredPatients[0] ??
+    patients.find((patient) => patient.id === selectedPatientId) ??
+    patients[0] ??
+    null;
 
   return (
     <div className="patients-page">
@@ -209,20 +218,13 @@ function PatientsPage(): ReactElement {
                   return (
                     <div
                       className={
-                        index === 0
+                        patient.id === selectedPatient?.id
                           ? "patients-table patients-table--row patients-table--row-selected"
                           : "patients-table patients-table--row"
                       }
                       role="row"
                       key={patient.id}
-                      onClick={() =>
-                        navigate(
-                          APP_ROUTES.patientDetails.replace(
-                            ":patientId",
-                            patient.id,
-                          ),
-                        )
-                      }
+                      onClick={() => setSelectedPatientId(patient.id)}
                       style={{ cursor: "pointer" }}
                     >
                       <span
@@ -379,6 +381,20 @@ function PatientsPage(): ReactElement {
               </section>
 
               <div className="patients-detail-actions">
+                <button
+                  type="button"
+                  onClick={() =>
+                    navigate(
+                      APP_ROUTES.patientDetails.replace(
+                        ":patientId",
+                        selectedPatient.id,
+                      ),
+                    )
+                  }
+                >
+                  <AppIcon name="user" />
+                  Pogledaj detalje
+                </button>
                 <button
                   type="button"
                   onClick={() =>

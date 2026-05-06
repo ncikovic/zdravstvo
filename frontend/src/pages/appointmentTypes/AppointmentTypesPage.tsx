@@ -59,6 +59,9 @@ function AppointmentTypesPage(): ReactElement {
   const [appointmentTypes, setAppointmentTypes] = useState<
     AppointmentTypeDto[]
   >([]);
+  const [selectedAppointmentTypeId, setSelectedAppointmentTypeId] = useState<
+    string | null
+  >(null);
   const [search, setSearch] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -69,6 +72,9 @@ function AppointmentTypesPage(): ReactElement {
         setIsLoading(true);
         const data = await appointmentTypesService.list();
         setAppointmentTypes(data);
+        setSelectedAppointmentTypeId(
+          (current) => current ?? data[0]?.id ?? null,
+        );
         setError(null);
       } catch (err) {
         setError(getErrorMessage(err, "Greska pri ucitavanju vrsta termina."));
@@ -94,7 +100,13 @@ function AppointmentTypesPage(): ReactElement {
   }, [appointmentTypes, search]);
 
   const selectedType =
-    filteredAppointmentTypes[0] ?? appointmentTypes[0] ?? null;
+    filteredAppointmentTypes.find(
+      (type) => type.id === selectedAppointmentTypeId,
+    ) ??
+    filteredAppointmentTypes[0] ??
+    appointmentTypes.find((type) => type.id === selectedAppointmentTypeId) ??
+    appointmentTypes[0] ??
+    null;
   const selectedTypeIndex = selectedType
     ? appointmentTypes.findIndex((type) => type.id === selectedType.id)
     : 0;
@@ -202,20 +214,13 @@ function AppointmentTypesPage(): ReactElement {
                   return (
                     <div
                       className={
-                        index === 0
+                        type.id === selectedType?.id
                           ? "appointment-types-table appointment-types-table--row appointment-types-table--row-selected"
                           : "appointment-types-table appointment-types-table--row"
                       }
                       role="row"
                       key={type.id}
-                      onClick={() =>
-                        navigate(
-                          APP_ROUTES.editAppointmentType.replace(
-                            ":appointmentTypeId",
-                            type.id,
-                          ),
-                        )
-                      }
+                      onClick={() => setSelectedAppointmentTypeId(type.id)}
                       style={{ cursor: "pointer" }}
                     >
                       <span
@@ -354,7 +359,7 @@ function AppointmentTypesPage(): ReactElement {
                   }
                 >
                   <AppIcon name="note" />
-                  Uredi podatke
+                  Pogledaj detalje
                 </button>
                 <button
                   className="appointment-types-detail-actions__primary"

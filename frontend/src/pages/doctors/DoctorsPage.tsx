@@ -1,47 +1,73 @@
-import { useEffect, useState } from 'react'
-import type { ReactElement } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useState } from "react";
+import type { ReactElement } from "react";
+import { useNavigate } from "react-router-dom";
 
-import { AppIcon } from '@/components'
-import { APP_ROUTES } from '@/app/routes'
-import { doctorsService } from '@/services/doctors.service'
-import type { DoctorResponseDto } from '@zdravstvo/contracts'
+import { AppIcon } from "@/components";
+import { APP_ROUTES } from "@/app/routes";
+import { doctorsService } from "@/services/doctors.service";
+import type { DoctorResponseDto } from "@zdravstvo/contracts";
 
-import './doctors.css'
+import "./doctors.css";
 
-type DoctorTone = 'teal' | 'purple' | 'red' | 'blue' | 'violet' | 'orange' | 'green' | 'amber'
+type DoctorTone =
+  | "teal"
+  | "purple"
+  | "red"
+  | "blue"
+  | "violet"
+  | "orange"
+  | "green"
+  | "amber";
 
-const tones: DoctorTone[] = ['teal', 'purple', 'red', 'blue', 'violet', 'orange', 'green', 'amber']
+const tones: DoctorTone[] = [
+  "teal",
+  "purple",
+  "red",
+  "blue",
+  "violet",
+  "orange",
+  "green",
+  "amber",
+];
 
-const getTone = (index: number): DoctorTone => tones[index % tones.length]
+const getTone = (index: number): DoctorTone => tones[index % tones.length];
 
 const getInitials = (firstName: string, lastName: string): string => {
-  return (firstName[0] + lastName[0]).toUpperCase()
-}
+  return (firstName[0] + lastName[0]).toUpperCase();
+};
 
 function DoctorsPage(): ReactElement {
-  const navigate = useNavigate()
-  const [doctors, setDoctors] = useState<DoctorResponseDto[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const navigate = useNavigate();
+  const [doctors, setDoctors] = useState<DoctorResponseDto[]>([]);
+  const [selectedDoctorId, setSelectedDoctorId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
-        setIsLoading(true)
-        const data = await doctorsService.list()
-        setDoctors(data)
-        setError(null)
+        setIsLoading(true);
+        const data = await doctorsService.list();
+        setDoctors(data);
+        setSelectedDoctorId((current) => current ?? data[0]?.id ?? null);
+        setError(null);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch doctors')
-        setDoctors([])
+        setError(
+          err instanceof Error ? err.message : "Failed to fetch doctors",
+        );
+        setDoctors([]);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchDoctors()
-  }, [])
+    fetchDoctors();
+  }, []);
+
+  const selectedDoctor =
+    doctors.find((doctor) => doctor.id === selectedDoctorId) ??
+    doctors[0] ??
+    null;
 
   return (
     <div className="doctors-page">
@@ -54,7 +80,10 @@ function DoctorsPage(): ReactElement {
 
       <div className="doctors-content-grid">
         <div className="doctors-main-stack">
-          <section className="doctors-filter-panel" aria-label="Filteri liječnika">
+          <section
+            className="doctors-filter-panel"
+            aria-label="Filteri liječnika"
+          >
             <div className="doctors-search-row">
               <label className="doctors-search-field">
                 <span className="sr-only">Pretraga liječnika</span>
@@ -112,9 +141,17 @@ function DoctorsPage(): ReactElement {
 
           <section className="doctors-table-panel" aria-label="Popis liječnika">
             {isLoading ? (
-              <div style={{ padding: '2rem', textAlign: 'center' }}>Učitavanje...</div>
+              <div style={{ padding: "2rem", textAlign: "center" }}>
+                Učitavanje...
+              </div>
             ) : error ? (
-              <div style={{ padding: '2rem', textAlign: 'center', color: '#d32f2f' }}>
+              <div
+                style={{
+                  padding: "2rem",
+                  textAlign: "center",
+                  color: "#d32f2f",
+                }}
+              >
                 Greška pri učitavanju liječnika: {error}
               </div>
             ) : (
@@ -128,32 +165,55 @@ function DoctorsPage(): ReactElement {
                 </div>
 
                 {doctors.map((doctor, index) => {
-                  const fullName = `${doctor.firstName} ${doctor.lastName}`
-                  const initials = getInitials(doctor.firstName, doctor.lastName)
-                  const tone = getTone(index)
+                  const fullName = `${doctor.firstName} ${doctor.lastName}`;
+                  const initials = getInitials(
+                    doctor.firstName,
+                    doctor.lastName,
+                  );
+                  const tone = getTone(index);
 
                   return (
-                    <div className="doctors-table doctors-table--row" role="row" key={doctor.id} onClick={() => navigate(APP_ROUTES.doctorDetails.replace(':doctorId', doctor.id))}>
-                      <span className={`doctors-avatar doctors-avatar--${tone}`}>
+                    <div
+                      className={
+                        doctor.id === selectedDoctor?.id
+                          ? "doctors-table doctors-table--row doctors-table--row-selected"
+                          : "doctors-table doctors-table--row"
+                      }
+                      role="row"
+                      key={doctor.id}
+                      onClick={() => setSelectedDoctorId(doctor.id)}
+                      style={{ cursor: "pointer" }}
+                    >
+                      <span
+                        className={`doctors-avatar doctors-avatar--${tone}`}
+                      >
                         {initials}
                       </span>
-                      <strong>{doctor.title ? `Dr. ${fullName}, ${doctor.title}` : `Dr. ${fullName}`}</strong>
-                      <span>{doctor.phone || 'Nije dostupno'}</span>
-                      <span>{doctor.email || 'Nije dostupno'}</span>
+                      <strong>
+                        {doctor.title
+                          ? `Dr. ${fullName}, ${doctor.title}`
+                          : `Dr. ${fullName}`}
+                      </strong>
+                      <span>{doctor.phone || "Nije dostupno"}</span>
+                      <span>{doctor.email || "Nije dostupno"}</span>
                       <em
                         className={
                           doctor.isActive
-                            ? 'doctors-status doctors-status--active'
-                            : 'doctors-status doctors-status--inactive'
+                            ? "doctors-status doctors-status--active"
+                            : "doctors-status doctors-status--inactive"
                         }
                       >
-                        {doctor.isActive ? 'Aktivan' : 'Neaktivan'}
+                        {doctor.isActive ? "Aktivan" : "Neaktivan"}
                       </em>
-                      <button type="button" aria-label={`Opcije za ${fullName}`} onClick={(e) => e.stopPropagation()}>
+                      <button
+                        type="button"
+                        aria-label={`Opcije za ${fullName}`}
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <AppIcon name="dots" />
                       </button>
                     </div>
-                  )
+                  );
                 })}
               </>
             )}
@@ -184,45 +244,62 @@ function DoctorsPage(): ReactElement {
         </div>
 
         <aside className="doctors-detail-panel" aria-label="Detalji liječnika">
-          <button className="doctors-detail-close" type="button" aria-label="Zatvori detalje">
+          <button
+            className="doctors-detail-close"
+            type="button"
+            aria-label="Zatvori detalje"
+          >
             ×
           </button>
-          {doctors.length > 0 && !isLoading && !error && (
+          {selectedDoctor && !isLoading && !error && (
             <>
               {(() => {
-                const firstDoctor = doctors[0]
-                const initials = getInitials(firstDoctor.firstName, firstDoctor.lastName)
+                const initials = getInitials(
+                  selectedDoctor.firstName,
+                  selectedDoctor.lastName,
+                );
                 return (
                   <>
                     <div className="doctors-detail-header">
                       <span className="doctors-detail-avatar">{initials}</span>
                       <div>
-                        <h2>Dr. {firstDoctor.firstName} {firstDoctor.lastName}</h2>
-                        {firstDoctor.title && <span>{firstDoctor.title}</span>}
-                        {firstDoctor.licenseNumber && <small>Licencija: {firstDoctor.licenseNumber}</small>}
+                        <h2>
+                          Dr. {selectedDoctor.firstName}{" "}
+                          {selectedDoctor.lastName}
+                        </h2>
+                        {selectedDoctor.title && (
+                          <span>{selectedDoctor.title}</span>
+                        )}
+                        {selectedDoctor.licenseNumber && (
+                          <small>
+                            Licencija: {selectedDoctor.licenseNumber}
+                          </small>
+                        )}
                       </div>
-                      <em>{firstDoctor.isActive ? 'Aktivan' : 'Neaktivan'}</em>
+                      <em>
+                        {selectedDoctor.isActive ? "Aktivan" : "Neaktivan"}
+                      </em>
                     </div>
 
                     <section className="doctors-info-card">
                       <h3>Kontakt podaci</h3>
                       <div className="doctors-info-list">
-                        {firstDoctor.phone && (
+                        {selectedDoctor.phone && (
                           <>
                             <span>
                               <AppIcon name="clock" />
                               Telefon
                             </span>
-                            <strong>{firstDoctor.phone}</strong>
+                            <strong>{selectedDoctor.phone}</strong>
                           </>
                         )}
-                        {firstDoctor.email && (
+                        {selectedDoctor.email && (
                           <>
                             <span>
                               <AppIcon name="mail" />
                               E-mail
                             </span>
-                            <strong>{firstDoctor.email}</strong>
+                            <strong>{selectedDoctor.email}</strong>
                           </>
                         )}
                       </div>
@@ -231,21 +308,31 @@ function DoctorsPage(): ReactElement {
                     <section className="doctors-info-card doctors-actions-card">
                       <h3>Brze akcije</h3>
                       <div className="doctors-actions-grid">
-                        <button type="button" onClick={() => navigate(APP_ROUTES.doctorDetails.replace(':doctorId', firstDoctor.id))}>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            navigate(
+                              APP_ROUTES.doctorDetails.replace(
+                                ":doctorId",
+                                selectedDoctor.id,
+                              ),
+                            )
+                          }
+                        >
                           <AppIcon name="note" />
-                          Uredi podatke
+                          Pogledaj detalje
                         </button>
                       </div>
                     </section>
                   </>
-                )
+                );
               })()}
             </>
           )}
         </aside>
       </div>
     </div>
-  )
+  );
 }
 
-export { DoctorsPage }
+export { DoctorsPage };
