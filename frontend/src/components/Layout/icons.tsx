@@ -152,6 +152,13 @@ const renderIconContent = (name: AppIconName): ReactElement => {
           <path d="m5 8 7 5 7-5" />
         </>
       )
+    case 'mapPin':
+      return (
+        <>
+          <path d="M12 21s7-5.2 7-11a7 7 0 0 0-14 0c0 5.8 7 11 7 11Z" />
+          <circle cx="12" cy="10" r="2.4" />
+        </>
+      )
     case 'megaphone':
       return (
         <>
@@ -229,6 +236,15 @@ const renderIconContent = (name: AppIconName): ReactElement => {
         <>
           <path d="M4 11V5h6l10 10-6 6L4 11Z" />
           <circle cx="8" cy="8" r="1" />
+        </>
+      )
+    case 'trash':
+      return (
+        <>
+          <path d="M4 7h16" />
+          <path d="M10 11v6M14 11v6" />
+          <path d="M6 7l1 14h10l1-14" />
+          <path d="M9 7V4h6v3" />
         </>
       )
     case 'user':

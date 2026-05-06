@@ -5,6 +5,7 @@ export const APP_ROUTES = {
   createAppointment: '/appointments/create',
   appointmentDetails: '/appointments/:appointmentId',
   changeAppointment: '/appointments/:appointmentId/change',
+  cancelAppointment: '/appointments/:appointmentId/cancel',
   doctors: '/doctors',
   patients: '/patients',
   appointmentTypes: '/appointment-types',
