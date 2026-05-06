@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 
 import { AppIcon } from '@/components'
 import { APP_ROUTES } from '@/app/routes'
+import { doctorsService } from '@/services/doctors.service'
 
 import './doctors.css'
 
@@ -13,25 +14,45 @@ function CreateDoctorPage(): ReactElement {
     firstName: '',
     lastName: '',
     title: '',
-    specialization: '',
-    numberLicenses: '',
+    licenseNumber: '',
     email: '',
     phone: '',
-    shortBio: '',
-    status: 'Aktivan',
-    institution: 'Poliklinika Medica Zagreb',
+    bio: '',
   })
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
     }))
+    if (error) setError(null)
   }
 
-  const handleSubmit = () => {
-    // Mock submission - in real app would call API
-    navigate(APP_ROUTES.doctors)
+  const handleSubmit = async () => {
+    if (!formData.firstName || !formData.lastName || !formData.licenseNumber) {
+      setError('Obavezna polja: Ime, Prezime i Broj licence')
+      return
+    }
+
+    try {
+      setIsLoading(true)
+      await doctorsService.create({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        title: formData.title || null,
+        licenseNumber: formData.licenseNumber,
+        email: formData.email || null,
+        phone: formData.phone || null,
+        bio: formData.bio || null,
+      })
+      navigate(APP_ROUTES.doctors)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Greška pri kreiranju liječnika')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleCancel = () => {
@@ -46,6 +67,11 @@ function CreateDoctorPage(): ReactElement {
       </div>
 
       <div className="create-doctor-content-grid">
+        {error && (
+          <div style={{ padding: '1rem', backgroundColor: '#ffebee', color: '#d32f2f', borderRadius: '4px', marginBottom: '1rem' }}>
+            {error}
+          </div>
+        )}
         <section className="create-doctor-card">
           {/* Profile Picture Section */}
           <div className="create-doctor-card__section">
@@ -116,7 +142,7 @@ function CreateDoctorPage(): ReactElement {
                 <select
                   id="specialization"
                   className="create-doctor-field__select"
-                  value={formData.specialization}
+                  value={formData.title}
                   onChange={(e) => handleInputChange('specialization', e.target.value)}
                 >
                   <option value="">Odaberite specijalizaciju</option>
@@ -138,7 +164,7 @@ function CreateDoctorPage(): ReactElement {
                   className="create-doctor-field__input"
                   type="text"
                   placeholder="Upisite broj licence"
-                  value={formData.numberLicenses}
+                  value={formData.licenseNumber}
                   onChange={(e) => handleInputChange('numberLicenses', e.target.value)}
                 />
               </div>
@@ -191,56 +217,16 @@ function CreateDoctorPage(): ReactElement {
                 id="shortBio"
                 className="create-doctor-field__textarea"
                 placeholder="Napišite kratki opis liječnika..."
-                value={formData.shortBio}
+                value={formData.bio}
                 onChange={(e) => handleInputChange('shortBio', e.target.value)}
                 rows={3}
                 maxLength={200}
               />
-              <span className="create-doctor-field__count">{formData.shortBio.length} / 200</span>
+              <span className="create-doctor-field__count">{formData.bio.length} / 200</span>
             </div>
           </div>
 
           {/* Structural Data Section */}
-          <div className="create-doctor-card__section">
-            <h2 className="create-doctor-card__section-title">Strukturni podaci</h2>
-
-            <div className="create-doctor-field">
-              <label className="create-doctor-field__label" htmlFor="status">
-                Status <span className="create-doctor-required">*</span>
-              </label>
-              <select
-                id="status"
-                className="create-doctor-field__select"
-                value={formData.status}
-                onChange={(e) => handleInputChange('status', e.target.value)}
-              >
-                <option value="Aktivan">Aktivan</option>
-                <option value="Neaktivan">Neaktivan</option>
-                <option value="Na godišnjem">Na godišnjem</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Institution Connection Section */}
-          <div className="create-doctor-card__section">
-            <h2 className="create-doctor-card__section-title">Povezivanje s ustanovom</h2>
-
-            <div className="create-doctor-field">
-              <label className="create-doctor-field__label" htmlFor="institution">
-                Ustanovа <span className="create-doctor-required">*</span>
-              </label>
-              <select
-                id="institution"
-                className="create-doctor-field__select"
-                value={formData.institution}
-                onChange={(e) => handleInputChange('institution', e.target.value)}
-              >
-                <option value="Poliklinika Medica Zagreb">Poliklinika Medica Zagreb</option>
-                <option value="Dom zdravlja Zagreb">Dom zdravlja Zagreb</option>
-                <option value="KBC Zagreb">KBC Zagreb</option>
-              </select>
-            </div>
-          </div>
 
           {/* Action Buttons */}
           <div className="create-doctor-card__actions">
@@ -255,9 +241,10 @@ function CreateDoctorPage(): ReactElement {
               className="create-doctor-btn create-doctor-btn--primary"
               type="button"
               onClick={handleSubmit}
+              disabled={isLoading}
             >
               <AppIcon name="note" />
-              Spremi liječnika
+              {isLoading ? 'Sprema se...' : 'Spremi liječnika'}
             </button>
           </div>
         </section>
@@ -280,7 +267,7 @@ function CreateDoctorPage(): ReactElement {
 
             <div className="create-doctor-info-section">
               <span className="create-doctor-info-section__title">Specijalizacija</span>
-              <p>{formData.specialization || '—'}</p>
+              <p>{formData.title || '—'}</p>
             </div>
 
             <div className="create-doctor-info-section">

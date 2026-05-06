@@ -1,34 +1,23 @@
+import { useEffect, useState } from 'react'
 import type { ReactElement } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 
 import { AppIcon } from '@/components'
 import { APP_ROUTES } from '@/app/routes'
+import { doctorsService } from '@/services/doctors.service'
+import type { DoctorResponseDto } from '@zdravstvo/contracts'
 
 import './doctors.css'
 
-interface DoctorDetailsData {
-  id: string
-  firstName: string
-  lastName: string
-  title: string | null
-  licenseNumber: string | null
-  bio: string | null
-  phone: string | null
-  email: string | null
-  status: 'Aktivan' | 'Neaktivan'
-}
-
-const mockDoctorDetails: DoctorDetailsData = {
-  id: 'doctor-1',
-  firstName: 'Petra',
-  lastName: 'Barić',
-  title: 'dr. med.',
-  licenseNumber: '12345/2015',
-  bio: 'Specijalistinja za ginekologiju i opstetriciju sa 15 godina iskustva. Specijalizirana za rizične trudnoće i minimalno invazivne procedure.',
-  phone: '+385 91 234 5678',
-  email: 'petra.baric@pmz.hr',
-  status: 'Aktivan',
-}
+const workingHours = [
+  ['Ponedjeljak', '08:00 - 16:30', true],
+  ['Utorak', '08:00 - 16:30', true],
+  ['Srijeda', '08:00 - 16:30', true],
+  ['Četvrtak', '10:00 - 18:00', true],
+  ['Petak', '08:00 - 15:00', true],
+  ['Subota', '-', false],
+  ['Nedjelja', '-', false],
+] as const
 
 const upcomingAppointments = [
   {
@@ -90,20 +79,52 @@ const appointmentHistory = [
   },
 ]
 
-const workingHours = [
-  ['Ponedjeljak', '08:00 - 16:30', true],
-  ['Utorak', '08:00 - 16:30', true],
-  ['Srijeda', '08:00 - 16:30', true],
-  ['Četvrtak', '10:00 - 18:00', true],
-  ['Petak', '08:00 - 15:00', true],
-  ['Subota', '-', false],
-  ['Nedjelja', '-', false],
-] as const
-
 function DoctorDetailsPage(): ReactElement {
   const navigate = useNavigate()
+  const { doctorId } = useParams<{ doctorId: string }>()
+  const [doctor, setDoctor] = useState<DoctorResponseDto | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const doctor = mockDoctorDetails
+  useEffect(() => {
+    if (!doctorId) {
+      setError('Doctor ID not found')
+      setIsLoading(false)
+      return
+    }
+
+    const fetchDoctor = async () => {
+      try {
+        setIsLoading(true)
+        const data = await doctorsService.getById(doctorId)
+        setDoctor(data)
+        setError(null)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch doctor')
+        setDoctor(null)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchDoctor()
+  }, [doctorId])
+
+  if (isLoading) {
+    return (
+      <div className="doctor-details-page" style={{ padding: '2rem', textAlign: 'center' }}>
+        Učitavanje...
+      </div>
+    )
+  }
+
+  if (error || !doctor) {
+    return (
+      <div className="doctor-details-page" style={{ padding: '2rem', textAlign: 'center', color: '#d32f2f' }}>
+        {error || 'Liječnik nije pronađen'}
+      </div>
+    )
+  }
 
   return (
     <div className="doctor-details-page">
@@ -132,12 +153,12 @@ function DoctorDetailsPage(): ReactElement {
           <div className="doctor-details-header-card">
             <div className="doctor-details-header-info">
               <div className="doctor-details-avatar">
-                {(doctor.firstName[0] || 'D').toUpperCase()}{(doctor.lastName[0] || 'D').toUpperCase()}
+                {doctor.firstName[0]?.toUpperCase()}{doctor.lastName[0]?.toUpperCase()}
               </div>
               <div className="doctor-details-header-text">
                 <div>
                   <h2>Dr. {doctor.firstName} {doctor.lastName}</h2>
-                  <span className="doctor-details-status-badge">{doctor.status}</span>
+                  <span className="doctor-details-status-badge">{doctor.isActive ? 'Aktivan' : 'Neaktivan'}</span>
                 </div>
                 {doctor.title && (
                   <div className="doctor-details-meta">
@@ -282,7 +303,7 @@ function DoctorDetailsPage(): ReactElement {
                 Uredi podatke
                 <AppIcon name="chevronRight" />
               </button>
-              <button type="button" className="doctor-details-action-link">
+              <button type="button" className="doctor-details-action-link" onClick={() => navigate(APP_ROUTES.doctorSchedule.replace(':doctorId', doctor.id))}>
                 <AppIcon name="clock" />
                 Radno vrijeme
                 <AppIcon name="chevronRight" />
@@ -299,7 +320,7 @@ function DoctorDetailsPage(): ReactElement {
                   <AppIcon name="checkCircle" />
                   <span>Status</span>
                 </div>
-                <strong className="doctor-details-status-active">{doctor.status}</strong>
+                <strong className="doctor-details-status-active">{doctor.isActive ? 'Aktivan' : 'Neaktivan'}</strong>
               </div>
               {doctor.title && (
                 <div className="doctor-details-summary-item">

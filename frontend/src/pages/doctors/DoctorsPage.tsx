@@ -1,137 +1,47 @@
+import { useEffect, useState } from 'react'
 import type { ReactElement } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { AppIcon } from '@/components'
 import { APP_ROUTES } from '@/app/routes'
+import { doctorsService } from '@/services/doctors.service'
+import type { DoctorResponseDto } from '@zdravstvo/contracts'
 
 import './doctors.css'
 
 type DoctorTone = 'teal' | 'purple' | 'red' | 'blue' | 'violet' | 'orange' | 'green' | 'amber'
 
-interface DoctorRow {
-  id: string
-  initials: string
-  name: string
-  specialty: string
-  phone: string
-  email: string
-  availability: string
-  available: boolean
-  status: 'Aktivan' | 'Neaktivan'
-  tone: DoctorTone
+const tones: DoctorTone[] = ['teal', 'purple', 'red', 'blue', 'violet', 'orange', 'green', 'amber']
+
+const getTone = (index: number): DoctorTone => tones[index % tones.length]
+
+const getInitials = (firstName: string, lastName: string): string => {
+  return (firstName[0] + lastName[0]).toUpperCase()
 }
-
-const doctors: readonly DoctorRow[] = [
-  {
-    id: 'doctor-1',
-    initials: 'PB',
-    name: 'Dr. Petra Barić',
-    specialty: 'Ginekologija',
-    phone: '+385 91 234 5678',
-    email: 'petra.baric@pmz.hr',
-    availability: '08:00 - 16:30',
-    available: true,
-    status: 'Aktivan',
-    tone: 'teal',
-  },
-  {
-    id: 'doctor-2',
-    initials: 'IH',
-    name: 'Dr. Ivan Horvat, dr. med.',
-    specialty: 'Interna medicina',
-    phone: '+385 91 876 4321',
-    email: 'ivan.horvat@pmz.hr',
-    availability: '08:00 - 16:30',
-    available: true,
-    status: 'Aktivan',
-    tone: 'purple',
-  },
-  {
-    id: 'doctor-3',
-    initials: 'IB',
-    name: 'Dr. Ivan Babić',
-    specialty: 'Kardiologija',
-    phone: '+385 91 444 0004',
-    email: 'ivan.babic@pmz.hr',
-    availability: '09:00 - 17:00',
-    available: true,
-    status: 'Aktivan',
-    tone: 'red',
-  },
-  {
-    id: 'doctor-4',
-    initials: 'LJ',
-    name: 'Dr. Luka Jurić',
-    specialty: 'Ortopedija',
-    phone: '+385 91 333 8088',
-    email: 'luka.juric@pmz.hr',
-    availability: '08:00 - 16:00',
-    available: true,
-    status: 'Aktivan',
-    tone: 'blue',
-  },
-  {
-    id: 'doctor-5',
-    initials: 'NM',
-    name: 'Dr. Nives Mešić',
-    specialty: 'Pedijatrija',
-    phone: '+385 91 555 1212',
-    email: 'nives.mesic@pmz.hr',
-    availability: '08:30 - 16:00',
-    available: true,
-    status: 'Aktivan',
-    tone: 'violet',
-  },
-  {
-    id: 'doctor-6',
-    initials: 'MA',
-    name: 'Dr. Marija Anić',
-    specialty: 'Dermatologija',
-    phone: '+385 91 222 1111',
-    email: 'marija.anic@pmz.hr',
-    availability: 'Nije dostupan',
-    available: false,
-    status: 'Neaktivan',
-    tone: 'orange',
-  },
-  {
-    id: 'doctor-7',
-    initials: 'DV',
-    name: 'Dr. Dino Vuković',
-    specialty: 'Neurologija',
-    phone: '+385 91 987 6543',
-    email: 'dino.vukovic@pmz.hr',
-    availability: '10:00 - 18:00',
-    available: true,
-    status: 'Aktivan',
-    tone: 'green',
-  },
-  {
-    id: 'doctor-8',
-    initials: 'KS',
-    name: 'Dr. Katarina Simić',
-    specialty: 'Anesteziologija',
-    phone: '+385 91 765 4321',
-    email: 'katarina.simic@pmz.hr',
-    availability: '08:00 - 15:30',
-    available: true,
-    status: 'Aktivan',
-    tone: 'amber',
-  },
-]
-
-const workingHours = [
-  ['Ponedjeljak', '08:00 - 16:30', true],
-  ['Utorak', '08:00 - 16:30', true],
-  ['Srijeda', '08:00 - 16:30', true],
-  ['Četvrtak', '10:00 - 18:00', true],
-  ['Petak', '08:00 - 15:00', true],
-  ['Subota', '-', false],
-  ['Nedjelja', '-', false],
-] as const
 
 function DoctorsPage(): ReactElement {
   const navigate = useNavigate()
+  const [doctors, setDoctors] = useState<DoctorResponseDto[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      try {
+        setIsLoading(true)
+        const data = await doctorsService.list()
+        setDoctors(data)
+        setError(null)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch doctors')
+        setDoctors([])
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchDoctors()
+  }, [])
 
   return (
     <div className="doctors-page">
@@ -201,49 +111,52 @@ function DoctorsPage(): ReactElement {
           </section>
 
           <section className="doctors-table-panel" aria-label="Popis liječnika">
-            <div className="doctors-table doctors-table--head" role="row">
-              <span>Ime i prezime ↓</span>
-              <span>Specijalizacija</span>
-              <span>Telefon</span>
-              <span>E-mail</span>
-              <span>Danas dostupan</span>
-              <span>Status</span>
-              <span aria-hidden="true" />
-            </div>
-
-            {doctors.map((doctor) => (
-              <div className="doctors-table doctors-table--row" role="row" key={doctor.email} onClick={() => navigate(APP_ROUTES.doctorDetails.replace(':doctorId', doctor.id))}>
-                <span className={`doctors-avatar doctors-avatar--${doctor.tone}`}>
-                  {doctor.initials}
-                </span>
-                <strong>{doctor.name}</strong>
-                <span>{doctor.specialty}</span>
-                <span>{doctor.phone}</span>
-                <span>{doctor.email}</span>
-                <span className="doctors-availability">
-                  <i
-                    className={
-                      doctor.available
-                        ? 'doctors-availability__dot'
-                        : 'doctors-availability__dot doctors-availability__dot--away'
-                    }
-                  />
-                  {doctor.availability}
-                </span>
-                <em
-                  className={
-                    doctor.status === 'Aktivan'
-                      ? 'doctors-status doctors-status--active'
-                      : 'doctors-status doctors-status--inactive'
-                  }
-                >
-                  {doctor.status}
-                </em>
-                <button type="button" aria-label={`Opcije za ${doctor.name}`} onClick={(e) => e.stopPropagation()}>
-                  <AppIcon name="dots" />
-                </button>
+            {isLoading ? (
+              <div style={{ padding: '2rem', textAlign: 'center' }}>Učitavanje...</div>
+            ) : error ? (
+              <div style={{ padding: '2rem', textAlign: 'center', color: '#d32f2f' }}>
+                Greška pri učitavanju liječnika: {error}
               </div>
-            ))}
+            ) : (
+              <>
+                <div className="doctors-table doctors-table--head" role="row">
+                  <span>Ime i prezime ↓</span>
+                  <span>Telefon</span>
+                  <span>E-mail</span>
+                  <span>Status</span>
+                  <span aria-hidden="true" />
+                </div>
+
+                {doctors.map((doctor, index) => {
+                  const fullName = `${doctor.firstName} ${doctor.lastName}`
+                  const initials = getInitials(doctor.firstName, doctor.lastName)
+                  const tone = getTone(index)
+
+                  return (
+                    <div className="doctors-table doctors-table--row" role="row" key={doctor.id} onClick={() => navigate(APP_ROUTES.doctorDetails.replace(':doctorId', doctor.id))}>
+                      <span className={`doctors-avatar doctors-avatar--${tone}`}>
+                        {initials}
+                      </span>
+                      <strong>{doctor.title ? `Dr. ${fullName}, ${doctor.title}` : `Dr. ${fullName}`}</strong>
+                      <span>{doctor.phone || 'Nije dostupno'}</span>
+                      <span>{doctor.email || 'Nije dostupno'}</span>
+                      <em
+                        className={
+                          doctor.isActive
+                            ? 'doctors-status doctors-status--active'
+                            : 'doctors-status doctors-status--inactive'
+                        }
+                      >
+                        {doctor.isActive ? 'Aktivan' : 'Neaktivan'}
+                      </em>
+                      <button type="button" aria-label={`Opcije za ${fullName}`} onClick={(e) => e.stopPropagation()}>
+                        <AppIcon name="dots" />
+                      </button>
+                    </div>
+                  )
+                })}
+              </>
+            )}
 
             <div className="doctors-pagination">
               <span>Prikazano 1 do 8 od 128 liječnika</span>
@@ -274,85 +187,61 @@ function DoctorsPage(): ReactElement {
           <button className="doctors-detail-close" type="button" aria-label="Zatvori detalje">
             ×
           </button>
+          {doctors.length > 0 && !isLoading && !error && (
+            <>
+              {(() => {
+                const firstDoctor = doctors[0]
+                const initials = getInitials(firstDoctor.firstName, firstDoctor.lastName)
+                return (
+                  <>
+                    <div className="doctors-detail-header">
+                      <span className="doctors-detail-avatar">{initials}</span>
+                      <div>
+                        <h2>Dr. {firstDoctor.firstName} {firstDoctor.lastName}</h2>
+                        {firstDoctor.title && <span>{firstDoctor.title}</span>}
+                        {firstDoctor.licenseNumber && <small>Licencija: {firstDoctor.licenseNumber}</small>}
+                      </div>
+                      <em>{firstDoctor.isActive ? 'Aktivan' : 'Neaktivan'}</em>
+                    </div>
 
-          <div className="doctors-detail-header">
-            <span className="doctors-detail-avatar">PB</span>
-            <div>
-              <h2>Dr. Petra Barić</h2>
-              <span>Ginekologija</span>
-              <small>Licencija: 12345/2015</small>
-            </div>
-            <em>Aktivan</em>
-          </div>
+                    <section className="doctors-info-card">
+                      <h3>Kontakt podaci</h3>
+                      <div className="doctors-info-list">
+                        {firstDoctor.phone && (
+                          <>
+                            <span>
+                              <AppIcon name="clock" />
+                              Telefon
+                            </span>
+                            <strong>{firstDoctor.phone}</strong>
+                          </>
+                        )}
+                        {firstDoctor.email && (
+                          <>
+                            <span>
+                              <AppIcon name="mail" />
+                              E-mail
+                            </span>
+                            <strong>{firstDoctor.email}</strong>
+                          </>
+                        )}
+                      </div>
+                    </section>
 
-          <section className="doctors-info-card">
-            <h3>Kontakt podaci</h3>
-            <div className="doctors-info-list">
-              <span>
-                <AppIcon name="clock" />
-                Telefon
-              </span>
-              <strong>+385 91 234 5678</strong>
-              <span>
-                <AppIcon name="mail" />
-                E-mail
-              </span>
-              <strong>petra.baric@pmz.hr</strong>
-              <span>
-                <AppIcon name="home" />
-                Adresa
-              </span>
-              <strong>Ulica grada Vukovara 12, 10000 Zagreb</strong>
-            </div>
-          </section>
-
-          <section className="doctors-info-card">
-            <h3>Radno vrijeme</h3>
-            <div className="doctors-hours-list">
-              {workingHours.map(([day, time, active]) => (
-                <div key={day}>
-                  <span>
-                    <i className={active ? 'doctors-hours-dot' : 'doctors-hours-dot doctors-hours-dot--muted'} />
-                    {day}
-                  </span>
-                  <strong>{time}</strong>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <section className="doctors-info-card">
-            <h3>Sljedeći slobodni termin</h3>
-            <div className="doctors-next-slot">
-              <AppIcon name="calendar" />
-              <span>
-                Petak, 23. svibnja 2025. · <strong>10:00</strong>
-                <small>Poliklinika Medica Zagreb</small>
-              </span>
-            </div>
-            <button className="doctors-wide-button" type="button">
-              Pogledaj sve termine
-            </button>
-          </section>
-
-          <section className="doctors-info-card doctors-actions-card">
-            <h3>Brze akcije</h3>
-            <div className="doctors-actions-grid">
-              <button type="button">
-                <AppIcon name="note" />
-                Uredi podatke
-              </button>
-              <button className="doctors-actions-grid__primary" type="button">
-                <AppIcon name="clock" />
-                Radno vrijeme
-              </button>
-              <button type="button">
-                <AppIcon name="calendar" />
-                Neradni dani i iznimke
-                <AppIcon name="chevronRight" />
-              </button>
-            </div>
-          </section>
+                    <section className="doctors-info-card doctors-actions-card">
+                      <h3>Brze akcije</h3>
+                      <div className="doctors-actions-grid">
+                        <button type="button" onClick={() => navigate(APP_ROUTES.doctorDetails.replace(':doctorId', firstDoctor.id))}>
+                          <AppIcon name="note" />
+                          Uredi podatke
+                        </button>
+                      </div>
+                    </section>
+                  </>
+                )
+              })()}
+            </>
+          )}
         </aside>
       </div>
     </div>

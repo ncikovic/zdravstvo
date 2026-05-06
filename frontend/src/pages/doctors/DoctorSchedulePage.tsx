@@ -1,69 +1,114 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { ReactElement } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 
 import { AppIcon } from '@/components'
 import { APP_ROUTES } from '@/app/routes'
+import { doctorsService } from '@/services/doctors.service'
+import type { DoctorResponseDto, DoctorWorkingHourResponseDto } from '@zdravstvo/contracts'
 
 import './doctors.css'
 
-interface ScheduleDay {
-  readonly day: string
-  readonly active: boolean
-  readonly startTime: string
-  readonly endTime: string
-  readonly pauseTime: string
-}
-
-const INITIAL_SCHEDULE: readonly ScheduleDay[] = [
-  { day: 'Ponedjeljak', active: true, startTime: '08:00', endTime: '16:00', pauseTime: '12:00 - 12:30 pausa' },
-  { day: 'Utorak', active: true, startTime: '08:00', endTime: '16:00', pauseTime: '12:00 - 12:30 pausa' },
-  { day: 'Srijeda', active: true, startTime: '08:00', endTime: '16:00', pauseTime: 'Bez pause' },
-  { day: 'Četvrtak', active: true, startTime: '08:00', endTime: '18:00', pauseTime: '13:00 - 13:30 pausa' },
-  { day: 'Petak', active: true, startTime: '08:00', endTime: '14:00', pauseTime: 'Bez pause' },
-  { day: 'Subota', active: false, startTime: '—', endTime: '—', pauseTime: 'Neradan dan' },
-  { day: 'Nedjelja', active: false, startTime: '—', endTime: '—', pauseTime: 'Neradan dan' },
+const DAYS_OF_WEEK = [
+  { index: 0, name: 'Ponedjeljak' },
+  { index: 1, name: 'Utorak' },
+  { index: 2, name: 'Srijeda' },
+  { index: 3, name: 'Četvrtak' },
+  { index: 4, name: 'Petak' },
+  { index: 5, name: 'Subota' },
+  { index: 6, name: 'Nedjelja' },
 ]
-
-const DOCTOR_NAME = 'Dr. Ivan Horvat, dr. med.'
-const DOCTOR_SPECIALTY = 'Specialist interne medicine'
 
 function DoctorSchedulePage(): ReactElement {
   const navigate = useNavigate()
-  const [schedule, setSchedule] = useState(INITIAL_SCHEDULE)
+  const { doctorId } = useParams<{ doctorId: string }>()
+  const [doctor, setDoctor] = useState<DoctorResponseDto | null>(null)
+  const [workingHours, setWorkingHours] = useState<DoctorWorkingHourResponseDto[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [isSaving, setIsSaving] = useState(false)
 
-  const activeDays = schedule.filter((d) => d.active).length
+  useEffect(() => {
+    if (!doctorId) {
+      setError('Doctor ID not found')
+      setIsLoading(false)
+      return
+    }
 
-  const handleToggleDay = (index: number) => {
-    setSchedule((prev) =>
-      prev.map((day, i) =>
-        i === index ? { ...day, active: !day.active } : day
+    const fetchData = async () => {
+      try {
+        setIsLoading(true)
+        const [doctorData, hoursData] = await Promise.all([
+          doctorsService.getById(doctorId),
+          doctorsService.listWorkingHours(doctorId),
+        ])
+        setDoctor(doctorData)
+        setWorkingHours(hoursData.workingHours)
+        setError(null)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch schedule')
+        setDoctor(null)
+        setWorkingHours([])
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [doctorId])
+
+  const handleTimeChange = (dayOfWeek: number, field: 'startTime' | 'endTime', value: string) => {
+    setWorkingHours((prev) =>
+      prev.map((hour) =>
+        hour.dayOfWeek === dayOfWeek ? { ...hour, [field]: value } : hour
       )
     )
   }
 
-  const handleTimeChange = (index: number, field: 'startTime' | 'endTime', value: string) => {
-    setSchedule((prev) =>
-      prev.map((day, i) =>
-        i === index ? { ...day, [field]: value } : day
+  const handleToggleDay = (dayOfWeek: number) => {
+    setWorkingHours((prev) =>
+      prev.map((hour) =>
+        hour.dayOfWeek === dayOfWeek ? { ...hour, isOff: !hour.isOff } : hour
       )
     )
   }
 
-  const handleSave = () => {
-    navigate(APP_ROUTES.doctors)
+  const handleSave = async () => {
+    if (!doctorId) return
+
+    try {
+      setIsSaving(true)
+      await doctorsService.replaceWorkingHours(doctorId, { workingHours })
+      navigate(APP_ROUTES.doctors)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save schedule')
+    } finally {
+      setIsSaving(false)
+    }
   }
+
+  const activeDays = workingHours.filter((h) => !h.isOff).length
+
+  if (isLoading) {
+    return <div style={{ padding: '2rem', textAlign: 'center' }}>Učitavanje...</div>
+  }
+
+  if (error || !doctor) {
+    return <div style={{ padding: '2rem', textAlign: 'center', color: '#d32f2f' }}>{error || 'Liječnik nije pronađen'}</div>
+  }
+
+  const initials = `${doctor.firstName[0]}${doctor.lastName[0]}`.toUpperCase()
 
   return (
     <div className="doctor-schedule-page">
       <div className="doctor-schedule-header">
         <div className="doctor-schedule-doctor-info">
           <div className="doctor-schedule-avatar">
-            <span>IH</span>
+            <span>{initials}</span>
           </div>
           <div className="doctor-schedule-info">
-            <h1>{DOCTOR_NAME}</h1>
-            <p>{DOCTOR_SPECIALTY}</p>
+            <h1>Dr. {doctor.firstName} {doctor.lastName}</h1>
+            {doctor.title && <p>{doctor.title}</p>}
           </div>
         </div>
         <button className="doctor-schedule-menu-btn" type="button">
@@ -88,58 +133,65 @@ function DoctorSchedulePage(): ReactElement {
                 </tr>
               </thead>
               <tbody>
-                {schedule.map((daySchedule, index) => (
-                  <tr key={daySchedule.day} className="doctor-schedule-table-row">
-                    <td className="doctor-schedule-table-cell doctor-schedule-table-cell--day">
-                      {daySchedule.day}
-                    </td>
-                    <td className="doctor-schedule-table-cell doctor-schedule-table-cell--toggle">
-                      <button
-                        className={`doctor-schedule-toggle${daySchedule.active ? ' doctor-schedule-toggle--on' : ''}`}
-                        type="button"
-                        role="switch"
-                        aria-checked={daySchedule.active}
-                        onClick={() => handleToggleDay(index)}
-                      />
-                    </td>
-                    <td className="doctor-schedule-table-cell doctor-schedule-table-cell--time">
-                      {daySchedule.active ? (
-                        <div className="doctor-schedule-time-input">
-                          <input
-                            type="time"
-                            value={daySchedule.startTime}
-                            onChange={(e) => handleTimeChange(index, 'startTime', e.target.value)}
-                          />
-                          <AppIcon name="clock" />
-                        </div>
-                      ) : (
-                        '—'
-                      )}
-                    </td>
-                    <td className="doctor-schedule-table-cell doctor-schedule-table-cell--time">
-                      {daySchedule.active ? (
-                        <div className="doctor-schedule-time-input">
-                          <input
-                            type="time"
-                            value={daySchedule.endTime}
-                            onChange={(e) => handleTimeChange(index, 'endTime', e.target.value)}
-                          />
-                          <AppIcon name="clock" />
-                        </div>
-                      ) : (
-                        '—'
-                      )}
-                    </td>
-                    <td className="doctor-schedule-table-cell doctor-schedule-table-cell--note">
-                      {daySchedule.pauseTime}
-                    </td>
-                    <td className="doctor-schedule-table-cell doctor-schedule-table-cell--actions">
-                      <button className="doctor-schedule-more-btn" type="button">
-                        <AppIcon name="dots" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {DAYS_OF_WEEK.map((day) => {
+                  const dayHours = workingHours.find((h) => h.dayOfWeek === day.index)
+                  const isOff = dayHours?.isOff ?? true
+                  const startTime = dayHours?.startTime ?? '08:00'
+                  const endTime = dayHours?.endTime ?? '16:00'
+
+                  return (
+                    <tr key={day.name} className="doctor-schedule-table-row">
+                      <td className="doctor-schedule-table-cell doctor-schedule-table-cell--day">
+                        {day.name}
+                      </td>
+                      <td className="doctor-schedule-table-cell doctor-schedule-table-cell--toggle">
+                        <button
+                          className={`doctor-schedule-toggle${!isOff ? ' doctor-schedule-toggle--on' : ''}`}
+                          type="button"
+                          role="switch"
+                          aria-checked={!isOff}
+                          onClick={() => handleToggleDay(day.index)}
+                        />
+                      </td>
+                      <td className="doctor-schedule-table-cell doctor-schedule-table-cell--time">
+                        {!isOff ? (
+                          <div className="doctor-schedule-time-input">
+                            <input
+                              type="time"
+                              value={startTime}
+                              onChange={(e) => handleTimeChange(day.index, 'startTime', e.target.value)}
+                            />
+                            <AppIcon name="clock" />
+                          </div>
+                        ) : (
+                          '—'
+                        )}
+                      </td>
+                      <td className="doctor-schedule-table-cell doctor-schedule-table-cell--time">
+                        {!isOff ? (
+                          <div className="doctor-schedule-time-input">
+                            <input
+                              type="time"
+                              value={endTime}
+                              onChange={(e) => handleTimeChange(day.index, 'endTime', e.target.value)}
+                            />
+                            <AppIcon name="clock" />
+                          </div>
+                        ) : (
+                          '—'
+                        )}
+                      </td>
+                      <td className="doctor-schedule-table-cell doctor-schedule-table-cell--note">
+                        {isOff ? 'Neradan dan' : 'Radni dan'}
+                      </td>
+                      <td className="doctor-schedule-table-cell doctor-schedule-table-cell--actions">
+                        <button className="doctor-schedule-more-btn" type="button">
+                          <AppIcon name="dots" />
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
 
@@ -161,9 +213,9 @@ function DoctorSchedulePage(): ReactElement {
               <div className="doctor-schedule-summary-stat__content">
                 <span className="doctor-schedule-summary-stat__label">Ukupno aktivnih dana</span>
                 <span className="doctor-schedule-summary-stat__value">
-                  {activeDays} / {schedule.length}
+                  {activeDays} / 7
                 </span>
-                <span className="doctor-schedule-summary-stat__meta">Ponedjeljak – Petak</span>
+                <span className="doctor-schedule-summary-stat__meta">Svi dani</span>
               </div>
             </div>
 
@@ -217,7 +269,7 @@ function DoctorSchedulePage(): ReactElement {
               <button
                 className="doctor-schedule-action-item"
                 type="button"
-                onClick={() => navigate(APP_ROUTES.doctorExceptions)}
+                onClick={() => navigate(APP_ROUTES.doctorExceptions.replace(':doctorId', doctorId || ''))}
               >
                 <AppIcon name="calendar" />
                 <div>
@@ -229,9 +281,9 @@ function DoctorSchedulePage(): ReactElement {
             </div>
           </div>
 
-          <button className="doctor-schedule-save-btn" type="button" onClick={handleSave}>
+          <button className="doctor-schedule-save-btn" type="button" onClick={handleSave} disabled={isSaving}>
             <AppIcon name="note" />
-            Spremi raspored
+            {isSaving ? 'Sprema se...' : 'Spremi raspored'}
           </button>
         </aside>
       </div>

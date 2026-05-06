@@ -1,105 +1,79 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { ReactElement } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 
 import { AppIcon } from '@/components'
 import { APP_ROUTES } from '@/app/routes'
+import { doctorsService } from '@/services/doctors.service'
+import type { DoctorResponseDto, DoctorTimeOffResponseDto } from '@zdravstvo/contracts'
 
 import './doctors.css'
 
-interface Exception {
-  readonly id: string
-  readonly dateFrom: string
-  readonly dateTo: string
-  readonly type: string
-  readonly reason: string
-  readonly status: 'Odobreno' | 'Na čekanju'
-}
-
-const INITIAL_EXCEPTIONS: readonly Exception[] = [
-  {
-    id: '1',
-    dateFrom: '20.05.2025.',
-    dateTo: '24.05.2025.',
-    type: 'Godišnji odmor',
-    reason: 'Godišnji odmor',
-    status: 'Odobreno',
-  },
-  {
-    id: '2',
-    dateFrom: '10.06.2025.',
-    dateTo: '10.06.2025.',
-    type: 'Edukacija',
-    reason: 'Napredni EKG tečaj',
-    status: 'Na čekanju',
-  },
-  {
-    id: '3',
-    dateFrom: '01.07.2025.',
-    dateTo: '05.07.2025.',
-    type: 'Kongres',
-    reason: 'Hrvatski kardiološki kongres',
-    status: 'Odobreno',
-  },
-  {
-    id: '4',
-    dateFrom: '22.08.2025.',
-    dateTo: '22.08.2025.',
-    type: 'Edukacija',
-    reason: 'Radionica: UZ srca',
-    status: 'Odobreno',
-  },
-  {
-    id: '5',
-    dateFrom: '15.09.2025.',
-    dateTo: '19.09.2025.',
-    type: 'Bolovanje',
-    reason: 'Bolovanje',
-    status: 'Odobreno',
-  },
-  {
-    id: '6',
-    dateFrom: '03.11.2025.',
-    dateTo: '03.11.2025.',
-    type: 'Edukacija',
-    reason: 'Osobni razlozi',
-    status: 'Na čekanju',
-  },
-  {
-    id: '7',
-    dateFrom: '12.12.2025.',
-    dateTo: '12.12.2025.',
-    type: 'Edukacija',
-    reason: 'Sastanak stručnog tima',
-    status: 'Na čekanju',
-  },
-]
-
-const DOCTOR_NAME = 'Dr. Ivan Babić, dr. med.'
-const DOCTOR_SPECIALTY = 'Kardiolog'
-const DOCTOR_STATUS = 'Aktivan'
-
 function DoctorExceptionsPage(): ReactElement {
   const navigate = useNavigate()
-  const [exceptions] = useState(INITIAL_EXCEPTIONS)
-  const [newException, setNewException] = useState({
-    type: 'Godišnji odmor',
-    dateFrom: '',
-    dateTo: '',
-    reason: '',
-  })
+  const { doctorId } = useParams<{ doctorId: string }>()
+  const [doctor, setDoctor] = useState<DoctorResponseDto | null>(null)
+  const [timeOffList, setTimeOffList] = useState<DoctorTimeOffResponseDto[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [isDeleting, setIsDeleting] = useState<string | null>(null)
+  useEffect(() => {
+    if (!doctorId) {
+      setError('Doctor ID not found')
+      setIsLoading(false)
+      return
+    }
 
-  const handleSave = () => {
-    navigate(APP_ROUTES.doctorSchedule)
+    const fetchData = async () => {
+      try {
+        setIsLoading(true)
+        const [doctorData, timeOffData] = await Promise.all([
+          doctorsService.getById(doctorId),
+          doctorsService.listTimeOff(doctorId),
+        ])
+        setDoctor(doctorData)
+        setTimeOffList(timeOffData.timeOff)
+        setError(null)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch data')
+        setDoctor(null)
+        setTimeOffList([])
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [doctorId])
+
+  const handleDelete = async (timeOffId: string) => {
+    if (!doctorId) return
+
+    try {
+      setIsDeleting(timeOffId)
+      await doctorsService.deleteTimeOff(doctorId, timeOffId)
+      setTimeOffList((prev) => prev.filter((item) => item.id !== timeOffId))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete time-off')
+    } finally {
+      setIsDeleting(null)
+    }
   }
 
   const handleBack = () => {
-    navigate(APP_ROUTES.doctorSchedule)
+    navigate(APP_ROUTES.doctorSchedule.replace(':doctorId', doctorId || ''))
   }
 
-  const getStatusColor = (status: string) => {
-    return status === 'Odobreno' ? 'status-badge--approved' : 'status-badge--pending'
+
+  if (isLoading) {
+    return <div style={{ padding: '2rem', textAlign: 'center' }}>Učitavanje...</div>
   }
+
+  if (error || !doctor) {
+    return <div style={{ padding: '2rem', textAlign: 'center', color: '#d32f2f' }}>{error || 'Liječnik nije pronađen'}</div>
+  }
+
+  const initials = `${doctor.firstName[0]}${doctor.lastName[0]}`.toUpperCase()
 
   return (
     <div className="doctor-exceptions-page">
@@ -108,7 +82,7 @@ function DoctorExceptionsPage(): ReactElement {
           Liječnici
         </button>
         <span>/</span>
-        <button className="doctor-exceptions-breadcrumb-link" type="button" onClick={() => navigate(APP_ROUTES.doctorSchedule)}>
+        <button className="doctor-exceptions-breadcrumb-link" type="button" onClick={handleBack}>
           Radno vrijeme
         </button>
         <span>/</span>
@@ -118,13 +92,13 @@ function DoctorExceptionsPage(): ReactElement {
       <div className="doctor-exceptions-header">
         <div className="doctor-exceptions-doctor-info">
           <div className="doctor-exceptions-avatar">
-            <span>IB</span>
+            <span>{initials}</span>
           </div>
           <div className="doctor-exceptions-info">
-            <h1>{DOCTOR_NAME}</h1>
-            <p>{DOCTOR_SPECIALTY}</p>
-            <span className={`doctor-exceptions-status status-badge status-badge--approved`}>
-              {DOCTOR_STATUS}
+            <h1>Dr. {doctor.firstName} {doctor.lastName}</h1>
+            {doctor.title && <p>{doctor.title}</p>}
+            <span className={`doctor-exceptions-status status-badge status-badge--${doctor.isActive ? 'approved' : 'pending'}`}>
+              {doctor.isActive ? 'Aktivan' : 'Neaktivan'}
             </span>
           </div>
         </div>
@@ -184,32 +158,50 @@ function DoctorExceptionsPage(): ReactElement {
                 </tr>
               </thead>
               <tbody>
-                {exceptions.map((exc) => (
-                  <tr key={exc.id} className="doctor-exceptions-table-row">
-                    <td className="doctor-exceptions-table-cell doctor-exceptions-table-cell--date">
-                      <div>{exc.dateFrom}</div>
-                      <span className="doctor-exceptions-date-type">(utorak)</span>
-                    </td>
-                    <td className="doctor-exceptions-table-cell doctor-exceptions-table-cell--date">
-                      <div>{exc.dateTo}</div>
-                      <span className="doctor-exceptions-date-type">(četvrtak)</span>
-                    </td>
-                    <td className="doctor-exceptions-table-cell">
-                      <span className="doctor-exceptions-type-badge">{exc.type}</span>
-                    </td>
-                    <td className="doctor-exceptions-table-cell">{exc.reason}</td>
-                    <td className="doctor-exceptions-table-cell">
-                      <span className={`status-badge ${getStatusColor(exc.status)}`}>
-                        {exc.status}
-                      </span>
-                    </td>
-                    <td className="doctor-exceptions-table-cell doctor-exceptions-table-cell--actions">
-                      <button className="doctor-exceptions-more-btn" type="button">
-                        <AppIcon name="dots" />
-                      </button>
+                {timeOffList.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} style={{ padding: '2rem', textAlign: 'center', color: '#999' }}>
+                      Nema planiranih iznimki
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  timeOffList.map((item) => {
+                    const startDate = new Date(item.startAt)
+                    const endDate = new Date(item.endAt)
+                    const startFormatted = startDate.toLocaleDateString('hr-HR')
+                    const endFormatted = endDate.toLocaleDateString('hr-HR')
+
+                    return (
+                      <tr key={item.id} className="doctor-exceptions-table-row">
+                        <td className="doctor-exceptions-table-cell doctor-exceptions-table-cell--date">
+                          <div>{startFormatted}</div>
+                          <span className="doctor-exceptions-date-type">({startDate.toLocaleDateString('hr-HR', { weekday: 'long' })})</span>
+                        </td>
+                        <td className="doctor-exceptions-table-cell doctor-exceptions-table-cell--date">
+                          <div>{endFormatted}</div>
+                          <span className="doctor-exceptions-date-type">({endDate.toLocaleDateString('hr-HR', { weekday: 'long' })})</span>
+                        </td>
+                        <td className="doctor-exceptions-table-cell">
+                          <span className="doctor-exceptions-type-badge">Iznimka</span>
+                        </td>
+                        <td className="doctor-exceptions-table-cell">{item.reason || 'Bez razloga'}</td>
+                        <td className="doctor-exceptions-table-cell">
+                          <span className="status-badge status-badge--approved">Odobreno</span>
+                        </td>
+                        <td className="doctor-exceptions-table-cell doctor-exceptions-table-cell--actions">
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(item.id)}
+                            disabled={isDeleting === item.id}
+                            className="doctor-exceptions-delete-btn"
+                          >
+                            <AppIcon name="trash" />
+                          </button>
+                        </td>
+                      </tr>
+                    )
+                  })
+                )}
               </tbody>
             </table>
 
