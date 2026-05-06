@@ -16,6 +16,7 @@ export type AppIconName =
   | 'dashboard'
   | 'doctor'
   | 'dots'
+  | 'edit'
   | 'flask'
   | 'headphones'
   | 'heartPulse'
@@ -25,6 +26,7 @@ export type AppIconName =
   | 'megaphone'
   | 'note'
   | 'patients'
+  | 'phone'
   | 'plus'
   | 'search'
   | 'send'
@@ -36,6 +38,7 @@ export type AppIconName =
   | 'user'
   | 'users'
   | 'warning'
+  | 'xCircle'
 
 export type AppNavigationSection = 'primary' | 'clinical' | 'administration' | 'system'
 

@@ -3,6 +3,7 @@ export const APP_ROUTES = {
   dashboard: '/',
   appointments: '/appointments',
   createAppointment: '/appointments/create',
+  appointmentDetails: '/appointments/:appointmentId',
   doctors: '/doctors',
   patients: '/patients',
   appointmentTypes: '/appointment-types',

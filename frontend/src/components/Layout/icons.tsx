@@ -102,6 +102,13 @@ const renderIconContent = (name: AppIconName): ReactElement => {
           <circle cx="12" cy="19" r="1" />
         </>
       )
+    case 'edit':
+      return (
+        <>
+          <path d="M4 20h4l11-11a2.8 2.8 0 0 0-4-4L4 16v4Z" />
+          <path d="m13.5 6.5 4 4" />
+        </>
+      )
     case 'flask':
       return (
         <>
@@ -164,6 +171,12 @@ const renderIconContent = (name: AppIconName): ReactElement => {
         <>
           <path d="M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM3.5 20a5.5 5.5 0 0 1 11 0" />
           <path d="M16 11a2.5 2.5 0 1 0-.7-4.9M14.5 14.5A5 5 0 0 1 20.5 20" />
+        </>
+      )
+    case 'phone':
+      return (
+        <>
+          <path d="M7 4h3l1.4 4-2 1.2a11 11 0 0 0 5.4 5.4l1.2-2L20 14v3a3 3 0 0 1-3 3A13 13 0 0 1 4 7a3 3 0 0 1 3-3Z" />
         </>
       )
     case 'plus':
@@ -237,6 +250,13 @@ const renderIconContent = (name: AppIconName): ReactElement => {
         <>
           <path d="M12 4 3 20h18L12 4Z" />
           <path d="M12 9v5M12 17h.01" />
+        </>
+      )
+    case 'xCircle':
+      return (
+        <>
+          <circle cx="12" cy="12" r="8" />
+          <path d="m9 9 6 6M15 9l-6 6" />
         </>
       )
   }
