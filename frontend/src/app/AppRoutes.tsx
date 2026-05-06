@@ -9,6 +9,7 @@ import {
   AppointmentsPage,
   AuditPage,
   ConfirmEmailPage,
+  CreateAppointmentPage,
   DashboardPage,
   DoctorsPage,
   ForgotPasswordPage,
@@ -76,6 +77,7 @@ export function AppRoutes(): ReactElement {
           <Route element={<AppLayout />}>
             <Route path={APP_ROUTES.dashboard} element={<DashboardPage />} />
             <Route path={APP_ROUTES.appointments} element={<AppointmentsPage />} />
+            <Route path={APP_ROUTES.createAppointment} element={<CreateAppointmentPage />} />
             <Route path={APP_ROUTES.doctors} element={<DoctorsPage />} />
             <Route path={APP_ROUTES.patients} element={<PatientsPage />} />
             <Route path={APP_ROUTES.appointmentTypes} element={<AppointmentTypesPage />} />

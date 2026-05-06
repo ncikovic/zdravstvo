@@ -1,0 +1,722 @@
+.appointment-create-page {
+  display: grid;
+  gap: 22px;
+  max-width: 1452px;
+  margin: 0 auto;
+  color: #07183a;
+}
+
+.appointment-create-page button {
+  cursor: default;
+}
+
+.appointment-create-hero h1 {
+  margin: 0;
+  color: #07183a;
+  font-size: 2.32rem;
+  font-weight: 850;
+  line-height: 1.04;
+  letter-spacing: -0.035em;
+}
+
+.appointment-create-hero p {
+  margin: 7px 0 0;
+  color: #667590;
+  font-size: 1rem;
+  font-weight: 650;
+}
+
+.appointment-create-stepper,
+.appointment-create-card,
+.appointment-create-summary {
+  border: 1px solid #dce8f3;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 18px 44px rgba(21, 53, 96, 0.08);
+}
+
+.appointment-create-stepper {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  min-height: 86px;
+  padding: 0 24px;
+  overflow: hidden;
+}
+
+.appointment-create-step {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 20px;
+  align-items: center;
+  gap: 15px;
+  min-width: 0;
+}
+
+.appointment-create-step:last-child {
+  grid-template-columns: 44px minmax(0, 1fr);
+}
+
+.appointment-create-step > span {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 1px solid #cdd9e8;
+  border-radius: 50%;
+  background: #f4f8fc;
+  color: #314368;
+  font-size: 1rem;
+  font-weight: 850;
+}
+
+.appointment-create-step > span.is-active {
+  border-color: #0a76df;
+  background: linear-gradient(135deg, #0c85e5, #0667cf);
+  color: #ffffff;
+  box-shadow: 0 10px 20px rgba(8, 109, 226, 0.2);
+}
+
+.appointment-create-step div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.appointment-create-step strong,
+.appointment-create-step small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.appointment-create-step strong {
+  color: #415374;
+  font-size: 0.92rem;
+  line-height: 1.18;
+}
+
+.appointment-create-step:first-child strong {
+  color: #0b6fd8;
+}
+
+.appointment-create-step small {
+  color: #64728d;
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+
+.appointment-create-step .app-icon {
+  width: 19px;
+  height: 19px;
+  color: #62718c;
+}
+
+.appointment-create-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 392px;
+  gap: 30px;
+  align-items: start;
+}
+
+.appointment-create-card {
+  display: grid;
+  gap: 17px;
+  min-width: 0;
+  padding: 24px 26px 30px;
+}
+
+.appointment-create-section {
+  display: grid;
+  gap: 13px;
+  min-width: 0;
+}
+
+.appointment-create-section h2,
+.appointment-create-summary h2 {
+  margin: 0;
+  color: #07183a;
+  font-size: 1.12rem;
+  font-weight: 850;
+  line-height: 1.2;
+}
+
+.appointment-create-patient-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 206px;
+  gap: 18px;
+}
+
+.appointment-create-select,
+.appointment-create-doctor-select,
+.appointment-create-new-patient,
+.appointment-create-type,
+.appointment-create-month__header button,
+.appointment-create-calendar button,
+.appointment-create-times button,
+.appointment-create-confirm,
+.appointment-create-cancel {
+  border: 1px solid #d6e2ef;
+  background: #ffffff;
+  color: #17254b;
+}
+
+.appointment-create-select,
+.appointment-create-doctor-select {
+  display: grid;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  min-height: 52px;
+  border-radius: 8px;
+}
+
+.appointment-create-select {
+  grid-template-columns: 24px minmax(0, 1fr) 20px;
+  gap: 15px;
+  padding: 0 18px;
+  color: #64728d;
+  text-align: left;
+}
+
+.appointment-create-select span {
+  min-width: 0;
+  overflow: hidden;
+  color: #5f6e8b;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.appointment-create-select .app-icon,
+.appointment-create-doctor-select .app-icon {
+  width: 19px;
+  height: 19px;
+  color: #6478a2;
+}
+
+.appointment-create-new-patient {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 52px;
+  border-color: #91c8ff;
+  border-radius: 8px;
+  color: #0876df;
+  font-size: 0.95rem;
+  font-weight: 850;
+}
+
+.appointment-create-new-patient .app-icon {
+  width: 19px;
+  height: 19px;
+  stroke-width: 2.2;
+}
+
+.appointment-create-doctor-select {
+  grid-template-columns: 54px minmax(0, 1fr) 20px;
+  gap: 16px;
+  min-height: 74px;
+  padding: 0 16px 0 10px;
+  text-align: left;
+}
+
+.appointment-create-doctor-photo {
+  position: relative;
+  display: block;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  border-radius: 9px;
+  background:
+    radial-gradient(circle at 50% 29%, #ffd6bd 0 16%, transparent 17%),
+    linear-gradient(160deg, #f5d7c8 0 42%, #17324f 43% 100%);
+}
+
+.appointment-create-doctor-photo span {
+  position: absolute;
+  right: 10px;
+  bottom: 0;
+  left: 10px;
+  height: 22px;
+  border-radius: 9px 9px 0 0;
+  background: linear-gradient(180deg, #ffffff 0 38%, #223d5d 39% 100%);
+}
+
+.appointment-create-doctor-select span:not(.appointment-create-doctor-photo) {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.appointment-create-doctor-select strong,
+.appointment-create-doctor-select small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.appointment-create-doctor-select strong {
+  color: #07183a;
+  font-size: 1rem;
+  font-weight: 850;
+}
+
+.appointment-create-doctor-select small {
+  color: #667590;
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+
+.appointment-create-types {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.appointment-create-type {
+  position: relative;
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr);
+  align-items: center;
+  gap: 13px;
+  min-width: 0;
+  min-height: 84px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  text-align: left;
+}
+
+.appointment-create-type--selected {
+  border-color: #0876df;
+  box-shadow: inset 0 0 0 1px rgba(8, 118, 223, 0.55);
+}
+
+.appointment-create-type > span {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: 50%;
+}
+
+.appointment-create-type--blue > span {
+  background: #e3f3ff;
+  color: #0876df;
+}
+
+.appointment-create-type--teal > span {
+  background: #dff8f5;
+  color: #079b8d;
+}
+
+.appointment-create-type--purple > span {
+  background: #efe4ff;
+  color: #7d4cd7;
+}
+
+.appointment-create-type > span .app-icon {
+  width: 23px;
+  height: 23px;
+  stroke-width: 2;
+}
+
+.appointment-create-type div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.appointment-create-type strong,
+.appointment-create-type small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.appointment-create-type strong {
+  color: #07183a;
+  font-size: 0.92rem;
+  font-weight: 850;
+}
+
+.appointment-create-type small {
+  color: #65728e;
+  font-size: 0.88rem;
+  font-weight: 650;
+}
+
+.appointment-create-type > .app-icon {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 23px;
+  height: 23px;
+  color: #0876df;
+  fill: #0876df;
+  stroke: #ffffff;
+}
+
+.appointment-create-scheduler {
+  display: grid;
+  grid-template-columns: minmax(340px, 0.98fr) minmax(350px, 1fr);
+  min-width: 0;
+  border: 1px solid #dce8f3;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.appointment-create-month,
+.appointment-create-times {
+  min-width: 0;
+  background: #ffffff;
+}
+
+.appointment-create-month {
+  padding: 16px 20px 22px;
+  border-right: 1px solid #dce8f3;
+}
+
+.appointment-create-month__header {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) 34px;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.appointment-create-month__header button {
+  display: grid;
+  width: 34px;
+  min-height: 34px;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  color: #07183a;
+}
+
+.appointment-create-month__header .app-icon {
+  width: 21px;
+  height: 21px;
+}
+
+.appointment-create-month__header strong {
+  color: #07183a;
+  font-size: 1.05rem;
+  font-weight: 850;
+  text-align: center;
+}
+
+.appointment-create-weekdays,
+.appointment-create-calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.appointment-create-weekdays {
+  margin-bottom: 8px;
+}
+
+.appointment-create-weekdays span {
+  color: #687893;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.appointment-create-calendar {
+  gap: 7px 10px;
+}
+
+.appointment-create-calendar button {
+  display: grid;
+  min-height: 34px;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #17254b;
+  font-size: 0.9rem;
+  font-weight: 750;
+}
+
+.appointment-create-calendar button.is-muted {
+  color: #9aa6b8;
+}
+
+.appointment-create-calendar button.is-selected {
+  width: 38px;
+  justify-self: center;
+  background: linear-gradient(135deg, #0b86e8, #086de2);
+  color: #ffffff;
+  box-shadow: 0 10px 18px rgba(8, 109, 226, 0.2);
+}
+
+.appointment-create-times {
+  padding: 20px 18px 18px;
+}
+
+.appointment-create-times h3 {
+  margin: 0 0 17px;
+  color: #07183a;
+  font-size: 0.96rem;
+  font-weight: 800;
+}
+
+.appointment-create-times div {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px 12px;
+}
+
+.appointment-create-times button {
+  min-height: 32px;
+  border-radius: 5px;
+  color: #17254b;
+  font-size: 0.9rem;
+  font-weight: 700;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.appointment-create-times button.is-selected {
+  border-color: #0876df;
+  background: linear-gradient(135deg, #0b86e8, #086de2);
+  color: #ffffff;
+  box-shadow: 0 8px 18px rgba(8, 109, 226, 0.18);
+}
+
+.appointment-create-info,
+.appointment-create-reminder {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  margin: 0;
+  border-radius: 10px;
+  background: #eaf5ff;
+  color: #60708b;
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+
+.appointment-create-info {
+  padding: 0 16px;
+}
+
+.appointment-create-info .app-icon,
+.appointment-create-reminder .app-icon {
+  width: 18px;
+  height: 18px;
+  color: #0876df;
+}
+
+.appointment-create-summary {
+  display: grid;
+  gap: 20px;
+  min-width: 0;
+  padding: 28px 26px 30px;
+}
+
+.appointment-create-summary-list {
+  display: grid;
+  border: 1px solid #dce8f3;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.appointment-create-summary-item {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  min-height: 94px;
+  padding: 14px 16px;
+  border-top: 1px solid #dce8f3;
+  background: #ffffff;
+}
+
+.appointment-create-summary-item:first-child {
+  border-top: 0;
+}
+
+.appointment-create-summary-icon {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border-radius: 9px;
+}
+
+.appointment-create-summary-icon .app-icon {
+  width: 25px;
+  height: 25px;
+  stroke-width: 2;
+}
+
+.appointment-create-summary-icon--patient,
+.appointment-create-summary-icon--type {
+  background: #dff8f5;
+  color: #079b8d;
+}
+
+.appointment-create-summary-icon--doctor {
+  background: #e3f3ff;
+  color: #0876df;
+}
+
+.appointment-create-summary-icon--date {
+  background: #efe4ff;
+  color: #7d4cd7;
+}
+
+.appointment-create-summary-icon--time {
+  background: #fff0df;
+  color: #f28c16;
+}
+
+.appointment-create-summary-item div {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.appointment-create-summary-item small,
+.appointment-create-summary-item strong,
+.appointment-create-summary-item span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.appointment-create-summary-item small {
+  color: #667590;
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
+.appointment-create-summary-item strong {
+  color: #07183a;
+  font-size: 0.95rem;
+  font-weight: 850;
+}
+
+.appointment-create-summary-item span {
+  color: #65728e;
+  font-size: 0.88rem;
+  font-weight: 650;
+}
+
+.appointment-create-reminder {
+  align-items: start;
+  min-height: 84px;
+  padding: 18px 20px;
+  background: #e5f3ff;
+  color: #405276;
+  line-height: 1.45;
+}
+
+.appointment-create-reminder .app-icon {
+  margin-top: 2px;
+}
+
+.appointment-create-confirm,
+.appointment-create-cancel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 60px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 850;
+}
+
+.appointment-create-confirm {
+  border: 0;
+  background: linear-gradient(135deg, #0aa39c, #086de2);
+  color: #ffffff;
+  box-shadow: 0 14px 24px rgba(8, 109, 226, 0.22);
+}
+
+.appointment-create-confirm .app-icon {
+  width: 22px;
+  height: 22px;
+  stroke-width: 2.2;
+}
+
+.appointment-create-cancel {
+  margin-top: -8px;
+  border-color: #91c8ff;
+  color: #0876df;
+  background: #ffffff;
+}
+
+@media (max-width: 1400px) {
+  .appointment-create-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .appointment-create-summary {
+    width: min(100%, 560px);
+  }
+}
+
+@media (max-width: 1120px) {
+  .appointment-create-stepper {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px 16px;
+    padding-block: 16px;
+  }
+
+  .appointment-create-types {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .appointment-create-scheduler {
+    grid-template-columns: 1fr;
+  }
+
+  .appointment-create-month {
+    border-right: 0;
+    border-bottom: 1px solid #dce8f3;
+  }
+}
+
+@media (max-width: 720px) {
+  .appointment-create-hero h1 {
+    font-size: 1.9rem;
+  }
+
+  .appointment-create-stepper,
+  .appointment-create-types,
+  .appointment-create-patient-row,
+  .appointment-create-times div {
+    grid-template-columns: 1fr;
+  }
+
+  .appointment-create-step,
+  .appointment-create-step:last-child {
+    grid-template-columns: 44px minmax(0, 1fr);
+  }
+
+  .appointment-create-step .app-icon {
+    display: none;
+  }
+
+  .appointment-create-card,
+  .appointment-create-summary {
+    padding: 20px;
+  }
+
+  .appointment-create-scheduler {
+    min-width: 0;
+  }
+
+  .appointment-create-month {
+    padding-inline: 14px;
+  }
+}
