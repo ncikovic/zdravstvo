@@ -1,115 +1,89 @@
-import { useEffect, useMemo, useState } from "react";
-import type { ReactElement } from "react";
-import { useNavigate } from "react-router-dom";
-import type { AppointmentTypeDto } from "@zdravstvo/contracts";
+import type { AppointmentTypeDto } from '@zdravstvo/contracts'
+import type { ReactElement } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
-import { APP_ROUTES } from "@/app/routes";
-import { AppIcon } from "@/components";
-import { appointmentTypesService } from "@/services";
-import type { AppIconName } from "@/types";
+import { APP_ROUTES } from '@/app/routes'
+import { AppIcon } from '@/components'
+import { appointmentTypesService } from '@/services'
+import type { AppIconName } from '@/types'
 
-import "./appointmentTypes.css";
+import './appointmentTypes.css'
 
-type AppointmentTypeTone =
-  | "blue"
-  | "teal"
-  | "orange"
-  | "purple"
-  | "green"
-  | "red"
-  | "amber";
+type AppointmentTypeTone = 'blue' | 'teal' | 'orange' | 'purple' | 'green' | 'red' | 'amber'
 
-const tones: AppointmentTypeTone[] = [
-  "blue",
-  "teal",
-  "orange",
-  "purple",
-  "green",
-  "red",
-  "amber",
-];
+const tones: AppointmentTypeTone[] = ['blue', 'teal', 'orange', 'purple', 'green', 'red', 'amber']
 
 const icons: AppIconName[] = [
-  "stethoscope",
-  "activity",
-  "megaphone",
-  "flask",
-  "user",
-  "plus",
-  "clipboard",
-];
+  'stethoscope',
+  'activity',
+  'megaphone',
+  'flask',
+  'user',
+  'plus',
+  'clipboard',
+]
 
-const getTone = (index: number): AppointmentTypeTone =>
-  tones[index % tones.length];
+const getTone = (index: number): AppointmentTypeTone => tones[index % tones.length]
 
-const getIcon = (index: number): AppIconName => icons[index % icons.length];
+const getIcon = (index: number): AppIconName => icons[index % icons.length]
 
-const getStatusLabel = (type: AppointmentTypeDto): "Aktivan" | "Neaktivan" =>
-  type.isActive ? "Aktivan" : "Neaktivan";
+const getStatusLabel = (type: AppointmentTypeDto): 'Aktivan' | 'Neaktivan' =>
+  type.isActive ? 'Aktivan' : 'Neaktivan'
 
 const getErrorMessage = (error: unknown, fallback: string): string =>
   error instanceof Error
     ? error.message
-    : typeof error === "object" && error !== null && "message" in error
+    : typeof error === 'object' && error !== null && 'message' in error
       ? String(error.message)
-      : fallback;
+      : fallback
 
 function AppointmentTypesPage(): ReactElement {
-  const navigate = useNavigate();
-  const [appointmentTypes, setAppointmentTypes] = useState<
-    AppointmentTypeDto[]
-  >([]);
-  const [selectedAppointmentTypeId, setSelectedAppointmentTypeId] = useState<
-    string | null
-  >(null);
-  const [search, setSearch] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate()
+  const [appointmentTypes, setAppointmentTypes] = useState<AppointmentTypeDto[]>([])
+  const [selectedAppointmentTypeId, setSelectedAppointmentTypeId] = useState<string | null>(null)
+  const [search, setSearch] = useState('')
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchAppointmentTypes = async () => {
       try {
-        setIsLoading(true);
-        const data = await appointmentTypesService.list();
-        setAppointmentTypes(data);
-        setSelectedAppointmentTypeId(
-          (current) => current ?? data[0]?.id ?? null,
-        );
-        setError(null);
+        setIsLoading(true)
+        const data = await appointmentTypesService.list()
+        setAppointmentTypes(data)
+        setSelectedAppointmentTypeId((current) => current ?? data[0]?.id ?? null)
+        setError(null)
       } catch (err) {
-        setError(getErrorMessage(err, "Greska pri ucitavanju vrsta termina."));
-        setAppointmentTypes([]);
+        setError(getErrorMessage(err, 'Greska pri ucitavanju vrsta termina.'))
+        setAppointmentTypes([])
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
-    };
-
-    fetchAppointmentTypes();
-  }, []);
-
-  const filteredAppointmentTypes = useMemo(() => {
-    const value = search.trim().toLowerCase();
-
-    if (!value) {
-      return appointmentTypes;
     }
 
-    return appointmentTypes.filter((type) =>
-      type.name.toLowerCase().includes(value),
-    );
-  }, [appointmentTypes, search]);
+    fetchAppointmentTypes()
+  }, [])
+
+  const filteredAppointmentTypes = useMemo(() => {
+    const value = search.trim().toLowerCase()
+
+    if (!value) {
+      return appointmentTypes
+    }
+
+    return appointmentTypes.filter((type) => type.name.toLowerCase().includes(value))
+  }, [appointmentTypes, search])
 
   const selectedType =
-    filteredAppointmentTypes.find(
-      (type) => type.id === selectedAppointmentTypeId,
-    ) ??
+    filteredAppointmentTypes.find((type) => type.id === selectedAppointmentTypeId) ??
     filteredAppointmentTypes[0] ??
     appointmentTypes.find((type) => type.id === selectedAppointmentTypeId) ??
     appointmentTypes[0] ??
-    null;
+    null
   const selectedTypeIndex = selectedType
     ? appointmentTypes.findIndex((type) => type.id === selectedType.id)
-    : 0;
+    : 0
 
   return (
     <div className="appointment-types-page">
@@ -130,10 +104,7 @@ function AppointmentTypesPage(): ReactElement {
 
       <div className="appointment-types-content-grid">
         <div className="appointment-types-main-stack">
-          <section
-            className="appointment-types-filter-panel"
-            aria-label="Filteri vrsta termina"
-          >
+          <section className="appointment-types-filter-panel" aria-label="Filteri vrsta termina">
             <label className="appointment-types-search-field">
               <span className="sr-only">Pretraga vrsta termina</span>
               <AppIcon name="search" />
@@ -168,37 +139,29 @@ function AppointmentTypesPage(): ReactElement {
             <button
               className="appointment-types-clear-button"
               type="button"
-              onClick={() => setSearch("")}
+              onClick={() => setSearch('')}
             >
               <AppIcon name="tag" />
               Obrisi filtre
             </button>
           </section>
 
-          <section
-            className="appointment-types-table-panel"
-            aria-label="Popis vrsta termina"
-          >
+          <section className="appointment-types-table-panel" aria-label="Popis vrsta termina">
             {isLoading ? (
-              <div style={{ padding: "2rem", textAlign: "center" }}>
-                Ucitavanje...
-              </div>
+              <div style={{ padding: '2rem', textAlign: 'center' }}>Ucitavanje...</div>
             ) : error ? (
               <div
                 style={{
-                  padding: "2rem",
-                  textAlign: "center",
-                  color: "#d32f2f",
+                  padding: '2rem',
+                  textAlign: 'center',
+                  color: '#d32f2f',
                 }}
               >
                 {error}
               </div>
             ) : (
               <>
-                <div
-                  className="appointment-types-table appointment-types-table--head"
-                  role="row"
-                >
+                <div className="appointment-types-table appointment-types-table--head" role="row">
                   <span>Naziv</span>
                   <span>Trajanje</span>
                   <span>Opis</span>
@@ -209,19 +172,19 @@ function AppointmentTypesPage(): ReactElement {
                 </div>
 
                 {filteredAppointmentTypes.map((type, index) => {
-                  const status = getStatusLabel(type);
+                  const status = getStatusLabel(type)
 
                   return (
                     <div
                       className={
                         type.id === selectedType?.id
-                          ? "appointment-types-table appointment-types-table--row appointment-types-table--row-selected"
-                          : "appointment-types-table appointment-types-table--row"
+                          ? 'appointment-types-table appointment-types-table--row appointment-types-table--row-selected'
+                          : 'appointment-types-table appointment-types-table--row'
                       }
                       role="row"
                       key={type.id}
                       onClick={() => setSelectedAppointmentTypeId(type.id)}
-                      style={{ cursor: "pointer" }}
+                      style={{ cursor: 'pointer' }}
                     >
                       <span
                         className={`appointment-types-icon appointment-types-icon--${getTone(index)}`}
@@ -238,8 +201,8 @@ function AppointmentTypesPage(): ReactElement {
                       <em
                         className={
                           type.isActive
-                            ? "appointment-types-status appointment-types-status--active"
-                            : "appointment-types-status appointment-types-status--limited"
+                            ? 'appointment-types-status appointment-types-status--active'
+                            : 'appointment-types-status appointment-types-status--limited'
                         }
                       >
                         {status}
@@ -248,23 +211,20 @@ function AppointmentTypesPage(): ReactElement {
                         type="button"
                         aria-label={`Opcije za ${type.name}`}
                         onClick={(event) => {
-                          event.stopPropagation();
+                          event.stopPropagation()
                           navigate(
-                            APP_ROUTES.editAppointmentType.replace(
-                              ":appointmentTypeId",
-                              type.id,
-                            ),
-                          );
+                            APP_ROUTES.editAppointmentType.replace(':appointmentTypeId', type.id)
+                          )
                         }}
                       >
                         <AppIcon name="dots" />
                       </button>
                     </div>
-                  );
+                  )
                 })}
 
                 {filteredAppointmentTypes.length === 0 ? (
-                  <div style={{ padding: "2rem", textAlign: "center" }}>
+                  <div style={{ padding: '2rem', textAlign: 'center' }}>
                     Nema vrsta termina za zadanu pretragu.
                   </div>
                 ) : null}
@@ -273,17 +233,14 @@ function AppointmentTypesPage(): ReactElement {
 
             <div className="appointment-types-pagination">
               <span>
-                Prikazano {filteredAppointmentTypes.length} od{" "}
-                {appointmentTypes.length} vrsta termina
+                Prikazano {filteredAppointmentTypes.length} od {appointmentTypes.length} vrsta
+                termina
               </span>
               <div>
                 <button type="button" aria-label="Prethodna stranica">
                   <AppIcon name="chevronLeft" />
                 </button>
-                <button
-                  className="appointment-types-pagination__active"
-                  type="button"
-                >
+                <button className="appointment-types-pagination__active" type="button">
                   1
                 </button>
                 <button type="button" aria-label="Sljedeca stranica">
@@ -298,10 +255,7 @@ function AppointmentTypesPage(): ReactElement {
           </section>
         </div>
 
-        <aside
-          className="appointment-types-detail-panel"
-          aria-label="Detalji vrste termina"
-        >
+        <aside className="appointment-types-detail-panel" aria-label="Detalji vrste termina">
           {selectedType ? (
             <>
               <div className="appointment-types-detail-header">
@@ -310,9 +264,7 @@ function AppointmentTypesPage(): ReactElement {
                 </span>
                 <div>
                   <h2>{selectedType.name}</h2>
-                  <span>
-                    Trajanje: {selectedType.defaultDurationMinutes} min
-                  </span>
+                  <span>Trajanje: {selectedType.defaultDurationMinutes} min</span>
                 </div>
                 <em>{getStatusLabel(selectedType)}</em>
               </div>
@@ -351,20 +303,14 @@ function AppointmentTypesPage(): ReactElement {
                   type="button"
                   onClick={() =>
                     navigate(
-                      APP_ROUTES.editAppointmentType.replace(
-                        ":appointmentTypeId",
-                        selectedType.id,
-                      ),
+                      APP_ROUTES.editAppointmentType.replace(':appointmentTypeId', selectedType.id)
                     )
                   }
                 >
                   <AppIcon name="note" />
-                  Pogledaj detalje
+                  Uredi
                 </button>
-                <button
-                  className="appointment-types-detail-actions__primary"
-                  type="button"
-                >
+                <button className="appointment-types-detail-actions__primary" type="button">
                   <AppIcon name="users" />
                   Dodijeli lijecnike
                 </button>
@@ -379,7 +325,7 @@ function AppointmentTypesPage(): ReactElement {
         </aside>
       </div>
     </div>
-  );
+  )
 }
 
-export { AppointmentTypesPage };
+export { AppointmentTypesPage }
