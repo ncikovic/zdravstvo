@@ -2,12 +2,12 @@ import type {
   CreatePatientRequestDto,
   PatientDto,
   UpdatePatientRequestDto,
-} from '@zdravstvo/contracts';
-import { v4 as uuidv4 } from 'uuid';
+} from "@zdravstvo/contracts";
+import { v4 as uuidv4 } from "uuid";
 
-import { patientsRepository } from '../repositories/index.js';
-import { AppError } from '../shared/errors/index.js';
-import type { Patient } from '../types/entities/index.js';
+import { patientsRepository } from "../repositories/index.js";
+import { AppError } from "../shared/errors/index.js";
+import type { Patient } from "../types/entities/index.js";
 
 const toIsoDateOnly = (value: Date | null): string | null => {
   if (!value) {
@@ -19,6 +19,9 @@ const toIsoDateOnly = (value: Date | null): string | null => {
 
 const toPatientDto = (patient: Patient): PatientDto => ({
   id: patient.id,
+  email: patient.email,
+  phone: patient.phone,
+  status: patient.status,
   firstName: patient.firstName,
   lastName: patient.lastName,
   dateOfBirth: toIsoDateOnly(patient.dateOfBirth),
@@ -41,7 +44,7 @@ export const patientsService = {
     const patient = await patientsRepository.findById(id);
 
     if (!patient) {
-      throw AppError.notFound('Patient not found.');
+      throw AppError.notFound("Patient not found.");
     }
 
     return toPatientDto(patient);
@@ -58,12 +61,12 @@ export const patientsService = {
 
   async updatePatient(
     id: string,
-    payload: UpdatePatientRequestDto
+    payload: UpdatePatientRequestDto,
   ): Promise<PatientDto> {
     const patient = await patientsRepository.update(id, payload);
 
     if (!patient) {
-      throw AppError.notFound('Patient not found.');
+      throw AppError.notFound("Patient not found.");
     }
 
     return toPatientDto(patient);
@@ -73,7 +76,7 @@ export const patientsService = {
     const deleted = await patientsRepository.delete(id);
 
     if (!deleted) {
-      throw AppError.notFound('Patient not found.');
+      throw AppError.notFound("Patient not found.");
     }
   },
 };

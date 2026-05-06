@@ -1,9 +1,16 @@
-import { z } from 'zod';
+import { UserStatus } from "@zdravstvo/contracts";
+import { z } from "zod";
 
-import { nullableDateSchema } from './common.validation.js';
+import {
+  nullableDateSchema,
+  nullableEmailSchema,
+} from "./common.validation.js";
 
 export const createPatientSchema = z.strictObject({
   id: z.string().uuid().optional(),
+  email: nullableEmailSchema,
+  phone: z.string().trim().min(1).max(60).nullable().optional(),
+  status: z.enum(UserStatus).optional(),
   firstName: z.string().trim().min(1).max(120),
   lastName: z.string().trim().min(1).max(120),
   dateOfBirth: nullableDateSchema,
@@ -17,5 +24,5 @@ export const updatePatientSchema = createPatientSchema
   .omit({ id: true })
   .partial()
   .refine((value) => Object.keys(value).length > 0, {
-    message: 'At least one patient field must be provided.',
+    message: "At least one patient field must be provided.",
   });

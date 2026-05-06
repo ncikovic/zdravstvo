@@ -1,115 +1,173 @@
-import { useState } from 'react'
-import type { ReactElement } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useEffect, useState } from "react";
+import type { ReactElement } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { UserStatus, type PatientDto } from "@zdravstvo/contracts";
 
-import { AppIcon } from '@/components'
-import { APP_ROUTES } from '@/app/routes'
+import { AppIcon } from "@/components";
+import { APP_ROUTES } from "@/app/routes";
+import { patientsService } from "@/services";
 
-import './patients.css'
+import "./patients.css";
 
-interface PatientData {
-  id: string
-  firstName: string
-  lastName: string
-  dateOfBirth: string
-  oib: string
-  gender: string
-  email: string
-  phone: string
-  phoneCode: string
-  secondPhone: string
-  secondPhoneCode: string
-  address: string
-  postalCode: string
-  city: string
-  country: string
-  county: string
-  emergencyContactName: string
-  emergencyContactPhone: string
-  emergencyContactRelation: string
-  notes: string
-  status: 'Aktivan' | 'Neaktivan'
-  institution: string
+interface PatientFormData {
+  firstName: string;
+  lastName: string;
+  dateOfBirth: string;
+  oib: string;
+  email: string;
+  phone: string;
+  address: string;
+  emergencyContactName: string;
+  emergencyContactPhone: string;
+  status: "Aktivan" | "Neaktivan";
 }
 
-const mockPatientData: PatientData = {
-  id: '1',
-  firstName: 'Ana',
-  lastName: 'Marić',
-  dateOfBirth: '01.01.1990.',
-  oib: '12345678901',
-  gender: 'Ženski',
-  email: 'ana.maric@email.hr',
-  phone: '91 234 5678',
-  phoneCode: '+385',
-  secondPhone: '98 765 4321',
-  secondPhoneCode: '+385',
-  address: 'Ulica grada Vukovara 269d',
-  postalCode: '10000',
-  city: 'Zagreb',
-  country: 'Hrvatska',
-  county: 'Grad Zagreb',
-  emergencyContactName: 'Marko Marić',
-  emergencyContactPhone: '+385 91 555 1212',
-  emergencyContactRelation: 'Suprug',
-  notes: '',
-  status: 'Aktivan',
-  institution: 'Poliklinika Medica Zagreb',
-}
+const emptyFormData: PatientFormData = {
+  firstName: "",
+  lastName: "",
+  dateOfBirth: "",
+  oib: "",
+  email: "",
+  phone: "",
+  address: "",
+  emergencyContactName: "",
+  emergencyContactPhone: "",
+  status: "Aktivan",
+};
 
-const upcomingAppointments = [
-  {
-    date: '20',
-    month: 'svi',
-    title: 'Kontrola pregled',
-    doctor: 'dr. Ivan Babić',
-    time: '10:00',
-  },
-  {
-    date: '10',
-    month: 'svi',
-    title: 'Redovni pregled',
-    doctor: 'dr. Petra Kovač',
-    time: '11:30',
-  },
-  {
-    date: '05',
-    month: 'KOL',
-    title: 'Prvi pregled',
-    doctor: 'dr. Luka Jurić',
-    time: '09:00',
-  },
-]
+const getInitials = (formData: PatientFormData): string =>
+  `${formData.firstName[0] ?? "P"}${formData.lastName[0] ?? "P"}`.toUpperCase();
+
+const mapPatientToFormData = (patient: PatientDto): PatientFormData => ({
+  firstName: patient.firstName,
+  lastName: patient.lastName,
+  dateOfBirth: patient.dateOfBirth ?? "",
+  oib: patient.oib ?? "",
+  email: patient.email ?? "",
+  phone: patient.phone ?? "",
+  address: patient.address ?? "",
+  emergencyContactName: patient.emergencyContactName ?? "",
+  emergencyContactPhone: patient.emergencyContactPhone ?? "",
+  status: patient.status === UserStatus.ACTIVE ? "Aktivan" : "Neaktivan",
+});
+
+const getErrorMessage = (error: unknown, fallback: string): string =>
+  error instanceof Error
+    ? error.message
+    : typeof error === "object" && error !== null && "message" in error
+      ? String(error.message)
+      : fallback;
 
 function EditPatientPage(): ReactElement {
-  const navigate = useNavigate()
-  const { patientId } = useParams<{ patientId: string }>()
+  const navigate = useNavigate();
+  const { patientId } = useParams<{ patientId: string }>();
+  const [formData, setFormData] = useState<PatientFormData>(emptyFormData);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const [formData, setFormData] = useState<PatientData>(mockPatientData)
+  useEffect(() => {
+    if (!patientId) {
+      setError("ID pacijenta nije dostupan.");
+      setIsLoading(false);
+      return;
+    }
 
-  const handleInputChange = (field: string, value: string) => {
+    const fetchPatient = async () => {
+      try {
+        setIsLoading(true);
+        const patient = await patientsService.getById(patientId);
+        setFormData(mapPatientToFormData(patient));
+        setError(null);
+      } catch (err) {
+        setError(getErrorMessage(err, "Greska pri ucitavanju pacijenta."));
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchPatient();
+  }, [patientId]);
+
+  const handleInputChange = (field: keyof PatientFormData, value: string) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
-    }))
-  }
+    }));
+    setError(null);
+  };
 
   const handleCancel = () => {
-    navigate(APP_ROUTES.patients)
-  }
+    navigate(
+      patientId
+        ? APP_ROUTES.patientDetails.replace(":patientId", patientId)
+        : APP_ROUTES.patients,
+    );
+  };
 
-  const handleSubmit = () => {
-    navigate(APP_ROUTES.patients)
+  const handleSubmit = async () => {
+    if (!patientId) {
+      setError("ID pacijenta nije dostupan.");
+      return;
+    }
+
+    if (!formData.firstName.trim() || !formData.lastName.trim()) {
+      setError("Obavezna polja: ime i prezime.");
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      await patientsService.update(patientId, {
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        dateOfBirth: formData.dateOfBirth || null,
+        oib: formData.oib.trim() || null,
+        email: formData.email.trim() || null,
+        phone: formData.phone.trim() || null,
+        status:
+          formData.status === "Aktivan"
+            ? UserStatus.ACTIVE
+            : UserStatus.DISABLED,
+        address: formData.address.trim() || null,
+        emergencyContactName: formData.emergencyContactName.trim() || null,
+        emergencyContactPhone: formData.emergencyContactPhone.trim() || null,
+      });
+      navigate(APP_ROUTES.patientDetails.replace(":patientId", patientId));
+    } catch (err) {
+      setError(getErrorMessage(err, "Greska pri spremanju pacijenta."));
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div
+        className="edit-patient-page"
+        style={{ padding: "2rem", textAlign: "center" }}
+      >
+        Ucitavanje...
+      </div>
+    );
   }
 
   return (
     <div className="edit-patient-page">
       <div className="edit-patient-breadcrumb">
-        <button type="button" onClick={() => navigate(APP_ROUTES.patients)} className="edit-patient-breadcrumb-link">
+        <button
+          type="button"
+          onClick={() => navigate(APP_ROUTES.patients)}
+          className="edit-patient-breadcrumb-link"
+        >
           Pacijenti
         </button>
         <AppIcon name="chevronRight" />
-        <button type="button" className="edit-patient-breadcrumb-link">
+        <button
+          type="button"
+          className="edit-patient-breadcrumb-link"
+          onClick={handleCancel}
+        >
           Detalji pacijenta
         </button>
         <AppIcon name="chevronRight" />
@@ -119,9 +177,16 @@ function EditPatientPage(): ReactElement {
       <div className="edit-patient-header">
         <div>
           <h1>Uredi pacijenta</h1>
-          <p>Ažurirajte podatke o pacijentu. Promjene će biti spremljene nakon potvrde.</p>
+          <p>
+            Azurirajte podatke o pacijentu. Promjene ce biti spremljene nakon
+            potvrde.
+          </p>
         </div>
-        <button type="button" className="edit-patient-back-button" onClick={handleCancel}>
+        <button
+          type="button"
+          className="edit-patient-back-button"
+          onClick={handleCancel}
+        >
           <AppIcon name="chevronLeft" />
           Povratak na detalje pacijenta
         </button>
@@ -129,305 +194,173 @@ function EditPatientPage(): ReactElement {
 
       <div className="edit-patient-content-grid">
         <section className="edit-patient-card">
-          {/* Basic Info Section */}
+          {error ? (
+            <div
+              style={{
+                padding: "1rem",
+                backgroundColor: "#ffebee",
+                color: "#d32f2f",
+                borderRadius: "4px",
+                marginBottom: "1rem",
+              }}
+            >
+              {error}
+            </div>
+          ) : null}
+
           <div className="edit-patient-card__section">
             <h2 className="edit-patient-card__section-title">Osnovni podaci</h2>
 
             <div className="edit-patient-profile-header">
-              <div className="edit-patient-avatar">
-                {(formData.firstName[0] || 'P').toUpperCase()}{(formData.lastName[0] || 'P').toUpperCase()}
-              </div>
-              <div className="edit-patient-profile-action">
-                <button type="button" className="edit-patient-photo-button">
-                  <AppIcon name="user" />
-                  <span>
-                    Promijeni fotografiju
-                    <small>PNG, JPG ili WEBP do 2MB</small>
-                  </span>
-                </button>
-              </div>
+              <div className="edit-patient-avatar">{getInitials(formData)}</div>
             </div>
 
             <div className="edit-patient-fields-row edit-patient-fields-row--2">
-              <div className="edit-patient-field">
-                <label className="edit-patient-field__label" htmlFor="firstName">
+              <label className="edit-patient-field" htmlFor="firstName">
+                <span className="edit-patient-field__label">
                   Ime <span className="edit-patient-required">*</span>
-                </label>
+                </span>
                 <input
                   id="firstName"
                   className="edit-patient-field__input"
-                  type="text"
                   value={formData.firstName}
-                  onChange={(e) => handleInputChange('firstName', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("firstName", e.target.value)
+                  }
                 />
-              </div>
-              <div className="edit-patient-field">
-                <label className="edit-patient-field__label" htmlFor="lastName">
+              </label>
+              <label className="edit-patient-field" htmlFor="lastName">
+                <span className="edit-patient-field__label">
                   Prezime <span className="edit-patient-required">*</span>
-                </label>
+                </span>
                 <input
                   id="lastName"
                   className="edit-patient-field__input"
-                  type="text"
                   value={formData.lastName}
-                  onChange={(e) => handleInputChange('lastName', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("lastName", e.target.value)
+                  }
                 />
-              </div>
+              </label>
             </div>
 
             <div className="edit-patient-fields-row edit-patient-fields-row--2">
-              <div className="edit-patient-field">
-                <label className="edit-patient-field__label" htmlFor="dateOfBirth">
-                  Datum rođenja
-                </label>
+              <label className="edit-patient-field" htmlFor="dateOfBirth">
+                <span className="edit-patient-field__label">
+                  Datum rodjenja
+                </span>
                 <input
                   id="dateOfBirth"
                   className="edit-patient-field__input"
-                  type="text"
+                  type="date"
                   value={formData.dateOfBirth}
-                  onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("dateOfBirth", e.target.value)
+                  }
                 />
-              </div>
-              <div className="edit-patient-field">
-                <label className="edit-patient-field__label" htmlFor="oib">
-                  OIB
-                </label>
+              </label>
+              <label className="edit-patient-field" htmlFor="oib">
+                <span className="edit-patient-field__label">OIB</span>
                 <input
                   id="oib"
                   className="edit-patient-field__input"
-                  type="text"
                   value={formData.oib}
-                  onChange={(e) => handleInputChange('oib', e.target.value)}
+                  onChange={(e) => handleInputChange("oib", e.target.value)}
                 />
-              </div>
-            </div>
-
-            <div className="edit-patient-fields-row edit-patient-fields-row--2">
-              <div className="edit-patient-field">
-                <label className="edit-patient-field__label" htmlFor="gender">
-                  Spol
-                </label>
-                <select
-                  id="gender"
-                  className="edit-patient-field__select"
-                  value={formData.gender}
-                  onChange={(e) => handleInputChange('gender', e.target.value)}
-                >
-                  <option value="">Odaberite spol</option>
-                  <option value="Muški">Muški</option>
-                  <option value="Ženski">Ženski</option>
-                  <option value="Ostalo">Ostalo</option>
-                </select>
-              </div>
-              <div className="edit-patient-field">
-                <label className="edit-patient-field__label" htmlFor="country">
-                  Državljanstvo
-                </label>
-                <select
-                  id="country"
-                  className="edit-patient-field__select"
-                  value={formData.country}
-                  onChange={(e) => handleInputChange('country', e.target.value)}
-                >
-                  <option value="Hrvatska">Hrvatska</option>
-                  <option value="Ostalo">Ostalo</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="edit-patient-field">
-              <label className="edit-patient-field__label" htmlFor="email">
-                E-mail
               </label>
+            </div>
+          </div>
+
+          <div className="edit-patient-card__section">
+            <h2 className="edit-patient-card__section-title">Kontakt</h2>
+
+            <label className="edit-patient-field" htmlFor="email">
+              <span className="edit-patient-field__label">E-mail</span>
               <input
                 id="email"
                 className="edit-patient-field__input"
                 type="email"
                 value={formData.email}
-                onChange={(e) => handleInputChange('email', e.target.value)}
+                onChange={(e) => handleInputChange("email", e.target.value)}
               />
-            </div>
+            </label>
 
-            <div className="edit-patient-field">
-              <label className="edit-patient-field__label" htmlFor="phone">
-                Telefon <span className="edit-patient-required">*</span>
-              </label>
-              <div className="edit-patient-phone-input">
-                <select className="edit-patient-phone-code">
-                  <option value="+385">🇭🇷 +385</option>
-                </select>
-                <input
-                  id="phone"
-                  className="edit-patient-field__input"
-                  type="tel"
-                  value={formData.phone}
-                  onChange={(e) => handleInputChange('phone', e.target.value)}
-                />
-              </div>
-            </div>
+            <label className="edit-patient-field" htmlFor="phone">
+              <span className="edit-patient-field__label">Telefon</span>
+              <input
+                id="phone"
+                className="edit-patient-field__input"
+                type="tel"
+                value={formData.phone}
+                onChange={(e) => handleInputChange("phone", e.target.value)}
+              />
+            </label>
 
-            <div className="edit-patient-field">
-              <label className="edit-patient-field__label" htmlFor="secondPhone">
-                Drugi telefon
-              </label>
-              <div className="edit-patient-phone-input">
-                <select className="edit-patient-phone-code">
-                  <option value="+385">🇭🇷 +385</option>
-                </select>
-                <input
-                  id="secondPhone"
-                  className="edit-patient-field__input"
-                  type="tel"
-                  value={formData.secondPhone}
-                  onChange={(e) => handleInputChange('secondPhone', e.target.value)}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Address Section */}
-          <div className="edit-patient-card__section">
-            <h2 className="edit-patient-card__section-title">Adresa prebivaišta</h2>
-
-            <div className="edit-patient-field">
-              <label className="edit-patient-field__label" htmlFor="address">
-                Adresa <span className="edit-patient-required">*</span>
-              </label>
+            <label className="edit-patient-field" htmlFor="address">
+              <span className="edit-patient-field__label">Adresa</span>
               <input
                 id="address"
                 className="edit-patient-field__input"
-                type="text"
                 value={formData.address}
-                onChange={(e) => handleInputChange('address', e.target.value)}
+                onChange={(e) => handleInputChange("address", e.target.value)}
               />
-            </div>
-
-            <div className="edit-patient-fields-row edit-patient-fields-row--2">
-              <div className="edit-patient-field">
-                <label className="edit-patient-field__label" htmlFor="postalCode">
-                  Poštanski broj <span className="edit-patient-required">*</span>
-                </label>
-                <input
-                  id="postalCode"
-                  className="edit-patient-field__input"
-                  type="text"
-                  value={formData.postalCode}
-                  onChange={(e) => handleInputChange('postalCode', e.target.value)}
-                />
-              </div>
-              <div className="edit-patient-field">
-                <label className="edit-patient-field__label" htmlFor="city">
-                  Grad <span className="edit-patient-required">*</span>
-                </label>
-                <input
-                  id="city"
-                  className="edit-patient-field__input"
-                  type="text"
-                  value={formData.city}
-                  onChange={(e) => handleInputChange('city', e.target.value)}
-                />
-              </div>
-            </div>
-
-            <div className="edit-patient-fields-row edit-patient-fields-row--2">
-              <div className="edit-patient-field">
-                <label className="edit-patient-field__label" htmlFor="county">
-                  Županija
-                </label>
-                <select
-                  id="county"
-                  className="edit-patient-field__select"
-                  value={formData.county}
-                  onChange={(e) => handleInputChange('county', e.target.value)}
-                >
-                  <option value="Grad Zagreb">Grad Zagreb</option>
-                  <option value="Ostalo">Ostalo</option>
-                </select>
-              </div>
-              <div className="edit-patient-field">
-                <label className="edit-patient-field__label" htmlFor="country">
-                  Zemlja
-                </label>
-                <select
-                  id="country"
-                  className="edit-patient-field__select"
-                  value={formData.country}
-                  onChange={(e) => handleInputChange('country', e.target.value)}
-                >
-                  <option value="Hrvatska">Hrvatska</option>
-                  <option value="Ostalo">Ostalo</option>
-                </select>
-              </div>
-            </div>
+            </label>
           </div>
 
-          {/* Additional Info Section */}
           <div className="edit-patient-card__section">
-            <h2 className="edit-patient-card__section-title">Dodatne informacije</h2>
+            <h2 className="edit-patient-card__section-title">
+              Dodatne informacije
+            </h2>
 
-            <div className="edit-patient-field">
-              <label className="edit-patient-field__label" htmlFor="emergencyContactName">
-                Kontakt osoba za hitne slučajeve
-              </label>
+            <label className="edit-patient-field" htmlFor="status">
+              <span className="edit-patient-field__label">Status</span>
+              <select
+                id="status"
+                className="edit-patient-field__select"
+                value={formData.status}
+                onChange={(e) => handleInputChange("status", e.target.value)}
+              >
+                <option value="Aktivan">Aktivan</option>
+                <option value="Neaktivan">Neaktivan</option>
+              </select>
+            </label>
+
+            <label
+              className="edit-patient-field"
+              htmlFor="emergencyContactName"
+            >
+              <span className="edit-patient-field__label">
+                Kontakt osoba za hitne slucajeve
+              </span>
               <input
                 id="emergencyContactName"
                 className="edit-patient-field__input"
-                type="text"
                 value={formData.emergencyContactName}
-                onChange={(e) => handleInputChange('emergencyContactName', e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("emergencyContactName", e.target.value)
+                }
               />
-            </div>
+            </label>
 
-            <div className="edit-patient-fields-row edit-patient-fields-row--2">
-              <div className="edit-patient-field">
-                <label className="edit-patient-field__label" htmlFor="emergencyContactPhone">
-                  Telefon hitni kontakt osobe
-                </label>
-                <input
-                  id="emergencyContactPhone"
-                  className="edit-patient-field__input"
-                  type="tel"
-                  value={formData.emergencyContactPhone}
-                  onChange={(e) => handleInputChange('emergencyContactPhone', e.target.value)}
-                />
-              </div>
-              <div className="edit-patient-field">
-                <label className="edit-patient-field__label" htmlFor="emergencyContactRelation">
-                  Odnos
-                </label>
-                <select
-                  id="emergencyContactRelation"
-                  className="edit-patient-field__select"
-                  value={formData.emergencyContactRelation}
-                  onChange={(e) => handleInputChange('emergencyContactRelation', e.target.value)}
-                >
-                  <option value="Suprug">Suprug</option>
-                  <option value="Supruga">Supruga</option>
-                  <option value="Roditelj">Roditelj</option>
-                  <option value="Dijete">Dijete</option>
-                  <option value="Brat/Sestra">Brat/Sestra</option>
-                  <option value="Prijatelj">Prijatelj</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="edit-patient-field">
-              <label className="edit-patient-field__label" htmlFor="notes">
-                Napomene (opcionalno)
-              </label>
-              <textarea
-                id="notes"
-                className="edit-patient-field__textarea"
-                placeholder="Upišite dodatne napomene o pacijentu..."
-                value={formData.notes}
-                onChange={(e) => handleInputChange('notes', e.target.value)}
-                maxLength={500}
+            <label
+              className="edit-patient-field"
+              htmlFor="emergencyContactPhone"
+            >
+              <span className="edit-patient-field__label">
+                Telefon hitnog kontakta
+              </span>
+              <input
+                id="emergencyContactPhone"
+                className="edit-patient-field__input"
+                type="tel"
+                value={formData.emergencyContactPhone}
+                onChange={(e) =>
+                  handleInputChange("emergencyContactPhone", e.target.value)
+                }
               />
-              <span className="edit-patient-field__count">{formData.notes.length} / 500</span>
-            </div>
+            </label>
           </div>
 
-          {/* Action Buttons */}
           <div className="edit-patient-card__actions">
             <button
               className="edit-patient-btn edit-patient-btn--secondary"
@@ -440,26 +373,32 @@ function EditPatientPage(): ReactElement {
               className="edit-patient-btn edit-patient-btn--primary"
               type="button"
               onClick={handleSubmit}
+              disabled={isSaving}
             >
               <AppIcon name="note" />
-              Spremi promjene
+              {isSaving ? "Sprema se..." : "Spremi promjene"}
             </button>
           </div>
         </section>
 
-        {/* Sidebar */}
         <aside className="edit-patient-sidebar">
           <div className="edit-patient-summary-card">
-            <h3 className="edit-patient-summary-card__title">Sažetak pacijenta</h3>
+            <h3 className="edit-patient-summary-card__title">
+              Sazetak pacijenta
+            </h3>
 
             <div className="edit-patient-summary-preview">
               <div className="edit-patient-summary-avatar">
-                {(formData.firstName[0] || 'P').toUpperCase()}{(formData.lastName[0] || 'P').toUpperCase()}
+                {getInitials(formData)}
               </div>
               <div className="edit-patient-summary-info">
-                <strong>{formData.firstName} {formData.lastName}</strong>
+                <strong>
+                  {formData.firstName || formData.lastName
+                    ? `${formData.firstName} ${formData.lastName}`
+                    : "Pacijent"}
+                </strong>
                 <span className="edit-patient-status-badge">
-                  {formData.status === 'Aktivan' ? 'Aktivan' : 'Neaktivan'}
+                  {formData.status}
                 </span>
               </div>
             </div>
@@ -467,69 +406,26 @@ function EditPatientPage(): ReactElement {
             <div className="edit-patient-summary-list">
               <div className="edit-patient-summary-item">
                 <span>OIB</span>
-                <strong>{formData.oib}</strong>
+                <strong>{formData.oib || "Nije dostupno"}</strong>
               </div>
               <div className="edit-patient-summary-item">
                 <span>E-mail</span>
-                <strong>{formData.email}</strong>
+                <strong>{formData.email || "Nije dostupno"}</strong>
               </div>
               <div className="edit-patient-summary-item">
                 <span>Telefon</span>
-                <strong>{formData.phoneCode} {formData.phone}</strong>
+                <strong>{formData.phone || "Nije dostupno"}</strong>
               </div>
               <div className="edit-patient-summary-item">
                 <span>Adresa</span>
-                <strong>{formData.address}, {formData.postalCode} {formData.city}</strong>
+                <strong>{formData.address || "Nije dostupno"}</strong>
               </div>
-            </div>
-          </div>
-
-          <div className="edit-patient-appointments-card">
-            <div className="edit-patient-appointments-header">
-              <h3 className="edit-patient-appointments-card__title">Nadolazeci termini</h3>
-              <button type="button" className="edit-patient-see-all-link">
-                Prikaži sve
-              </button>
-            </div>
-
-            <div className="edit-patient-appointments-list">
-              {upcomingAppointments.map((apt, idx) => (
-                <div className="edit-patient-appointment-item" key={idx}>
-                  <div className="edit-patient-appointment-date">
-                    <strong>{apt.date}</strong>
-                    <small>{apt.month}</small>
-                  </div>
-                  <div className="edit-patient-appointment-info">
-                    <strong>{apt.title}</strong>
-                    <span>{apt.doctor}</span>
-                    <small>{apt.time}</small>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="edit-patient-actions-card">
-            <h3 className="edit-patient-actions-card__title">Brze akcije</h3>
-            <div className="edit-patient-actions-list">
-              <button type="button" className="edit-patient-action-button">
-                <AppIcon name="calendar" />
-                Rezerviraj termin
-              </button>
-              <button type="button" className="edit-patient-action-button">
-                <AppIcon name="clock" />
-                Postavi termin
-              </button>
-              <button type="button" className="edit-patient-action-button">
-                <AppIcon name="note" />
-                Zabiljezka
-              </button>
             </div>
           </div>
         </aside>
       </div>
     </div>
-  )
+  );
 }
 
-export { EditPatientPage }
+export { EditPatientPage };
