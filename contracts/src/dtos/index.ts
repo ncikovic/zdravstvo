@@ -1,3 +1,4 @@
+export * from "./appointments/index.js";
 export * from "./appointment-types/index.js";
 export * from "./auth.dto.js";
 export * from "./dashboard/index.js";

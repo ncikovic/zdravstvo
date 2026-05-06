@@ -1,3 +1,4 @@
+export * from "./Appointment.entity.js";
 export * from "./appointmentType.entity.js";
 export * from "./auth.entities.js";
 export * from "./Doctor.entity.js";

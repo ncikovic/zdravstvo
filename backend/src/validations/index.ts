@@ -1,3 +1,4 @@
+export * from "./appointments.validation.js";
 export * from "./appointmentType.validation.js";
 export * from "./auth.validation.js";
 export * from "./common.validation.js";
