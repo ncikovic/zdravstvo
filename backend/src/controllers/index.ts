@@ -1,3 +1,4 @@
+export * from "./appointments.controller.js";
 export * from "./appointmentTypes.controller.js";
 export * from "./auth.controller.js";
 export * from "./dashboard.controller.js";

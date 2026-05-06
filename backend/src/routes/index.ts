@@ -1,5 +1,6 @@
 import { Router } from "express";
 
+import { appointmentsRouter } from "./appointments.routes.js";
 import { appointmentTypesRouter } from "./appointmentTypes.routes.js";
 import { authRouter } from "./auth.routes.js";
 import { dashboardRouter } from "./dashboard.routes.js";
@@ -11,6 +12,7 @@ import { patientsRouter } from "./patients.routes.js";
 export const apiRouter = Router();
 
 apiRouter.use(authRouter);
+apiRouter.use("/appointments", appointmentsRouter);
 apiRouter.use("/appointment-types", appointmentTypesRouter);
 apiRouter.use(dashboardRouter);
 apiRouter.use(doctorsRouter);
