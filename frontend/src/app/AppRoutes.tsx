@@ -16,6 +16,7 @@ import {
   LoginPage,
   NotFoundPage,
   PatientsPage,
+  SettingsPage,
 } from '@/pages';
 import type { AppIconName } from '@/types';
 
@@ -30,12 +31,6 @@ interface InternalRouteDefinition {
 }
 
 const INTERNAL_PLACEHOLDER_ROUTES: readonly InternalRouteDefinition[] = [
-  {
-    path: APP_ROUTES.settings,
-    title: 'Postavke',
-    description: 'Postavke računa i ustanove ostaju dostupne kroz zajednički aplikacijski okvir.',
-    icon: 'settings',
-  },
   {
     path: APP_ROUTES.schedule,
     title: 'Moj raspored',
@@ -80,6 +75,7 @@ export function AppRoutes(): ReactElement {
             <Route path={APP_ROUTES.patients} element={<PatientsPage />} />
             <Route path={APP_ROUTES.appointmentTypes} element={<AppointmentTypesPage />} />
             <Route path={APP_ROUTES.audit} element={<AuditPage />} />
+            <Route path={APP_ROUTES.settings} element={<SettingsPage />} />
             {INTERNAL_PLACEHOLDER_ROUTES.map((route) => (
               <Route
                 key={route.path}

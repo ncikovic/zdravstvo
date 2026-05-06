@@ -25,6 +25,7 @@ export type AppIconName =
   | 'megaphone'
   | 'note'
   | 'patients'
+  | 'phone'
   | 'plus'
   | 'search'
   | 'send'

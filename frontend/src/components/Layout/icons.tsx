@@ -166,6 +166,10 @@ const renderIconContent = (name: AppIconName): ReactElement => {
           <path d="M16 11a2.5 2.5 0 1 0-.7-4.9M14.5 14.5A5 5 0 0 1 20.5 20" />
         </>
       )
+    case 'phone':
+      return (
+        <path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2Z" />
+      )
     case 'plus':
       return <path d="M12 5v14M5 12h14" />
     case 'search':
