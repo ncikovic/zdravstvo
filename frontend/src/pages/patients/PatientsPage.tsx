@@ -181,7 +181,7 @@ function PatientsPage(): ReactElement {
                 }
                 role="row"
                 key={patient.oib}
-                onClick={() => navigate(APP_ROUTES.patientEdit.replace(':patientId', patient.oib))}
+                onClick={() => navigate(APP_ROUTES.patientDetails.replace(':patientId', patient.oib))}
                 style={{ cursor: 'pointer' }}
               >
                 <span className={`patients-avatar patients-avatar--${patient.tone}`}>
@@ -200,7 +200,14 @@ function PatientsPage(): ReactElement {
                 >
                   {patient.status}
                 </em>
-                <button type="button" aria-label={`Opcije za ${patient.name}`}>
+                <button
+                  type="button"
+                  aria-label={`Opcije za ${patient.name}`}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    navigate(APP_ROUTES.patientEdit.replace(':patientId', patient.oib))
+                  }}
+                >
                   <AppIcon name="dots" />
                 </button>
               </div>

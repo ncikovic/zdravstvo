@@ -8,6 +8,7 @@ export const APP_ROUTES = {
   doctorExceptions: '/doctors/exceptions',
   patients: '/patients',
   patientsNew: '/patients/new',
+  patientDetails: '/patients/:patientId',
   patientEdit: '/patients/:patientId/edit',
   appointmentTypes: '/appointment-types',
   audit: '/audit',
