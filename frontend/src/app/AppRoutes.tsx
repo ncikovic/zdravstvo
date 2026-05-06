@@ -14,7 +14,10 @@ import {
   ConfirmEmailPage,
   CreateAppointmentTypePage,
   CreateAppointmentPage,
+  CreateDoctorPage,
   DashboardPage,
+  DoctorExceptionsPage,
+  DoctorSchedulePage,
   DoctorsPage,
   EditAppointmentTypePage,
   ForgotPasswordPage,
@@ -22,6 +25,10 @@ import {
   LoginPage,
   NotFoundPage,
   PatientsPage,
+  NewPatientPage,
+  EditPatientPage,
+  PatientDetailsPage,
+  SettingsPage,
 } from '@/pages';
 import type { AppIconName } from '@/types';
 
@@ -36,12 +43,6 @@ interface InternalRouteDefinition {
 }
 
 const INTERNAL_PLACEHOLDER_ROUTES: readonly InternalRouteDefinition[] = [
-  {
-    path: APP_ROUTES.settings,
-    title: 'Postavke',
-    description: 'Postavke računa i ustanove ostaju dostupne kroz zajednički aplikacijski okvir.',
-    icon: 'settings',
-  },
   {
     path: APP_ROUTES.schedule,
     title: 'Moj raspored',
@@ -87,11 +88,18 @@ export function AppRoutes(): ReactElement {
             <Route path={APP_ROUTES.cancelAppointment} element={<CancelAppointmentPage />} />
             <Route path={APP_ROUTES.appointmentDetails} element={<AppointmentDetailsPage />} />
             <Route path={APP_ROUTES.doctors} element={<DoctorsPage />} />
+            <Route path={APP_ROUTES.doctorsCreate} element={<CreateDoctorPage />} />
+            <Route path={APP_ROUTES.doctorSchedule} element={<DoctorSchedulePage />} />
+            <Route path={APP_ROUTES.doctorExceptions} element={<DoctorExceptionsPage />} />
             <Route path={APP_ROUTES.patients} element={<PatientsPage />} />
+            <Route path={APP_ROUTES.patientsNew} element={<NewPatientPage />} />
+            <Route path={APP_ROUTES.patientDetails} element={<PatientDetailsPage />} />
+            <Route path={APP_ROUTES.patientEdit} element={<EditPatientPage />} />
             <Route path={APP_ROUTES.appointmentTypes} element={<AppointmentTypesPage />} />
             <Route path={APP_ROUTES.createAppointmentType} element={<CreateAppointmentTypePage />} />
             <Route path={APP_ROUTES.editAppointmentType} element={<EditAppointmentTypePage />} />
             <Route path={APP_ROUTES.audit} element={<AuditPage />} />
+            <Route path={APP_ROUTES.settings} element={<SettingsPage />} />
             {INTERNAL_PLACEHOLDER_ROUTES.map((route) => (
               <Route
                 key={route.path}

@@ -1,6 +1,8 @@
 import type { ReactElement } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import { AppIcon } from '@/components'
+import { APP_ROUTES } from '@/app/routes'
 
 import './doctors.css'
 
@@ -120,6 +122,8 @@ const workingHours = [
 ] as const
 
 function DoctorsPage(): ReactElement {
+  const navigate = useNavigate()
+
   return (
     <div className="doctors-page">
       <div className="doctors-page__hero">
@@ -141,7 +145,11 @@ function DoctorsPage(): ReactElement {
                   placeholder="Pretražite liječnike po imenu, specijalizaciji ili e-mailu..."
                 />
               </label>
-              <button className="doctors-primary-button" type="button">
+              <button
+                className="doctors-primary-button"
+                type="button"
+                onClick={() => navigate(APP_ROUTES.doctorsCreate)}
+              >
                 <AppIcon name="plus" />
                 Novi liječnik
               </button>
