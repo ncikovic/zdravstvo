@@ -1,372 +1,337 @@
-import type { ReactElement } from 'react'
+import type { AppointmentResponseDto } from "@zdravstvo/contracts";
+import { useEffect, useMemo, useState } from "react";
+import type { ReactElement } from "react";
+import { Link } from "react-router-dom";
 
-import { AppIcon } from '@/components'
+import { AppIcon } from "@/components";
+import { appointmentsService } from "@/services";
 
-import './appointments.css'
+import "./appointments.css";
 
-type AppointmentTone = 'blue' | 'teal' | 'orange' | 'red' | 'gray'
+type AppointmentTone = "blue" | "teal" | "orange" | "red" | "gray";
 
 interface DoctorColumn {
-  id: string
-  name: string
-  specialty: string
-  initials: string
-  tone: AppointmentTone
+  id: string;
+  name: string;
+  specialty: string;
+  initials: string;
+  tone: AppointmentTone;
 }
 
 interface CalendarAppointment {
-  id: string
-  doctorId: string
-  patient: string
-  type: string
-  start: string
-  end: string
-  top: number
-  tone: AppointmentTone
-  selected?: boolean
+  id: string;
+  doctorId: string;
+  patient: string;
+  type: string;
+  start: string;
+  end: string;
+  top: number;
+  tone: AppointmentTone;
+  selected?: boolean;
 }
 
-const doctors: readonly DoctorColumn[] = [
-  {
-    id: 'ivana',
-    name: 'Dr. Ivana Horvat',
-    specialty: 'Opća medicina',
-    initials: 'IH',
-    tone: 'orange',
-  },
-  {
-    id: 'marko',
-    name: 'Dr. Marko Horvat',
-    specialty: 'Interna medicina',
-    initials: 'MH',
-    tone: 'blue',
-  },
-  {
-    id: 'petra',
-    name: 'Dr. Petra Barić',
-    specialty: 'Ginekologija',
-    initials: 'PB',
-    tone: 'orange',
-  },
-  {
-    id: 'luka',
-    name: 'Dr. Luka Jurić',
-    specialty: 'Ortopedija',
-    initials: 'LJ',
-    tone: 'blue',
-  },
-]
+const DISPLAYED_DOCTOR_LIMIT = 4;
+const CALENDAR_START_HOUR = 8;
+const CALENDAR_END_HOUR = 18;
+const HOUR_ROW_HEIGHT = 57;
+const APPOINTMENT_LIMIT = 200;
 
-const appointments: readonly CalendarAppointment[] = [
-  {
-    id: 'ana-maric',
-    doctorId: 'ivana',
-    patient: 'Ana Marić',
-    type: 'Kontrolni pregled',
-    start: '08:00',
-    end: '08:30',
-    top: 8,
-    tone: 'teal',
-  },
-  {
-    id: 'marija-horvat',
-    doctorId: 'ivana',
-    patient: 'Marija Horvat',
-    type: 'Prvi pregled',
-    start: '09:00',
-    end: '09:30',
-    top: 65,
-    tone: 'teal',
-  },
-  {
-    id: 'ivan-babic',
-    doctorId: 'ivana',
-    patient: 'Ivan Babić',
-    type: 'Kontrolni pregled',
-    start: '10:00',
-    end: '10:30',
-    top: 122,
-    tone: 'blue',
-  },
-  {
-    id: 'petra-kovac',
-    doctorId: 'ivana',
-    patient: 'Petra Kovač',
-    type: 'Konzultacija',
-    start: '11:00',
-    end: '11:30',
-    top: 179,
-    tone: 'orange',
-  },
-  {
-    id: 'ana-juric',
-    doctorId: 'ivana',
-    patient: 'Ana Juričić',
-    type: 'Kontrolni pregled',
-    start: '13:00',
-    end: '13:30',
-    top: 350,
-    tone: 'teal',
-  },
-  {
-    id: 'nina-vukovic',
-    doctorId: 'ivana',
-    patient: 'Nina Vuković',
-    type: 'Konzultacija',
-    start: '14:00',
-    end: '14:30',
-    top: 407,
-    tone: 'orange',
-  },
-  {
-    id: 'tomislav-radic',
-    doctorId: 'ivana',
-    patient: 'Tomislav Radić',
-    type: 'Prvi pregled',
-    start: '15:00',
-    end: '15:30',
-    top: 464,
-    tone: 'blue',
-  },
-  {
-    id: 'luka-loncar',
-    doctorId: 'ivana',
-    patient: 'Luka Lončar',
-    type: 'Kontrolni pregled',
-    start: '16:00',
-    end: '16:30',
-    top: 521,
-    tone: 'teal',
-  },
-  {
-    id: 'josip-malovic',
-    doctorId: 'marko',
-    patient: 'Josip Malović',
-    type: 'Kontrolni pregled',
-    start: '08:00',
-    end: '08:30',
-    top: 8,
-    tone: 'teal',
-  },
-  {
-    id: 'ivana-galic',
-    doctorId: 'marko',
-    patient: 'Ivana Galić',
-    type: 'Prvi pregled',
-    start: '09:00',
-    end: '09:30',
-    top: 65,
-    tone: 'blue',
-  },
-  {
-    id: 'marko-simic',
-    doctorId: 'marko',
-    patient: 'Marko Šimić',
-    type: 'Kontrolni pregled',
-    start: '10:00',
-    end: '10:30',
-    top: 122,
-    tone: 'blue',
-  },
-  {
-    id: 'marta-simic',
-    doctorId: 'marko',
-    patient: 'Marta Šimić',
-    type: 'Konzultacija',
-    start: '11:00',
-    end: '11:30',
-    top: 179,
-    tone: 'red',
-  },
-  {
-    id: 'davor-mihalic',
-    doctorId: 'marko',
-    patient: 'Davor Mihalić',
-    type: 'Kontrolni pregled',
-    start: '12:00',
-    end: '12:30',
-    top: 236,
-    tone: 'gray',
-  },
-  {
-    id: 'bruno-kralj',
-    doctorId: 'marko',
-    patient: 'Bruno Kralj',
-    type: 'Prvi pregled',
-    start: '14:00',
-    end: '14:30',
-    top: 407,
-    tone: 'teal',
-  },
-  {
-    id: 'leon-novak',
-    doctorId: 'marko',
-    patient: 'Leon Novak',
-    type: 'Kontrolni pregled',
-    start: '15:00',
-    end: '15:30',
-    top: 464,
-    tone: 'blue',
-  },
-  {
-    id: 'lea-novak',
-    doctorId: 'petra',
-    patient: 'Lea Novak',
-    type: 'Prvi pregled',
-    start: '08:00',
-    end: '08:30',
-    top: 8,
-    tone: 'blue',
-    selected: true,
-  },
-  {
-    id: 'ivana-peric',
-    doctorId: 'petra',
-    patient: 'Ivana Perić',
-    type: 'Kontrolni pregled',
-    start: '09:00',
-    end: '09:30',
-    top: 65,
-    tone: 'teal',
-  },
-  {
-    id: 'sara-peric',
-    doctorId: 'petra',
-    patient: 'Sara Perić',
-    type: 'Konzultacija',
-    start: '11:00',
-    end: '11:30',
-    top: 179,
-    tone: 'orange',
-  },
-  {
-    id: 'nives-rezic',
-    doctorId: 'petra',
-    patient: 'Nives Režić',
-    type: 'Kontrolni pregled',
-    start: '12:00',
-    end: '12:30',
-    top: 236,
-    tone: 'teal',
-  },
-  {
-    id: 'ana-prskalo',
-    doctorId: 'petra',
-    patient: 'Ana Prskalo',
-    type: 'Prvi pregled',
-    start: '13:00',
-    end: '13:30',
-    top: 293,
-    tone: 'blue',
-  },
-  {
-    id: 'petra-raic',
-    doctorId: 'petra',
-    patient: 'Petra Raić',
-    type: 'Konzultacija',
-    start: '15:00',
-    end: '15:30',
-    top: 464,
-    tone: 'red',
-  },
-  {
-    id: 'petar-vidovic',
-    doctorId: 'luka',
-    patient: 'Petar Vidović',
-    type: 'Prvi pregled',
-    start: '08:00',
-    end: '08:30',
-    top: 8,
-    tone: 'teal',
-  },
-  {
-    id: 'marko-tadic',
-    doctorId: 'luka',
-    patient: 'Marko Tadić',
-    type: 'Kontrolni pregled',
-    start: '09:00',
-    end: '09:30',
-    top: 65,
-    tone: 'blue',
-  },
-  {
-    id: 'ivan-bilic',
-    doctorId: 'luka',
-    patient: 'Ivan Bilić',
-    type: 'Prvi pregled',
-    start: '10:00',
-    end: '10:30',
-    top: 122,
-    tone: 'blue',
-  },
-  {
-    id: 'filip-bilic',
-    doctorId: 'luka',
-    patient: 'Filip Bilić',
-    type: 'Konzultacija',
-    start: '11:00',
-    end: '11:30',
-    top: 179,
-    tone: 'orange',
-  },
-  {
-    id: 'dino-saric',
-    doctorId: 'luka',
-    patient: 'Dino Šarić',
-    type: 'Kontrolni pregled',
-    start: '12:00',
-    end: '12:30',
-    top: 236,
-    tone: 'teal',
-  },
-  {
-    id: 'karla-jelic',
-    doctorId: 'luka',
-    patient: 'Karla Jelić',
-    type: 'Prvi pregled',
-    start: '13:00',
-    end: '13:30',
-    top: 293,
-    tone: 'blue',
-  },
-  {
-    id: 'karlo-kovac',
-    doctorId: 'luka',
-    patient: 'Karlo Kovač',
-    type: 'Kontrolni pregled',
-    start: '15:00',
-    end: '15:30',
-    top: 464,
-    tone: 'gray',
-  },
-  {
-    id: 'ante-vucic',
-    doctorId: 'luka',
-    patient: 'Ante Vučić',
-    type: 'Prvi pregled',
-    start: '16:00',
-    end: '16:30',
-    top: 521,
-    tone: 'teal',
-  },
-]
+const hours = Array.from(
+  { length: CALENDAR_END_HOUR - CALENDAR_START_HOUR },
+  (_, index) => `${String(CALENDAR_START_HOUR + index).padStart(2, "0")}:00`,
+);
 
-const freeSlots = [
-  ['Dr. Ivana Horvat', '16:30 - 17:00', '2 slobodna'],
-  ['Dr. Marko Horvat', '16:00 - 17:30', '3 slobodna'],
-  ['Dr. Petra Barić', '14:30 - 17:30', '4 slobodna'],
-  ['Dr. Luka Jurić', '17:00 - 18:00', '2 slobodna'],
-] as const
+const formatTime = (date: Date): string =>
+  new Intl.DateTimeFormat("hr-HR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
 
-const reminders = [
-  ['Ana Marić', 'Prvi pregled', 'Sutra u 09:00', 'orange'],
-  ['Ivan Babić', 'Kontrolni pregled', 'Sutra u 10:30', 'teal'],
-  ['Petra Kovač', 'Konzultacija', 'Sutra u 11:00', 'orange'],
-] as const
+const formatDateKey = (date: Date): string =>
+  new Intl.DateTimeFormat("en-CA", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
 
-const hours = ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00']
+const formatLongDate = (date: Date): string =>
+  new Intl.DateTimeFormat("hr-HR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(date);
+
+const formatShortDate = (date: Date): string =>
+  new Intl.DateTimeFormat("hr-HR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(date);
+
+const startOfLocalDay = (date: Date): Date =>
+  new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+const addDays = (date: Date, days: number): Date => {
+  const nextDate = new Date(date);
+  nextDate.setDate(nextDate.getDate() + days);
+
+  return nextDate;
+};
+
+const getInitials = (firstName: string, lastName: string): string =>
+  `${firstName[0] ?? ""}${lastName[0] ?? ""}`.toUpperCase();
+
+const getDoctorName = (appointment: AppointmentResponseDto): string =>
+  `Dr. ${appointment.doctor.firstName} ${appointment.doctor.lastName}`;
+
+const getPatientName = (appointment: AppointmentResponseDto): string =>
+  `${appointment.patient.firstName} ${appointment.patient.lastName}`;
+
+const getAppointmentTone = (
+  appointment: AppointmentResponseDto,
+  index: number,
+): AppointmentTone => {
+  if (appointment.status === "CANCELLED" || appointment.status === "NO_SHOW") {
+    return "red";
+  }
+
+  if (appointment.status === "COMPLETED") {
+    return "gray";
+  }
+
+  const tones: AppointmentTone[] = ["teal", "blue", "orange"];
+  return tones[index % tones.length] ?? "blue";
+};
+
+const getAppointmentTop = (startAt: Date): number => {
+  const minutesFromStart =
+    (startAt.getHours() - CALENDAR_START_HOUR) * 60 + startAt.getMinutes();
+  const constrainedMinutes = Math.max(
+    0,
+    Math.min(minutesFromStart, (CALENDAR_END_HOUR - CALENDAR_START_HOUR) * 60),
+  );
+
+  return 8 + (constrainedMinutes / 60) * HOUR_ROW_HEIGHT;
+};
+
+const getAppointmentDurationLabel = (
+  appointment: AppointmentResponseDto,
+): string => {
+  const startAt = new Date(appointment.startAt);
+  const endAt = new Date(appointment.endAt);
+  const durationMinutes = Math.max(
+    0,
+    Math.round((endAt.getTime() - startAt.getTime()) / 60000),
+  );
+
+  return `${durationMinutes} min`;
+};
+
+const buildDoctorColumns = (
+  appointments: AppointmentResponseDto[],
+): DoctorColumn[] => {
+  const doctorsById = new Map<string, DoctorColumn>();
+
+  appointments.forEach((appointment, index) => {
+    if (doctorsById.has(appointment.doctor.id)) {
+      return;
+    }
+
+    doctorsById.set(appointment.doctor.id, {
+      id: appointment.doctor.id,
+      name: getDoctorName(appointment),
+      specialty: appointment.doctor.title ?? "Lijecnik",
+      initials: getInitials(
+        appointment.doctor.firstName,
+        appointment.doctor.lastName,
+      ),
+      tone: index % 2 === 0 ? "orange" : "blue",
+    });
+  });
+
+  return Array.from(doctorsById.values()).slice(0, DISPLAYED_DOCTOR_LIMIT);
+};
+
+const buildCalendarAppointments = (
+  appointments: AppointmentResponseDto[],
+  selectedAppointmentId: string | null,
+): CalendarAppointment[] =>
+  appointments.map((appointment, index) => {
+    const startAt = new Date(appointment.startAt);
+    const endAt = new Date(appointment.endAt);
+
+    return {
+      id: appointment.id,
+      doctorId: appointment.doctor.id,
+      patient: getPatientName(appointment),
+      type: appointment.appointmentType.name,
+      start: formatTime(startAt),
+      end: formatTime(endAt),
+      top: getAppointmentTop(startAt),
+      tone: getAppointmentTone(appointment, index),
+      selected: appointment.id === selectedAppointmentId,
+    };
+  });
+
+const buildFreeSlotSummaries = (
+  appointments: AppointmentResponseDto[],
+  doctors: DoctorColumn[],
+): readonly (readonly [string, string, string])[] => {
+  const byDoctor = new Map<string, AppointmentResponseDto[]>();
+
+  appointments.forEach((appointment) => {
+    const doctorAppointments = byDoctor.get(appointment.doctor.id) ?? [];
+    doctorAppointments.push(appointment);
+    byDoctor.set(appointment.doctor.id, doctorAppointments);
+  });
+
+  return doctors.slice(0, 4).map((doctor) => {
+    const doctorAppointments = [...(byDoctor.get(doctor.id) ?? [])].sort(
+      (first, second) =>
+        new Date(first.startAt).getTime() - new Date(second.startAt).getTime(),
+    );
+    const lastAppointment = doctorAppointments.at(-1);
+
+    if (!lastAppointment) {
+      return [doctor.name, "08:00 - 18:00", "slobodno"] as const;
+    }
+
+    const lastEnd = formatTime(new Date(lastAppointment.endAt));
+    return [doctor.name, `${lastEnd} - 18:00`, "slobodno"] as const;
+  });
+};
 
 function AppointmentsPage(): ReactElement {
+  const [appointments, setAppointments] = useState<AppointmentResponseDto[]>(
+    [],
+  );
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState<
+    string | null
+  >(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadAppointments = async (): Promise<void> => {
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        const data = await appointmentsService.list({
+          limit: APPOINTMENT_LIMIT,
+        });
+
+        if (!isMounted) {
+          return;
+        }
+
+        const sortedAppointments = [...data].sort(
+          (first, second) =>
+            new Date(first.startAt).getTime() -
+            new Date(second.startAt).getTime(),
+        );
+
+        setAppointments(sortedAppointments);
+
+        const todayKey = formatDateKey(new Date());
+        const firstTodayAppointment = sortedAppointments.find(
+          (appointment) =>
+            formatDateKey(new Date(appointment.startAt)) === todayKey,
+        );
+        const fallbackAppointment =
+          firstTodayAppointment ?? sortedAppointments[0];
+
+        if (fallbackAppointment) {
+          setSelectedDate(
+            startOfLocalDay(new Date(fallbackAppointment.startAt)),
+          );
+          setSelectedAppointmentId(fallbackAppointment.id);
+        } else {
+          setSelectedDate(startOfLocalDay(new Date()));
+          setSelectedAppointmentId(null);
+        }
+      } catch (loadError) {
+        if (!isMounted) {
+          return;
+        }
+
+        setError(
+          loadError instanceof Error
+            ? loadError.message
+            : "Termini se trenutno ne mogu ucitati.",
+        );
+        setSelectedDate(startOfLocalDay(new Date()));
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    void loadAppointments();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const selectedDateKey = selectedDate ? formatDateKey(selectedDate) : "";
+  const selectedDayAppointments = useMemo(
+    () =>
+      appointments.filter(
+        (appointment) =>
+          formatDateKey(new Date(appointment.startAt)) === selectedDateKey,
+      ),
+    [appointments, selectedDateKey],
+  );
+  const doctors = useMemo(
+    () => buildDoctorColumns(selectedDayAppointments),
+    [selectedDayAppointments],
+  );
+  const calendarAppointments = useMemo(
+    () =>
+      buildCalendarAppointments(
+        selectedDayAppointments.filter((appointment) =>
+          doctors.some((doctor) => doctor.id === appointment.doctor.id),
+        ),
+        selectedAppointmentId,
+      ),
+    [doctors, selectedAppointmentId, selectedDayAppointments],
+  );
+  const selectedAppointment =
+    selectedDayAppointments.find(
+      (appointment) => appointment.id === selectedAppointmentId,
+    ) ??
+    selectedDayAppointments[0] ??
+    null;
+  const freeSlots = useMemo(
+    () => buildFreeSlotSummaries(selectedDayAppointments, doctors),
+    [doctors, selectedDayAppointments],
+  );
+  const upcomingAppointments = useMemo(
+    () =>
+      appointments
+        .filter((appointment) => new Date(appointment.startAt) >= new Date())
+        .slice(0, 3),
+    [appointments],
+  );
+
+  const changeDate = (days: number): void => {
+    setSelectedDate((currentDate) =>
+      startOfLocalDay(addDays(currentDate ?? new Date(), days)),
+    );
+    setSelectedAppointmentId(null);
+  };
+
+  const useToday = (): void => {
+    setSelectedDate(startOfLocalDay(new Date()));
+    setSelectedAppointmentId(null);
+  };
+
   return (
     <div className="appointments-page">
       <div className="appointments-page__hero">
@@ -374,26 +339,35 @@ function AppointmentsPage(): ReactElement {
           <h1>Termini</h1>
           <p>Pregled dnevnog rasporeda i upravljanje terminima.</p>
         </div>
-        <button className="appointments-primary-button" type="button">
+        <Link className="appointments-primary-button" to="/appointments/create">
           <AppIcon name="plus" />
           Novi termin
-        </button>
+        </Link>
       </div>
+
+      {error ? (
+        <section className="appointments-side-panel" role="alert">
+          <h2>Termini nisu dostupni</h2>
+          <p>{error}</p>
+        </section>
+      ) : null}
 
       <section className="appointments-filters" aria-label="Filteri termina">
         <label>
           <span>Datum</span>
           <div>
             <AppIcon name="calendar" />
-            <strong>23. svibnja 2025.</strong>
+            <strong>
+              {selectedDate ? formatShortDate(selectedDate) : "Ucitavanje..."}
+            </strong>
             <AppIcon name="chevronDown" />
           </div>
         </label>
         <label>
-          <span>Liječnik</span>
+          <span>Lijecnik</span>
           <div>
             <AppIcon name="user" />
-            <strong>Svi liječnici</strong>
+            <strong>Svi lijecnici</strong>
             <AppIcon name="chevronDown" />
           </div>
         </label>
@@ -409,31 +383,50 @@ function AppointmentsPage(): ReactElement {
           <span>Pretraga</span>
           <div>
             <AppIcon name="search" />
-            <input type="search" placeholder="Pretražite pacijente, termine..." />
+            <input
+              type="search"
+              placeholder="Pretrazite pacijente, termine..."
+            />
           </div>
         </label>
       </section>
 
       <div className="appointments-content-grid">
-        <section className="appointments-calendar-panel" aria-label="Dnevni raspored">
+        <section
+          className="appointments-calendar-panel"
+          aria-label="Dnevni raspored"
+        >
           <div className="appointments-calendar-toolbar">
             <div className="appointments-date-controls">
-              <button type="button" aria-label="Prethodni dan">
+              <button
+                type="button"
+                aria-label="Prethodni dan"
+                onClick={() => changeDate(-1)}
+              >
                 <AppIcon name="chevronLeft" />
               </button>
-              <button type="button">Danas</button>
-              <button type="button" aria-label="Sljedeći dan">
+              <button type="button" onClick={useToday}>
+                Danas
+              </button>
+              <button
+                type="button"
+                aria-label="Sljedeci dan"
+                onClick={() => changeDate(1)}
+              >
                 <AppIcon name="chevronRight" />
               </button>
             </div>
 
             <div className="appointments-current-day">
-              Petak, 23. svibnja 2025.
+              {selectedDate ? formatLongDate(selectedDate) : "Ucitavanje..."}
               <AppIcon name="calendar" />
             </div>
 
             <div className="appointments-view-switcher" aria-label="Prikaz">
-              <button className="appointments-view-switcher__active" type="button">
+              <button
+                className="appointments-view-switcher__active"
+                type="button"
+              >
                 Dan
               </button>
               <button type="button">Tjedan</button>
@@ -441,11 +434,18 @@ function AppointmentsPage(): ReactElement {
             </div>
           </div>
 
-          <div className="appointments-calendar">
+          <div
+            className="appointments-calendar"
+            style={{
+              gridTemplateColumns: `76px repeat(${Math.max(doctors.length, 1)}, minmax(182px, 1fr))`,
+            }}
+          >
             <div className="appointments-calendar__header-spacer" />
             {doctors.map((doctor) => (
               <div className="appointments-doctor-heading" key={doctor.id}>
-                <span className={`appointments-avatar appointments-avatar--${doctor.tone}`}>
+                <span
+                  className={`appointments-avatar appointments-avatar--${doctor.tone}`}
+                >
                   {doctor.initials}
                 </span>
                 <div>
@@ -468,76 +468,101 @@ function AppointmentsPage(): ReactElement {
                     <span key={hour} />
                   ))}
                 </div>
-                {appointments
+                {calendarAppointments
                   .filter((appointment) => appointment.doctorId === doctor.id)
                   .map((appointment) => (
-                    <article
+                    <Link
                       className={[
-                        'appointment-card',
+                        "appointment-card",
                         `appointment-card--${appointment.tone}`,
-                        appointment.selected ? 'appointment-card--selected' : '',
+                        appointment.selected
+                          ? "appointment-card--selected"
+                          : "",
                       ]
                         .filter(Boolean)
-                        .join(' ')}
+                        .join(" ")}
                       key={appointment.id}
                       style={{ top: `${appointment.top}px` }}
+                      to={`/appointments/${appointment.id}`}
+                      onMouseEnter={() =>
+                        setSelectedAppointmentId(appointment.id)
+                      }
                     >
                       <span>
                         {appointment.start} - {appointment.end}
                       </span>
                       <strong>{appointment.patient}</strong>
                       <small>{appointment.type}</small>
-                      {appointment.selected ? <AppIcon name="chevronRight" /> : null}
-                    </article>
+                      {appointment.selected ? (
+                        <AppIcon name="chevronRight" />
+                      ) : null}
+                    </Link>
                   ))}
-                {doctor.id === 'petra' || doctor.id === 'luka' ? (
-                  <span className="appointments-empty-mark appointments-empty-mark--mid">-</span>
-                ) : null}
-                {doctor.id !== 'ivana' ? (
-                  <span className="appointments-empty-mark appointments-empty-mark--low">-</span>
-                ) : null}
               </div>
             ))}
           </div>
 
+          {isLoading ? (
+            <div className="appointments-legend">
+              <span>Ucitavanje termina iz baze...</span>
+            </div>
+          ) : null}
+
+          {!isLoading && selectedDayAppointments.length === 0 ? (
+            <div className="appointments-legend">
+              <span>Nema termina za odabrani dan.</span>
+            </div>
+          ) : null}
+
           <div className="appointments-legend">
             <span>
               <i className="appointments-dot appointments-dot--blue" />
-              Prvi pregled
+              Zakazano
             </span>
             <span>
               <i className="appointments-dot appointments-dot--teal" />
-              Kontrolni pregled
+              Aktivno
             </span>
             <span>
-              <i className="appointments-dot appointments-dot--orange" />
-              Konzultacija
+              <i className="appointments-dot appointments-dot--orange" />U
+              rasporedu
             </span>
             <span>
               <i className="appointments-dot appointments-dot--red" />
-              Hitni slučaj
+              Otkazano / nedolazak
             </span>
             <span>
               <i className="appointments-dot appointments-dot--gray" />
-              Blokirano
+              Zavrseno
             </span>
           </div>
         </section>
 
-        <aside className="appointments-side-stack" aria-label="Sažetak termina">
+        <aside className="appointments-side-stack" aria-label="Sazetak termina">
           <section className="appointments-side-panel">
             <h2>Slobodni termini</h2>
-            <p>Danas, 23. svibnja 2025.</p>
+            <p>
+              {selectedDate ? formatShortDate(selectedDate) : "Ucitavanje..."}
+            </p>
             <div className="appointments-free-list">
-              {freeSlots.map(([name, time, badge]) => (
-                <div key={name}>
+              {freeSlots.length > 0 ? (
+                freeSlots.map(([name, time, badge]) => (
+                  <div key={name}>
+                    <span>
+                      <strong>{name}</strong>
+                      <small>{time}</small>
+                    </span>
+                    <em>{badge}</em>
+                  </div>
+                ))
+              ) : (
+                <div>
                   <span>
-                    <strong>{name}</strong>
-                    <small>{time}</small>
+                    <strong>Nema podataka</strong>
+                    <small>Za odabrani dan nema prikazanih lijecnika.</small>
                   </span>
-                  <em>{badge}</em>
                 </div>
-              ))}
+              )}
             </div>
             <button className="appointments-link-button" type="button">
               Pogledaj sve slobodne termine
@@ -547,16 +572,21 @@ function AppointmentsPage(): ReactElement {
 
           <section className="appointments-side-panel">
             <h2>Podsjetnici</h2>
-            <p>3 nadolazeća podsjetnika</p>
+            <p>{upcomingAppointments.length} nadolazeca termina</p>
             <div className="appointments-reminders">
-              {reminders.map(([name, type, due, tone]) => (
-                <div className={`appointments-reminder appointments-reminder--${tone}`} key={name}>
+              {upcomingAppointments.map((appointment, index) => (
+                <div
+                  className={`appointments-reminder appointments-reminder--${
+                    index % 2 === 0 ? "orange" : "teal"
+                  }`}
+                  key={appointment.id}
+                >
                   <AppIcon name="bell" />
                   <span>
-                    <strong>{name}</strong>
-                    <small>{type}</small>
+                    <strong>{getPatientName(appointment)}</strong>
+                    <small>{appointment.appointmentType.name}</small>
                   </span>
-                  <time>{due}</time>
+                  <time>{formatShortDate(new Date(appointment.startAt))}</time>
                 </div>
               ))}
             </div>
@@ -568,40 +598,57 @@ function AppointmentsPage(): ReactElement {
 
           <section className="appointments-selected-panel">
             <h2>Detalji odabranog termina</h2>
-            <div className="appointments-selected-card">
-              <span className="appointments-selected-icon">
-                <AppIcon name="calendar" />
-              </span>
-              <div>
-                <strong>Lea Novak</strong>
-                <small>Prvi pregled</small>
-                <small>Dr. Petrutmić</small>
+            {selectedAppointment ? (
+              <>
+                <div className="appointments-selected-card">
+                  <span className="appointments-selected-icon">
+                    <AppIcon name="calendar" />
+                  </span>
+                  <div>
+                    <strong>{getPatientName(selectedAppointment)}</strong>
+                    <small>{selectedAppointment.appointmentType.name}</small>
+                    <small>{getDurationLabel(selectedAppointment)}</small>
+                  </div>
+                  <div>
+                    <time>
+                      {formatTime(new Date(selectedAppointment.startAt))} -{" "}
+                      {formatTime(new Date(selectedAppointment.endAt))}
+                    </time>
+                    <small>{getDoctorName(selectedAppointment)}</small>
+                  </div>
+                </div>
+                <Link to={`/appointments/${selectedAppointment.id}`}>
+                  Pogledaj detalje termina
+                  <AppIcon name="chevronRight" />
+                </Link>
+              </>
+            ) : (
+              <div className="appointments-selected-card">
+                <span className="appointments-selected-icon">
+                  <AppIcon name="calendar" />
+                </span>
+                <div>
+                  <strong>Nema odabranog termina</strong>
+                  <small>Odaberite termin iz rasporeda.</small>
+                </div>
               </div>
-              <div>
-                <time>08:00 - 08:30</time>
-                <small>Dr. Petra Barić</small>
-              </div>
-            </div>
-            <button type="button">
-              Pogledaj detalje termina
-              <AppIcon name="chevronRight" />
-            </button>
+            )}
           </section>
 
           <section className="appointments-side-panel appointments-quick-actions-panel">
             <h2>Brze akcije</h2>
             <div className="appointments-quick-actions">
-              <button type="button">
+              <Link to="/appointments/create">
                 <AppIcon name="calendar" />
                 Novi termin
-              </button>
+              </Link>
               <button type="button">
                 <AppIcon name="shield" />
                 Blokiraj vrijeme
               </button>
               <button type="button">
                 <AppIcon name="note" />
-                Ispiši raspored
+                Ispisi raspored
               </button>
               <button type="button">
                 <AppIcon name="send" />
@@ -612,7 +659,9 @@ function AppointmentsPage(): ReactElement {
         </aside>
       </div>
     </div>
-  )
+  );
 }
 
-export { AppointmentsPage }
+const getDurationLabel = getAppointmentDurationLabel;
+
+export { AppointmentsPage };
