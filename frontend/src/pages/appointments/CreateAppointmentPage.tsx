@@ -1,148 +1,387 @@
-import type { ReactElement } from 'react'
+import type {
+  AppointmentAvailableSlotDto,
+  AppointmentTypeDto,
+  DoctorResponseDto,
+  PatientDto,
+} from "@zdravstvo/contracts";
+import { useEffect, useMemo, useState } from "react";
+import type { ReactElement } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
-import { AppIcon } from '@/components'
-import type { AppIconName } from '@/types'
+import { AppIcon } from "@/components";
+import {
+  appointmentTypesService,
+  appointmentsService,
+  doctorsService,
+  patientsService,
+} from "@/services";
+import type { AppIconName } from "@/types";
 
-import './createAppointment.css'
+import "./createAppointment.css";
 
 interface WizardStep {
-  number: number
-  title: string
-  description: string
+  number: number;
+  title: string;
+  description: string;
 }
 
-interface AppointmentTypeOption {
-  id: string
-  title: string
-  duration: string
-  icon: AppIconName
-  tone: 'blue' | 'teal' | 'purple'
-  selected?: boolean
+interface CalendarDay {
+  key: string;
+  label: string;
+  date: Date;
+  isMuted: boolean;
 }
 
 interface SummaryItem {
-  label: string
-  title: string
-  detail: string
-  icon: AppIconName
-  tone: 'patient' | 'doctor' | 'type' | 'date' | 'time'
+  label: string;
+  title: string;
+  detail: string;
+  icon: AppIconName;
+  tone: "patient" | "doctor" | "type" | "date" | "time";
 }
 
 const wizardSteps: readonly WizardStep[] = [
-  { number: 1, title: 'Pacijent', description: 'Odaberite pacijenta' },
-  { number: 2, title: 'Liječnik', description: 'Odaberite liječnika' },
-  { number: 3, title: 'Vrsta termina', description: 'Odaberite vrstu termina' },
-  { number: 4, title: 'Termin potvrde', description: 'Provjerite i potvrdite' },
-]
+  { number: 1, title: "Pacijent", description: "Odaberite pacijenta" },
+  { number: 2, title: "Lijecnik", description: "Odaberite lijecnika" },
+  { number: 3, title: "Vrsta termina", description: "Odaberite vrstu termina" },
+  { number: 4, title: "Termin potvrde", description: "Provjerite i potvrdite" },
+];
 
-const appointmentTypes: readonly AppointmentTypeOption[] = [
-  {
-    id: 'first',
-    title: 'Prvi pregled',
-    duration: '45 min',
-    icon: 'calendar',
-    tone: 'blue',
-    selected: true,
-  },
-  {
-    id: 'regular',
-    title: 'Redovni pregled',
-    duration: '30 min',
-    icon: 'clock',
-    tone: 'teal',
-  },
-  {
-    id: 'control',
-    title: 'Kontrolni pregled',
-    duration: '20 min',
-    icon: 'users',
-    tone: 'blue',
-  },
-  {
-    id: 'counseling',
-    title: 'Savjetovanje',
-    duration: '30 min',
-    icon: 'shieldCheck',
-    tone: 'purple',
-  },
-]
+const appointmentTypeIcons: readonly AppIconName[] = [
+  "calendar",
+  "clock",
+  "users",
+  "shieldCheck",
+];
+const appointmentTypeTones: readonly ("blue" | "teal" | "purple")[] = [
+  "blue",
+  "teal",
+  "blue",
+  "purple",
+];
 
-const calendarWeeks = [
-  ['28', '29', '30', '1', '2', '3', '4'],
-  ['5', '6', '7', '8', '9', '10', '11'],
-  ['12', '13', '14', '15', '16', '17', '18'],
-  ['19', '20', '21', '22', '23', '24', '25'],
-  ['26', '27', '28', '29', '30', '31', '1'],
-] as const
+const formatDateKey = (date: Date): string =>
+  new Intl.DateTimeFormat("en-CA", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
 
-const timeSlots = [
-  '08:00',
-  '08:30',
-  '09:00',
-  '09:30',
-  '10:00',
-  '10:30',
-  '11:00',
-  '11:30',
-  '12:00',
-  '12:30',
-  '13:00',
-  '13:30',
-  '14:00',
-  '14:30',
-  '15:00',
-  '15:30',
-  '16:00',
-  '16:30',
-] as const
+const formatMonthTitle = (date: Date): string =>
+  new Intl.DateTimeFormat("hr-HR", {
+    month: "long",
+    year: "numeric",
+  }).format(date);
 
-const summaryItems: readonly SummaryItem[] = [
-  {
-    label: 'Pacijent',
-    title: 'Ana Marić',
-    detail: '01.01.1990.',
-    icon: 'user',
-    tone: 'patient',
-  },
-  {
-    label: 'Liječnik',
-    title: 'Dr. Ivan Horvat, dr. med.',
-    detail: 'Specijalist interne medicine',
-    icon: 'doctor',
-    tone: 'doctor',
-  },
-  {
-    label: 'Vrsta termina',
-    title: 'Prvi pregled',
-    detail: '45 minuta',
-    icon: 'calendar',
-    tone: 'type',
-  },
-  {
-    label: 'Datum i vrijeme',
-    title: 'Petak, 23. svibnja 2025.',
-    detail: '10:00',
-    icon: 'calendarCheck',
-    tone: 'date',
-  },
-  {
-    label: 'Trajanje',
-    title: '45 minuta',
-    detail: '',
-    icon: 'clock',
-    tone: 'time',
-  },
-]
+const formatLongDate = (date: Date): string =>
+  new Intl.DateTimeFormat("hr-HR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(date);
+
+const formatShortDate = (value: string | null): string =>
+  value
+    ? new Intl.DateTimeFormat("hr-HR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      }).format(new Date(value))
+    : "Nije evidentirano";
+
+const formatTime = (value: string): string =>
+  new Intl.DateTimeFormat("hr-HR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(value));
+
+const startOfLocalDay = (date: Date): Date =>
+  new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+const addMonths = (date: Date, months: number): Date =>
+  new Date(date.getFullYear(), date.getMonth() + months, 1);
+
+const buildCalendarDays = (visibleMonth: Date): CalendarDay[] => {
+  const firstDay = new Date(
+    visibleMonth.getFullYear(),
+    visibleMonth.getMonth(),
+    1,
+  );
+  const mondayOffset = (firstDay.getDay() + 6) % 7;
+  const firstVisibleDay = new Date(firstDay);
+  firstVisibleDay.setDate(firstDay.getDate() - mondayOffset);
+
+  return Array.from({ length: 42 }, (_, index) => {
+    const date = new Date(firstVisibleDay);
+    date.setDate(firstVisibleDay.getDate() + index);
+
+    return {
+      key: formatDateKey(date),
+      label: String(date.getDate()),
+      date,
+      isMuted: date.getMonth() !== visibleMonth.getMonth(),
+    };
+  });
+};
+
+const getPatientName = (patient: PatientDto): string =>
+  `${patient.firstName} ${patient.lastName}`;
+
+const getDoctorName = (doctor: DoctorResponseDto): string =>
+  `Dr. ${doctor.firstName} ${doctor.lastName}`;
 
 function DoctorPortrait(): ReactElement {
   return (
     <span className="appointment-create-doctor-photo" aria-hidden="true">
       <span />
     </span>
-  )
+  );
 }
 
 function CreateAppointmentPage(): ReactElement {
+  const navigate = useNavigate();
+  const [patients, setPatients] = useState<PatientDto[]>([]);
+  const [doctors, setDoctors] = useState<DoctorResponseDto[]>([]);
+  const [appointmentTypes, setAppointmentTypes] = useState<
+    AppointmentTypeDto[]
+  >([]);
+  const [availableSlots, setAvailableSlots] = useState<
+    AppointmentAvailableSlotDto[]
+  >([]);
+  const [selectedPatientId, setSelectedPatientId] = useState("");
+  const [selectedDoctorId, setSelectedDoctorId] = useState("");
+  const [selectedAppointmentTypeId, setSelectedAppointmentTypeId] =
+    useState("");
+  const [selectedDate, setSelectedDate] = useState<Date>(
+    startOfLocalDay(new Date()),
+  );
+  const [visibleMonth, setVisibleMonth] = useState<Date>(
+    new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+  );
+  const [selectedSlotStartAt, setSelectedSlotStartAt] = useState("");
+  const [isLoadingFormData, setIsLoadingFormData] = useState(true);
+  const [isLoadingSlots, setIsLoadingSlots] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [slotError, setSlotError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadFormData = async (): Promise<void> => {
+      try {
+        setIsLoadingFormData(true);
+        setError(null);
+
+        const [patientData, doctorData, appointmentTypeData] =
+          await Promise.all([
+            patientsService.list(),
+            doctorsService.list(),
+            appointmentTypesService.list(),
+          ]);
+
+        if (!isMounted) {
+          return;
+        }
+
+        const activeAppointmentTypes = appointmentTypeData.filter(
+          (appointmentType) => appointmentType.isActive,
+        );
+        const activeDoctors = doctorData.filter((doctor) => doctor.isActive);
+
+        setPatients(patientData);
+        setDoctors(activeDoctors);
+        setAppointmentTypes(activeAppointmentTypes);
+        setSelectedPatientId(patientData[0]?.id ?? "");
+        setSelectedDoctorId(activeDoctors[0]?.id ?? "");
+        setSelectedAppointmentTypeId(activeAppointmentTypes[0]?.id ?? "");
+      } catch (loadError) {
+        if (!isMounted) {
+          return;
+        }
+
+        setError(
+          loadError instanceof Error
+            ? loadError.message
+            : "Podaci za rezervaciju trenutno se ne mogu ucitati.",
+        );
+      } finally {
+        if (isMounted) {
+          setIsLoadingFormData(false);
+        }
+      }
+    };
+
+    void loadFormData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadSlots = async (): Promise<void> => {
+      if (!selectedAppointmentTypeId || !selectedDoctorId) {
+        setAvailableSlots([]);
+        setSelectedSlotStartAt("");
+        return;
+      }
+
+      try {
+        setIsLoadingSlots(true);
+        setSlotError(null);
+        const data = await appointmentsService.findAvailableSlots({
+          appointmentTypeId: selectedAppointmentTypeId,
+          doctorId: selectedDoctorId,
+          date: formatDateKey(selectedDate),
+          limit: 200,
+        });
+
+        if (!isMounted) {
+          return;
+        }
+
+        setAvailableSlots(data.slots);
+        setSelectedSlotStartAt((currentSlot) =>
+          data.slots.some((slot) => slot.startAt === currentSlot)
+            ? currentSlot
+            : (data.slots[0]?.startAt ?? ""),
+        );
+      } catch (loadError) {
+        if (!isMounted) {
+          return;
+        }
+
+        setAvailableSlots([]);
+        setSelectedSlotStartAt("");
+        setSlotError(
+          loadError instanceof Error
+            ? loadError.message
+            : "Dostupni termini trenutno se ne mogu ucitati.",
+        );
+      } finally {
+        if (isMounted) {
+          setIsLoadingSlots(false);
+        }
+      }
+    };
+
+    void loadSlots();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedAppointmentTypeId, selectedDate, selectedDoctorId]);
+
+  const selectedPatient = patients.find(
+    (patient) => patient.id === selectedPatientId,
+  );
+  const selectedDoctor = doctors.find(
+    (doctor) => doctor.id === selectedDoctorId,
+  );
+  const selectedAppointmentType = appointmentTypes.find(
+    (appointmentType) => appointmentType.id === selectedAppointmentTypeId,
+  );
+  const selectedSlot = availableSlots.find(
+    (slot) => slot.startAt === selectedSlotStartAt,
+  );
+  const calendarDays = useMemo(
+    () => buildCalendarDays(visibleMonth),
+    [visibleMonth],
+  );
+
+  const summaryItems: SummaryItem[] = [
+    {
+      label: "Pacijent",
+      title: selectedPatient
+        ? getPatientName(selectedPatient)
+        : "Odaberite pacijenta",
+      detail: selectedPatient
+        ? formatShortDate(selectedPatient.dateOfBirth)
+        : "",
+      icon: "user",
+      tone: "patient",
+    },
+    {
+      label: "Lijecnik",
+      title: selectedDoctor
+        ? getDoctorName(selectedDoctor)
+        : "Odaberite lijecnika",
+      detail: selectedDoctor?.title ?? "Lijecnik",
+      icon: "doctor",
+      tone: "doctor",
+    },
+    {
+      label: "Vrsta termina",
+      title: selectedAppointmentType?.name ?? "Odaberite vrstu termina",
+      detail: selectedAppointmentType
+        ? `${selectedAppointmentType.defaultDurationMinutes} minuta`
+        : "",
+      icon: "calendar",
+      tone: "type",
+    },
+    {
+      label: "Datum i vrijeme",
+      title: formatLongDate(selectedDate),
+      detail: selectedSlot
+        ? formatTime(selectedSlot.startAt)
+        : "Odaberite vrijeme",
+      icon: "calendarCheck",
+      tone: "date",
+    },
+    {
+      label: "Trajanje",
+      title: selectedAppointmentType
+        ? `${selectedAppointmentType.defaultDurationMinutes} minuta`
+        : "Nije odabrano",
+      detail: "",
+      icon: "clock",
+      tone: "time",
+    },
+  ];
+
+  const handleSubmit = async (): Promise<void> => {
+    if (
+      !selectedPatient ||
+      !selectedDoctor ||
+      !selectedAppointmentType ||
+      !selectedSlot
+    ) {
+      setError(
+        "Odaberite pacijenta, lijecnika, vrstu termina i slobodno vrijeme.",
+      );
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      setError(null);
+      await appointmentsService.create({
+        patientId: selectedPatient.id,
+        doctorId: selectedDoctor.id,
+        appointmentTypeId: selectedAppointmentType.id,
+        startAt: selectedSlot.startAt,
+        endAt: selectedSlot.endAt,
+        notes: `Rezervirano kroz obrazac: ${selectedAppointmentType.name}`,
+      });
+
+      navigate(
+        `/appointments?date=${formatDateKey(new Date(selectedSlot.startAt))}`,
+      );
+    } catch (submitError) {
+      setError(
+        submitError instanceof Error
+          ? submitError.message
+          : "Termin se trenutno ne moze spremiti.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="appointment-create-page">
       <section className="appointment-create-hero">
@@ -150,149 +389,278 @@ function CreateAppointmentPage(): ReactElement {
         <p>Jednostavno rezervirajte termin u nekoliko koraka.</p>
       </section>
 
-      <nav className="appointment-create-stepper" aria-label="Koraci rezervacije">
+      <nav
+        className="appointment-create-stepper"
+        aria-label="Koraci rezervacije"
+      >
         {wizardSteps.map((step, index) => (
           <div className="appointment-create-step" key={step.number}>
-            <span className={step.number === 1 ? 'is-active' : ''}>{step.number}</span>
+            <span className={step.number === 1 ? "is-active" : ""}>
+              {step.number}
+            </span>
             <div>
               <strong>{step.title}</strong>
               <small>{step.description}</small>
             </div>
-            {index < wizardSteps.length - 1 ? <AppIcon name="chevronRight" /> : null}
+            {index < wizardSteps.length - 1 ? (
+              <AppIcon name="chevronRight" />
+            ) : null}
           </div>
         ))}
       </nav>
 
+      {error ? (
+        <section className="appointment-create-alert" role="alert">
+          {error}
+        </section>
+      ) : null}
+
       <div className="appointment-create-grid">
-        <main className="appointment-create-card" aria-label="Podaci rezervacije">
+        <main
+          className="appointment-create-card"
+          aria-label="Podaci rezervacije"
+        >
           <section className="appointment-create-section">
             <h2>1. Odaberite pacijenta</h2>
             <div className="appointment-create-patient-row">
-              <button className="appointment-create-select" type="button">
+              <label className="appointment-create-select">
                 <AppIcon name="user" />
-                <span>Ana Marić (01.01.1990.)</span>
+                <span>
+                  {selectedPatient
+                    ? `${getPatientName(selectedPatient)} (${formatShortDate(
+                        selectedPatient.dateOfBirth,
+                      )})`
+                    : "Odaberite pacijenta"}
+                </span>
+                <select
+                  aria-label="Pacijent"
+                  disabled={isLoadingFormData || patients.length === 0}
+                  value={selectedPatientId}
+                  onChange={(event) => setSelectedPatientId(event.target.value)}
+                >
+                  {patients.map((patient) => (
+                    <option key={patient.id} value={patient.id}>
+                      {getPatientName(patient)} (
+                      {formatShortDate(patient.dateOfBirth)})
+                    </option>
+                  ))}
+                </select>
                 <AppIcon name="chevronDown" />
-              </button>
-              <button className="appointment-create-new-patient" type="button">
+              </label>
+              <Link
+                className="appointment-create-new-patient"
+                to="/patients/new"
+              >
                 <AppIcon name="plus" />
                 Novi pacijent
-              </button>
+              </Link>
             </div>
           </section>
 
           <section className="appointment-create-section">
-            <h2>2. Odaberite liječnika</h2>
-            <button className="appointment-create-doctor-select" type="button">
+            <h2>2. Odaberite lijecnika</h2>
+            <label className="appointment-create-doctor-select">
               <DoctorPortrait />
               <span>
-                <strong>Dr. Ivan Horvat, dr. med.</strong>
-                <small>Specijalist interne medicine</small>
+                <strong>
+                  {selectedDoctor
+                    ? getDoctorName(selectedDoctor)
+                    : "Odaberite lijecnika"}
+                </strong>
+                <small>{selectedDoctor?.title ?? "Lijecnik"}</small>
               </span>
+              <select
+                aria-label="Lijecnik"
+                disabled={isLoadingFormData || doctors.length === 0}
+                value={selectedDoctorId}
+                onChange={(event) => {
+                  setSelectedDoctorId(event.target.value);
+                  setSelectedSlotStartAt("");
+                }}
+              >
+                {doctors.map((doctor) => (
+                  <option key={doctor.id} value={doctor.id}>
+                    {getDoctorName(doctor)} - {doctor.title ?? "Lijecnik"}
+                  </option>
+                ))}
+              </select>
               <AppIcon name="chevronDown" />
-            </button>
+            </label>
           </section>
 
           <section className="appointment-create-section">
             <h2>3. Odaberite vrstu termina</h2>
             <div className="appointment-create-types">
-              {appointmentTypes.map((type) => (
-                <button
-                  className={[
-                    'appointment-create-type',
-                    `appointment-create-type--${type.tone}`,
-                    type.selected ? 'appointment-create-type--selected' : '',
-                  ]
-                    .filter(Boolean)
-                    .join(' ')}
-                  key={type.id}
-                  type="button"
-                >
-                  <span>
-                    <AppIcon name={type.icon} />
-                  </span>
-                  <div>
-                    <strong>{type.title}</strong>
-                    <small>{type.duration}</small>
-                  </div>
-                  {type.selected ? <AppIcon name="checkCircle" /> : null}
-                </button>
-              ))}
+              {appointmentTypes.map((appointmentType, index) => {
+                const isSelected =
+                  appointmentType.id === selectedAppointmentTypeId;
+                const tone =
+                  appointmentTypeTones[index % appointmentTypeTones.length];
+
+                return (
+                  <button
+                    className={[
+                      "appointment-create-type",
+                      `appointment-create-type--${tone}`,
+                      isSelected ? "appointment-create-type--selected" : "",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                    key={appointmentType.id}
+                    type="button"
+                    onClick={() => {
+                      setSelectedAppointmentTypeId(appointmentType.id);
+                      setSelectedSlotStartAt("");
+                    }}
+                  >
+                    <span>
+                      <AppIcon
+                        name={
+                          appointmentTypeIcons[
+                            index % appointmentTypeIcons.length
+                          ] ?? "calendar"
+                        }
+                      />
+                    </span>
+                    <div>
+                      <strong>{appointmentType.name}</strong>
+                      <small>
+                        {appointmentType.defaultDurationMinutes} min
+                      </small>
+                    </div>
+                    {isSelected ? <AppIcon name="checkCircle" /> : null}
+                  </button>
+                );
+              })}
             </div>
           </section>
 
           <section className="appointment-create-section">
             <h2>4. Odaberite datum i vrijeme</h2>
             <div className="appointment-create-scheduler">
-              <section className="appointment-create-month" aria-label="Kalendar za svibanj 2025.">
+              <section
+                className="appointment-create-month"
+                aria-label={`Kalendar za ${formatMonthTitle(visibleMonth)}`}
+              >
                 <div className="appointment-create-month__header">
-                  <button type="button" aria-label="Prethodni mjesec">
+                  <button
+                    type="button"
+                    aria-label="Prethodni mjesec"
+                    onClick={() =>
+                      setVisibleMonth((date) => addMonths(date, -1))
+                    }
+                  >
                     <AppIcon name="chevronLeft" />
                   </button>
-                  <strong>Svibanj 2025.</strong>
-                  <button type="button" aria-label="Sljedeći mjesec">
+                  <strong>{formatMonthTitle(visibleMonth)}</strong>
+                  <button
+                    type="button"
+                    aria-label="Sljedeci mjesec"
+                    onClick={() =>
+                      setVisibleMonth((date) => addMonths(date, 1))
+                    }
+                  >
                     <AppIcon name="chevronRight" />
                   </button>
                 </div>
 
                 <div className="appointment-create-weekdays" aria-hidden="true">
-                  {['Pon', 'Uto', 'Sri', 'Čet', 'Pet', 'Sub', 'Ned'].map((day) => (
-                    <span key={day}>{day}</span>
-                  ))}
+                  {["Pon", "Uto", "Sri", "Cet", "Pet", "Sub", "Ned"].map(
+                    (day) => (
+                      <span key={day}>{day}</span>
+                    ),
+                  )}
                 </div>
 
                 <div className="appointment-create-calendar">
-                  {calendarWeeks.flatMap((week, weekIndex) =>
-                    week.map((day, dayIndex) => {
-                      const isMuted =
-                        (weekIndex === 0 && dayIndex < 3) ||
-                        (weekIndex === calendarWeeks.length - 1 && day === '1')
-                      const isSelected = day === '23' && weekIndex === 3
+                  {calendarDays.map((day) => {
+                    const isSelected = day.key === formatDateKey(selectedDate);
+                    const isPast =
+                      startOfLocalDay(day.date) < startOfLocalDay(new Date());
 
-                      return (
-                        <button
-                          className={[
-                            isMuted ? 'is-muted' : '',
-                            isSelected ? 'is-selected' : '',
-                          ]
-                            .filter(Boolean)
-                            .join(' ')}
-                          key={`${weekIndex}-${dayIndex}-${day}`}
-                          type="button"
-                        >
-                          {day}
-                        </button>
-                      )
-                    }),
-                  )}
+                    return (
+                      <button
+                        className={[
+                          day.isMuted ? "is-muted" : "",
+                          isSelected ? "is-selected" : "",
+                          isPast ? "is-disabled" : "",
+                        ]
+                          .filter(Boolean)
+                          .join(" ")}
+                        disabled={isPast}
+                        key={day.key}
+                        type="button"
+                        onClick={() => {
+                          setSelectedDate(startOfLocalDay(day.date));
+                          setSelectedSlotStartAt("");
+                        }}
+                      >
+                        {day.label}
+                      </button>
+                    );
+                  })}
                 </div>
               </section>
 
-              <section className="appointment-create-times" aria-label="Dostupna vremena">
-                <h3>Petak, 23. svibnja 2025.</h3>
+              <section
+                className="appointment-create-times"
+                aria-label="Dostupna vremena"
+              >
+                <h3>{formatLongDate(selectedDate)}</h3>
                 <div>
-                  {timeSlots.map((slot) => (
-                    <button className={slot === '10:00' ? 'is-selected' : ''} key={slot} type="button">
-                      {slot}
-                    </button>
-                  ))}
+                  {isLoadingSlots ? (
+                    <span className="appointment-create-empty-times">
+                      Ucitavanje...
+                    </span>
+                  ) : null}
+                  {!isLoadingSlots && availableSlots.length === 0 ? (
+                    <span className="appointment-create-empty-times">
+                      {slotError ?? "Nema slobodnih termina za odabrani dan."}
+                    </span>
+                  ) : null}
+                  {!isLoadingSlots
+                    ? availableSlots.map((slot) => (
+                        <button
+                          className={
+                            slot.startAt === selectedSlotStartAt
+                              ? "is-selected"
+                              : ""
+                          }
+                          key={slot.startAt}
+                          type="button"
+                          onClick={() => setSelectedSlotStartAt(slot.startAt)}
+                        >
+                          {formatTime(slot.startAt)}
+                        </button>
+                      ))
+                    : null}
                 </div>
               </section>
             </div>
 
             <p className="appointment-create-info">
               <AppIcon name="info" />
-              Prikazana su slobodna vremena za odabranog liječnika i vrstu termina.
+              Prikazana su slobodna vremena za odabranog lijecnika i vrstu
+              termina.
             </p>
           </section>
         </main>
 
-        <aside className="appointment-create-summary" aria-label="Sažetak rezervacije">
-          <h2>Sažetak rezervacije</h2>
+        <aside
+          className="appointment-create-summary"
+          aria-label="Sazetak rezervacije"
+        >
+          <h2>Sazetak rezervacije</h2>
 
           <div className="appointment-create-summary-list">
             {summaryItems.map((item) => (
-              <article className="appointment-create-summary-item" key={item.label}>
-                <span className={`appointment-create-summary-icon appointment-create-summary-icon--${item.tone}`}>
+              <article
+                className="appointment-create-summary-item"
+                key={item.label}
+              >
+                <span
+                  className={`appointment-create-summary-icon appointment-create-summary-icon--${item.tone}`}
+                >
                   <AppIcon name={item.icon} />
                 </span>
                 <div>
@@ -306,21 +674,27 @@ function CreateAppointmentPage(): ReactElement {
 
           <p className="appointment-create-reminder">
             <AppIcon name="info" />
-            Pacijent će primiti podsjetnik na termin putem e-maila i SMS-a.
+            Odabrani pacijent, lijecnik, vrsta termina, datum i vrijeme bit ce
+            spremljeni kao novi termin.
           </p>
 
-          <button className="appointment-create-confirm" type="button">
+          <button
+            className="appointment-create-confirm"
+            type="button"
+            disabled={isSubmitting || isLoadingFormData || !selectedSlot}
+            onClick={() => void handleSubmit()}
+          >
             <AppIcon name="calendar" />
-            Potvrdi rezervaciju
+            {isSubmitting ? "Spremanje..." : "Potvrdi rezervaciju"}
           </button>
 
-          <button className="appointment-create-cancel" type="button">
-            Poništi
-          </button>
+          <Link className="appointment-create-cancel" to="/appointments">
+            Ponisti
+          </Link>
         </aside>
       </div>
     </div>
-  )
+  );
 }
 
-export { CreateAppointmentPage }
+export { CreateAppointmentPage };

@@ -1,7 +1,7 @@
 import type { AppointmentResponseDto } from "@zdravstvo/contracts";
 import { useEffect, useMemo, useState } from "react";
 import type { ReactElement } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 import { AppIcon } from "@/components";
 import { appointmentsService } from "@/services";
@@ -71,6 +71,22 @@ const formatShortDate = (date: Date): string =>
 
 const startOfLocalDay = (date: Date): Date =>
   new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+const parseDateQuery = (value: string | null): Date | null => {
+  if (!value) {
+    return null;
+  }
+
+  const [year, month, day] = value.split("-").map(Number);
+
+  if (!year || !month || !day) {
+    return null;
+  }
+
+  const date = new Date(year, month - 1, day);
+
+  return Number.isNaN(date.getTime()) ? null : startOfLocalDay(date);
+};
 
 const addDays = (date: Date, days: number): Date => {
   const nextDate = new Date(date);
@@ -203,6 +219,7 @@ const buildFreeSlotSummaries = (
 };
 
 function AppointmentsPage(): ReactElement {
+  const location = useLocation();
   const [appointments, setAppointments] = useState<AppointmentResponseDto[]>(
     [],
   );
@@ -237,7 +254,10 @@ function AppointmentsPage(): ReactElement {
 
         setAppointments(sortedAppointments);
 
-        const todayKey = formatDateKey(new Date());
+        const dateFromQuery = parseDateQuery(
+          new URLSearchParams(location.search).get("date"),
+        );
+        const todayKey = formatDateKey(dateFromQuery ?? new Date());
         const firstTodayAppointment = sortedAppointments.find(
           (appointment) =>
             formatDateKey(new Date(appointment.startAt)) === todayKey,
@@ -245,7 +265,10 @@ function AppointmentsPage(): ReactElement {
         const fallbackAppointment =
           firstTodayAppointment ?? sortedAppointments[0];
 
-        if (fallbackAppointment) {
+        if (dateFromQuery) {
+          setSelectedDate(dateFromQuery);
+          setSelectedAppointmentId(firstTodayAppointment?.id ?? null);
+        } else if (fallbackAppointment) {
           setSelectedDate(
             startOfLocalDay(new Date(fallbackAppointment.startAt)),
           );
@@ -277,7 +300,7 @@ function AppointmentsPage(): ReactElement {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [location.search]);
 
   const selectedDateKey = selectedDate ? formatDateKey(selectedDate) : "";
   const selectedDayAppointments = useMemo(

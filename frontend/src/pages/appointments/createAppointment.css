@@ -6,8 +6,16 @@
   color: #07183a;
 }
 
-.appointment-create-page button {
-  cursor: default;
+.appointment-create-page button,
+.appointment-create-page a,
+.appointment-create-page select {
+  cursor: pointer;
+}
+
+.appointment-create-page button:disabled,
+.appointment-create-page select:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
 }
 
 .appointment-create-hero h1 {
@@ -160,8 +168,19 @@
   color: #17254b;
 }
 
+.appointment-create-alert {
+  border: 1px solid #ffb7b7;
+  border-radius: 10px;
+  background: #fff2f2;
+  color: #b42318;
+  padding: 14px 18px;
+  font-size: 0.92rem;
+  font-weight: 750;
+}
+
 .appointment-create-select,
 .appointment-create-doctor-select {
+  position: relative;
   display: grid;
   align-items: center;
   width: 100%;
@@ -176,6 +195,15 @@
   padding: 0 18px;
   color: #64728d;
   text-align: left;
+}
+
+.appointment-create-select select,
+.appointment-create-doctor-select select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  border: 0;
+  opacity: 0;
 }
 
 .appointment-create-select span {
@@ -205,6 +233,7 @@
   color: #0876df;
   font-size: 0.95rem;
   font-weight: 850;
+  text-decoration: none;
 }
 
 .appointment-create-new-patient .app-icon {
@@ -453,6 +482,10 @@
   box-shadow: 0 10px 18px rgba(8, 109, 226, 0.2);
 }
 
+.appointment-create-calendar button.is-disabled {
+  color: #b7c1d0;
+}
+
 .appointment-create-times {
   padding: 20px 18px 18px;
 }
@@ -484,6 +517,19 @@
   background: linear-gradient(135deg, #0b86e8, #086de2);
   color: #ffffff;
   box-shadow: 0 8px 18px rgba(8, 109, 226, 0.18);
+}
+
+.appointment-create-empty-times {
+  grid-column: 1 / -1;
+  display: grid;
+  min-height: 42px;
+  place-items: center;
+  border: 1px dashed #c8d9ed;
+  border-radius: 6px;
+  color: #667590;
+  font-size: 0.86rem;
+  font-weight: 750;
+  text-align: center;
 }
 
 .appointment-create-info,
@@ -653,6 +699,7 @@
   border-color: #91c8ff;
   color: #0876df;
   background: #ffffff;
+  text-decoration: none;
 }
 
 @media (max-width: 1400px) {
