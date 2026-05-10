@@ -494,8 +494,18 @@ const buildListFilters = (
     );
   }
 
+  if (query.appointmentTypeId) {
+    filters.appointmentTypeId = query.appointmentTypeId;
+  }
+
   if (query.status) {
     filters.status = query.status;
+  }
+
+  const search = query.search?.trim();
+
+  if (search) {
+    filters.search = search;
   }
 
   if (isManagerRole(context.role)) {

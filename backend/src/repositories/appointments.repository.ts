@@ -23,7 +23,9 @@ export interface FindAppointmentsInput {
   endAt?: Date;
   doctorUserId?: string;
   patientUserId?: string;
+  appointmentTypeId?: string;
   status?: AppointmentStatusDto;
+  search?: string;
   limit: number;
 }
 
@@ -625,8 +627,38 @@ export class AppointmentsRepository {
       );
     }
 
+    if (input.appointmentTypeId) {
+      query.andWhere(
+        "appointment.appointment_type_id",
+        uuidToBuffer(input.appointmentTypeId),
+      );
+    }
+
     if (input.status) {
       query.andWhere("appointment.status", input.status);
+    }
+
+    if (input.search) {
+      const searchPattern = `%${input.search}%`;
+
+      query.andWhere((builder: Knex.QueryBuilder) => {
+        builder
+          .where("patient.first_name", "like", searchPattern)
+          .orWhere("patient.last_name", "like", searchPattern)
+          .orWhereRaw(
+            "concat(patient.first_name, ' ', patient.last_name) like ?",
+            [searchPattern],
+          )
+          .orWhere("doctor.first_name", "like", searchPattern)
+          .orWhere("doctor.last_name", "like", searchPattern)
+          .orWhereRaw(
+            "concat(doctor.first_name, ' ', doctor.last_name) like ?",
+            [searchPattern],
+          )
+          .orWhere("appointmentType.name", "like", searchPattern)
+          .orWhere("appointment.notes", "like", searchPattern)
+          .orWhere("appointment.status", "like", searchPattern);
+      });
     }
 
     const rows = await query
