@@ -18,6 +18,9 @@ export const appointmentsService = {
     const response = await apiClient.get<
       ApiResponse<AppointmentListResponseDto>
     >("/appointments", {
+      headers: {
+        "Cache-Control": "no-cache",
+      },
       params: query,
     });
 

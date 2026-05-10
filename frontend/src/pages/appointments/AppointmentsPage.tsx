@@ -1,7 +1,7 @@
 import type { AppointmentResponseDto } from "@zdravstvo/contracts";
 import { useEffect, useMemo, useState } from "react";
 import type { ReactElement } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import { AppIcon } from "@/components";
 import { appointmentsService } from "@/services";
@@ -94,6 +94,11 @@ const addDays = (date: Date, days: number): Date => {
 
   return nextDate;
 };
+
+const getDayRange = (date: Date): { startAt: string; endAt: string } => ({
+  startAt: startOfLocalDay(date).toISOString(),
+  endAt: addDays(startOfLocalDay(date), 1).toISOString(),
+});
 
 const getInitials = (firstName: string, lastName: string): string =>
   `${firstName[0] ?? ""}${lastName[0] ?? ""}`.toUpperCase();
@@ -220,15 +225,27 @@ const buildFreeSlotSummaries = (
 
 function AppointmentsPage(): ReactElement {
   const location = useLocation();
+  const navigate = useNavigate();
+  const dateFromQuery = useMemo(
+    () => parseDateQuery(new URLSearchParams(location.search).get("date")),
+    [location.search],
+  );
   const [appointments, setAppointments] = useState<AppointmentResponseDto[]>(
     [],
   );
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date>(
+    dateFromQuery ?? startOfLocalDay(new Date()),
+  );
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<
     string | null
   >(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setSelectedDate(dateFromQuery ?? startOfLocalDay(new Date()));
+    setSelectedAppointmentId(null);
+  }, [dateFromQuery]);
 
   useEffect(() => {
     let isMounted = true;
@@ -237,8 +254,11 @@ function AppointmentsPage(): ReactElement {
       try {
         setIsLoading(true);
         setError(null);
+        const dayRange = getDayRange(selectedDate);
 
         const data = await appointmentsService.list({
+          startAt: dayRange.startAt,
+          endAt: dayRange.endAt,
           limit: APPOINTMENT_LIMIT,
         });
 
@@ -253,30 +273,13 @@ function AppointmentsPage(): ReactElement {
         );
 
         setAppointments(sortedAppointments);
-
-        const dateFromQuery = parseDateQuery(
-          new URLSearchParams(location.search).get("date"),
+        setSelectedAppointmentId((currentAppointmentId) =>
+          sortedAppointments.some(
+            (appointment) => appointment.id === currentAppointmentId,
+          )
+            ? currentAppointmentId
+            : (sortedAppointments[0]?.id ?? null),
         );
-        const todayKey = formatDateKey(dateFromQuery ?? new Date());
-        const firstTodayAppointment = sortedAppointments.find(
-          (appointment) =>
-            formatDateKey(new Date(appointment.startAt)) === todayKey,
-        );
-        const fallbackAppointment =
-          firstTodayAppointment ?? sortedAppointments[0];
-
-        if (dateFromQuery) {
-          setSelectedDate(dateFromQuery);
-          setSelectedAppointmentId(firstTodayAppointment?.id ?? null);
-        } else if (fallbackAppointment) {
-          setSelectedDate(
-            startOfLocalDay(new Date(fallbackAppointment.startAt)),
-          );
-          setSelectedAppointmentId(fallbackAppointment.id);
-        } else {
-          setSelectedDate(startOfLocalDay(new Date()));
-          setSelectedAppointmentId(null);
-        }
       } catch (loadError) {
         if (!isMounted) {
           return;
@@ -287,7 +290,8 @@ function AppointmentsPage(): ReactElement {
             ? loadError.message
             : "Termini se trenutno ne mogu ucitati.",
         );
-        setSelectedDate(startOfLocalDay(new Date()));
+        setAppointments([]);
+        setSelectedAppointmentId(null);
       } finally {
         if (isMounted) {
           setIsLoading(false);
@@ -300,17 +304,9 @@ function AppointmentsPage(): ReactElement {
     return () => {
       isMounted = false;
     };
-  }, [location.search]);
+  }, [selectedDate]);
 
-  const selectedDateKey = selectedDate ? formatDateKey(selectedDate) : "";
-  const selectedDayAppointments = useMemo(
-    () =>
-      appointments.filter(
-        (appointment) =>
-          formatDateKey(new Date(appointment.startAt)) === selectedDateKey,
-      ),
-    [appointments, selectedDateKey],
-  );
+  const selectedDayAppointments = appointments;
   const doctors = useMemo(
     () => buildDoctorColumns(selectedDayAppointments),
     [selectedDayAppointments],
@@ -344,14 +340,13 @@ function AppointmentsPage(): ReactElement {
   );
 
   const changeDate = (days: number): void => {
-    setSelectedDate((currentDate) =>
-      startOfLocalDay(addDays(currentDate ?? new Date(), days)),
-    );
+    const nextDate = startOfLocalDay(addDays(selectedDate, days));
+    navigate(`/appointments?date=${formatDateKey(nextDate)}`);
     setSelectedAppointmentId(null);
   };
 
   const useToday = (): void => {
-    setSelectedDate(startOfLocalDay(new Date()));
+    navigate(`/appointments?date=${formatDateKey(new Date())}`);
     setSelectedAppointmentId(null);
   };
 

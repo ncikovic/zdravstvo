@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import { patientsRepository } from "../repositories/index.js";
 import { AppError } from "../shared/errors/index.js";
+import type { AuthenticatedRequestContext } from "../shared/context/index.js";
 import type { Patient } from "../types/entities/index.js";
 
 const toIsoDateOnly = (value: Date | null): string | null => {
@@ -34,14 +35,28 @@ const toPatientDto = (patient: Patient): PatientDto => ({
 });
 
 export const patientsService = {
-  async listPatients(): Promise<PatientDto[]> {
-    const patients = await patientsRepository.findAll();
+  async listPatients(
+    context?: Pick<AuthenticatedRequestContext, "organizationId">,
+  ): Promise<PatientDto[]> {
+    const patients = context
+      ? await patientsRepository.findActiveByOrganization(
+          context.organizationId,
+        )
+      : await patientsRepository.findAll();
 
     return patients.map(toPatientDto);
   },
 
-  async getPatient(id: string): Promise<PatientDto> {
-    const patient = await patientsRepository.findById(id);
+  async getPatient(
+    id: string,
+    context?: Pick<AuthenticatedRequestContext, "organizationId">,
+  ): Promise<PatientDto> {
+    const patient = context
+      ? await patientsRepository.findActiveByOrganizationAndId(
+          context.organizationId,
+          id,
+        )
+      : await patientsRepository.findById(id);
 
     if (!patient) {
       throw AppError.notFound("Patient not found.");
@@ -50,10 +65,14 @@ export const patientsService = {
     return toPatientDto(patient);
   },
 
-  async createPatient(payload: CreatePatientRequestDto): Promise<PatientDto> {
+  async createPatient(
+    payload: CreatePatientRequestDto,
+    context?: Pick<AuthenticatedRequestContext, "organizationId">,
+  ): Promise<PatientDto> {
     const patient = await patientsRepository.create({
       ...payload,
       id: payload.id ?? uuidv4(),
+      organizationId: context?.organizationId,
     });
 
     return toPatientDto(patient);
@@ -62,7 +81,20 @@ export const patientsService = {
   async updatePatient(
     id: string,
     payload: UpdatePatientRequestDto,
+    context?: Pick<AuthenticatedRequestContext, "organizationId">,
   ): Promise<PatientDto> {
+    if (context) {
+      const existingPatient =
+        await patientsRepository.findActiveByOrganizationAndId(
+          context.organizationId,
+          id,
+        );
+
+      if (!existingPatient) {
+        throw AppError.notFound("Patient not found.");
+      }
+    }
+
     const patient = await patientsRepository.update(id, payload);
 
     if (!patient) {
@@ -72,7 +104,22 @@ export const patientsService = {
     return toPatientDto(patient);
   },
 
-  async deletePatient(id: string): Promise<void> {
+  async deletePatient(
+    id: string,
+    context?: Pick<AuthenticatedRequestContext, "organizationId">,
+  ): Promise<void> {
+    if (context) {
+      const existingPatient =
+        await patientsRepository.findActiveByOrganizationAndId(
+          context.organizationId,
+          id,
+        );
+
+      if (!existingPatient) {
+        throw AppError.notFound("Patient not found.");
+      }
+    }
+
     const deleted = await patientsRepository.delete(id);
 
     if (!deleted) {

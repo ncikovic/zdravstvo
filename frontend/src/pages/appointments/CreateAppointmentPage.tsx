@@ -4,6 +4,7 @@ import type {
   DoctorResponseDto,
   PatientDto,
 } from "@zdravstvo/contracts";
+import { UserStatus } from "@zdravstvo/contracts";
 import { useEffect, useMemo, useState } from "react";
 import type { ReactElement } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -59,6 +60,7 @@ const appointmentTypeTones: readonly ("blue" | "teal" | "purple")[] = [
   "blue",
   "purple",
 ];
+const ACTIVE_USER_STATUS = UserStatus.ACTIVE;
 
 const formatDateKey = (date: Date): string =>
   new Intl.DateTimeFormat("en-CA", {
@@ -189,11 +191,14 @@ function CreateAppointmentPage(): ReactElement {
           (appointmentType) => appointmentType.isActive,
         );
         const activeDoctors = doctorData.filter((doctor) => doctor.isActive);
+        const activePatients = patientData.filter(
+          (patient) => patient.status === ACTIVE_USER_STATUS,
+        );
 
-        setPatients(patientData);
+        setPatients(activePatients);
         setDoctors(activeDoctors);
         setAppointmentTypes(activeAppointmentTypes);
-        setSelectedPatientId(patientData[0]?.id ?? "");
+        setSelectedPatientId(activePatients[0]?.id ?? "");
         setSelectedDoctorId(activeDoctors[0]?.id ?? "");
         setSelectedAppointmentTypeId(activeAppointmentTypes[0]?.id ?? "");
       } catch (loadError) {

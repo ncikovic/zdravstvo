@@ -4,6 +4,7 @@ import type {
   UserStatus,
 } from "@zdravstvo/contracts";
 import type { Buffer } from "node:buffer";
+import { v4 as uuidv4 } from "uuid";
 
 import { db } from "../shared/db/index.js";
 import { bufferToUuid, uuidToBuffer } from "../shared/utils/index.js";
@@ -27,6 +28,7 @@ interface PatientRow {
 
 interface CreatePatientRecord extends CreatePatientRequestDto {
   id: string;
+  organizationId?: string;
 }
 
 const TABLE_NAME = "patient_profiles";
@@ -131,11 +133,55 @@ export const patientsRepository = {
     return rows.map(toPatient);
   },
 
+  async findActiveByOrganization(organizationId: string): Promise<Patient[]> {
+    const rows = await db<PatientRow>(`${TABLE_NAME} as patient`)
+      .innerJoin("users as user", "user.id", "patient.user_id")
+      .innerJoin(
+        "organization_users as organizationUser",
+        "organizationUser.user_id",
+        "patient.user_id",
+      )
+      .select(...PATIENT_COLUMNS)
+      .where("organizationUser.organization_id", uuidToBuffer(organizationId))
+      .where("organizationUser.role", "PATIENT")
+      .andWhere("organizationUser.is_active", 1)
+      .andWhere("user.status", "ACTIVE")
+      .orderBy("patient.last_name", "asc")
+      .orderBy("patient.first_name", "asc");
+
+    return rows.map(toPatient);
+  },
+
   async findById(id: string): Promise<Patient | null> {
     const row = await db<PatientRow>(`${TABLE_NAME} as patient`)
       .innerJoin("users as user", "user.id", "patient.user_id")
       .select(...PATIENT_COLUMNS)
       .where({ "patient.user_id": uuidToBuffer(id) })
+      .first();
+
+    return row ? toPatient(row) : null;
+  },
+
+  async findActiveByOrganizationAndId(
+    organizationId: string,
+    id: string,
+  ): Promise<Patient | null> {
+    const row = await db<PatientRow>(`${TABLE_NAME} as patient`)
+      .innerJoin("users as user", "user.id", "patient.user_id")
+      .innerJoin(
+        "organization_users as organizationUser",
+        "organizationUser.user_id",
+        "patient.user_id",
+      )
+      .select(...PATIENT_COLUMNS)
+      .where("patient.user_id", uuidToBuffer(id))
+      .andWhere(
+        "organizationUser.organization_id",
+        uuidToBuffer(organizationId),
+      )
+      .andWhere("organizationUser.role", "PATIENT")
+      .andWhere("organizationUser.is_active", 1)
+      .andWhere("user.status", "ACTIVE")
       .first();
 
     return row ? toPatient(row) : null;
@@ -152,6 +198,16 @@ export const patientsRepository = {
       });
 
       await trx(TABLE_NAME).insert(buildInsertPayload(record));
+
+      if (record.organizationId) {
+        await trx("organization_users").insert({
+          id: uuidToBuffer(uuidv4()),
+          organization_id: uuidToBuffer(record.organizationId),
+          user_id: uuidToBuffer(record.id),
+          role: "PATIENT",
+          is_active: 1,
+        });
+      }
     });
 
     const patient = await patientsRepository.findById(record.id);

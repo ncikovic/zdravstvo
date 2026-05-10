@@ -1,45 +1,51 @@
-import type { Request, Response } from 'express';
+import type { Request, Response } from "express";
 
-import { patientsService } from '../services/index.js';
+import { patientsService } from "../services/index.js";
+import { requireAuthenticatedUser } from "../shared/context/index.js";
 import {
   createPatientSchema,
   idParamsSchema,
   updatePatientSchema,
-} from '../validations/index.js';
+} from "../validations/index.js";
 
 export const patientsController = {
-  async listPatients(_request: Request, response: Response): Promise<void> {
-    const patients = await patientsService.listPatients();
+  async listPatients(request: Request, response: Response): Promise<void> {
+    const context = requireAuthenticatedUser(request);
+    const patients = await patientsService.listPatients(context);
 
     response.status(200).json(patients);
   },
 
   async getPatient(request: Request, response: Response): Promise<void> {
+    const context = requireAuthenticatedUser(request);
     const { id } = idParamsSchema.parse(request.params);
-    const patient = await patientsService.getPatient(id);
+    const patient = await patientsService.getPatient(id, context);
 
     response.status(200).json(patient);
   },
 
   async createPatient(request: Request, response: Response): Promise<void> {
+    const context = requireAuthenticatedUser(request);
     const payload = createPatientSchema.parse(request.body);
-    const patient = await patientsService.createPatient(payload);
+    const patient = await patientsService.createPatient(payload, context);
 
     response.status(201).json(patient);
   },
 
   async updatePatient(request: Request, response: Response): Promise<void> {
+    const context = requireAuthenticatedUser(request);
     const { id } = idParamsSchema.parse(request.params);
     const payload = updatePatientSchema.parse(request.body);
-    const patient = await patientsService.updatePatient(id, payload);
+    const patient = await patientsService.updatePatient(id, payload, context);
 
     response.status(200).json(patient);
   },
 
   async deletePatient(request: Request, response: Response): Promise<void> {
+    const context = requireAuthenticatedUser(request);
     const { id } = idParamsSchema.parse(request.params);
 
-    await patientsService.deletePatient(id);
+    await patientsService.deletePatient(id, context);
 
     response.status(204).send();
   },
