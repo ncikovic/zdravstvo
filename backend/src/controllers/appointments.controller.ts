@@ -6,6 +6,7 @@ import type {
   AppointmentListResponseDto,
   AppointmentResponseDto,
   AvailableAppointmentSlotsQueryDto,
+  CancelAppointmentRequestDto,
   CreateAppointmentRequestDto,
   UpdateAppointmentScheduleRequestDto,
 } from "@zdravstvo/contracts";
@@ -88,6 +89,27 @@ export class AppointmentsController {
     const context = requireAuthenticatedUser(request as Request);
     const { id } = request.params as AppointmentIdParamsDto;
     const appointment = await appointmentsService.reschedule(
+      context,
+      id,
+      request.body,
+    );
+
+    response.status(200).json({
+      data: appointment,
+    });
+  }
+
+  public async cancel(
+    request: Request<
+      unknown,
+      ApiResponse<AppointmentResponseDto>,
+      CancelAppointmentRequestDto
+    >,
+    response: Response<ApiResponse<AppointmentResponseDto>>,
+  ): Promise<void> {
+    const context = requireAuthenticatedUser(request as Request);
+    const { id } = request.params as AppointmentIdParamsDto;
+    const appointment = await appointmentsService.cancel(
       context,
       id,
       request.body,

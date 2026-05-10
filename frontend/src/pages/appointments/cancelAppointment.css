@@ -6,8 +6,14 @@
   color: #07183a;
 }
 
-.appointment-cancel-page button {
-  cursor: default;
+.appointment-cancel-page button,
+.appointment-cancel-page a {
+  cursor: pointer;
+}
+
+.appointment-cancel-page button:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
 }
 
 .appointment-cancel-breadcrumb {
@@ -20,8 +26,9 @@
   font-weight: 750;
 }
 
-.appointment-cancel-breadcrumb span {
+.appointment-cancel-breadcrumb a {
   color: #0876df;
+  text-decoration: none;
 }
 
 .appointment-cancel-breadcrumb strong {
@@ -64,7 +71,8 @@
   gap: 18px;
 }
 
-.appointment-cancel-hero-actions button {
+.appointment-cancel-hero-actions button,
+.appointment-cancel-hero-actions a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -77,6 +85,7 @@
   color: #31436a;
   font-size: 0.96rem;
   font-weight: 850;
+  text-decoration: none;
   white-space: nowrap;
 }
 
@@ -113,6 +122,16 @@
   font-size: 1.15rem;
   font-weight: 850;
   line-height: 1.2;
+}
+
+.appointment-cancel-alert {
+  border: 1px solid #ffb7b7;
+  border-radius: 10px;
+  background: #fff2f2;
+  color: #b42318;
+  padding: 14px 18px;
+  font-size: 0.92rem;
+  font-weight: 750;
 }
 
 .appointment-cancel-details-card,
@@ -229,7 +248,10 @@
 
 .appointment-cancel-detail-item small,
 .appointment-cancel-detail-item strong,
-.appointment-cancel-detail-item span:not(.appointment-cancel-detail-icon):not(.appointment-cancel-status):not(.appointment-cancel-doctor-photo) {
+.appointment-cancel-detail-item
+  span:not(.appointment-cancel-detail-icon):not(.appointment-cancel-status):not(
+    .appointment-cancel-doctor-photo
+  ) {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -558,6 +580,7 @@
   border: 1px solid #0876df;
   background: #ffffff;
   color: #0876df;
+  text-decoration: none;
 }
 
 @media (max-width: 1400px) {
@@ -584,8 +607,10 @@
     border-top: 1px solid #dfe9f2;
   }
 
-  .appointment-cancel-detail-row--top .appointment-cancel-detail-item:nth-child(-n + 2),
-  .appointment-cancel-detail-row--bottom .appointment-cancel-detail-item:first-child {
+  .appointment-cancel-detail-row--top
+    .appointment-cancel-detail-item:nth-child(-n + 2),
+  .appointment-cancel-detail-row--bottom
+    .appointment-cancel-detail-item:first-child {
     border-top: 0;
   }
 }
@@ -601,7 +626,8 @@
     font-size: 1.9rem;
   }
 
-  .appointment-cancel-hero-actions button {
+  .appointment-cancel-hero-actions button,
+  .appointment-cancel-hero-actions a {
     width: 100%;
   }
 
@@ -618,7 +644,8 @@
     grid-template-columns: 1fr;
   }
 
-  .appointment-cancel-detail-row--top .appointment-cancel-detail-item:nth-child(2) {
+  .appointment-cancel-detail-row--top
+    .appointment-cancel-detail-item:nth-child(2) {
     border-top: 1px solid #dfe9f2;
   }
 

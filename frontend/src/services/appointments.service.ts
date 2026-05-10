@@ -5,6 +5,7 @@ import type {
   AppointmentListResponseDto,
   AppointmentResponseDto,
   AvailableAppointmentSlotsQueryDto,
+  CancelAppointmentRequestDto,
   CreateAppointmentRequestDto,
   UpdateAppointmentScheduleRequestDto,
 } from "@zdravstvo/contracts";
@@ -64,6 +65,18 @@ export const appointmentsService = {
   ): Promise<AppointmentResponseDto> {
     const response = await apiClient.patch<ApiResponse<AppointmentResponseDto>>(
       `/appointments/${appointmentId}/schedule`,
+      data,
+    );
+
+    return response.data.data;
+  },
+
+  async cancel(
+    appointmentId: string,
+    data: CancelAppointmentRequestDto,
+  ): Promise<AppointmentResponseDto> {
+    const response = await apiClient.patch<ApiResponse<AppointmentResponseDto>>(
+      `/appointments/${appointmentId}/cancel`,
       data,
     );
 

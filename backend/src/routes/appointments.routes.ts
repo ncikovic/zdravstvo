@@ -11,6 +11,7 @@ import {
 import {
   appointmentIdValidationSchemas,
   availableAppointmentSlotsValidationSchemas,
+  cancelAppointmentValidationSchemas,
   createAppointmentValidationSchemas,
   listAppointmentsValidationSchemas,
   updateAppointmentScheduleValidationSchemas,
@@ -64,5 +65,13 @@ appointmentsRouter.patch(
   validateRequest(updateAppointmentScheduleValidationSchemas),
   asyncHandler(async (request, response) => {
     await appointmentsController.reschedule(request, response);
+  }),
+);
+
+appointmentsRouter.patch(
+  "/:id/cancel",
+  validateRequest(cancelAppointmentValidationSchemas),
+  asyncHandler(async (request, response) => {
+    await appointmentsController.cancel(request, response);
   }),
 );

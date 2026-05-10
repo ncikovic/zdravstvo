@@ -2,6 +2,7 @@ import {
   appointmentIdParamsSchema,
   appointmentListQuerySchema,
   availableAppointmentSlotsQuerySchema,
+  cancelAppointmentRequestSchema,
   createAppointmentRequestSchema,
   updateAppointmentScheduleRequestSchema,
 } from "@zdravstvo/contracts";
@@ -24,5 +25,10 @@ export const createAppointmentValidationSchemas = {
 
 export const updateAppointmentScheduleValidationSchemas = {
   body: updateAppointmentScheduleRequestSchema,
+  params: appointmentIdParamsSchema,
+};
+
+export const cancelAppointmentValidationSchemas = {
+  body: cancelAppointmentRequestSchema,
   params: appointmentIdParamsSchema,
 };

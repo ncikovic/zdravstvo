@@ -5,6 +5,7 @@ import {
   type AppointmentListResponseDto,
   type AppointmentResponseDto,
   type AvailableAppointmentSlotsQueryDto,
+  type CancelAppointmentRequestDto,
   type CreateAppointmentRequestDto,
   OrganizationUserRole,
   type UpdateAppointmentScheduleRequestDto,
@@ -54,6 +55,7 @@ type AppointmentsRepositoryContract = Pick<
   | "findMany"
   | "createAppointment"
   | "updateSchedule"
+  | "cancelAppointment"
 >;
 
 type AppointmentsTransactionRunner = <Result>(
@@ -1014,6 +1016,49 @@ export class AppointmentsService {
       }
 
       return mapAppointmentResponse(updatedAppointment);
+    });
+  }
+
+  public async cancel(
+    context: AppointmentsRequestContext,
+    appointmentId: string,
+    payload: CancelAppointmentRequestDto,
+  ): Promise<AppointmentResponseDto> {
+    ensureSchedulingRole(context.role);
+
+    return this.runInTransaction(async (repository) => {
+      const appointment = await repository.findById(
+        context.organizationId,
+        appointmentId,
+      );
+
+      if (!appointment) {
+        throw AppError.notFound("Appointment not found.");
+      }
+
+      ensureUpdateAccess(context, appointment);
+
+      if (appointment.status !== "SCHEDULED") {
+        throw AppError.conflict(
+          "APPOINTMENT_NOT_CANCELLABLE",
+          "Only scheduled appointments can be cancelled.",
+        );
+      }
+
+      const cancelledAppointment = await repository.cancelAppointment(
+        context.organizationId,
+        appointmentId,
+        {
+          updatedByOrgUserId: context.organizationUserId,
+          cancellationReason: payload.cancellationReason.trim(),
+        },
+      );
+
+      if (!cancelledAppointment) {
+        throw AppError.notFound("Appointment not found.");
+      }
+
+      return mapAppointmentResponse(cancelledAppointment);
     });
   }
 
