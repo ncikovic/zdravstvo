@@ -6,8 +6,16 @@
   color: #07183a;
 }
 
-.appointment-change-page button {
-  cursor: default;
+.appointment-change-page button,
+.appointment-change-page a,
+.appointment-change-page select {
+  cursor: pointer;
+}
+
+.appointment-change-page button:disabled,
+.appointment-change-page select:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
 }
 
 .appointment-change-breadcrumb,
@@ -33,15 +41,18 @@
   font-weight: 800;
 }
 
+.appointment-change-breadcrumb a,
 .appointment-change-breadcrumb span,
 .appointment-change-breadcrumb strong {
   display: inline-flex;
   align-items: center;
   gap: 10px;
+  color: inherit;
+  text-decoration: none;
   white-space: nowrap;
 }
 
-.appointment-change-breadcrumb span:first-child {
+.appointment-change-breadcrumb a:first-child {
   color: #0876df;
 }
 
@@ -91,6 +102,7 @@
   color: #0876df;
   font-size: 0.96rem;
   font-weight: 850;
+  text-decoration: none;
 }
 
 .appointment-change-back .app-icon {
@@ -234,12 +246,32 @@
 .appointment-change-select,
 .appointment-change-doctor-select,
 .appointment-change-type-select {
+  position: relative;
   display: grid;
   align-items: center;
   width: 100%;
   min-width: 0;
   border-radius: 8px;
   text-align: left;
+}
+
+.appointment-change-doctor-select select,
+.appointment-change-type-select select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  border: 0;
+  opacity: 0;
+}
+
+.appointment-change-alert {
+  border: 1px solid #ffb7b7;
+  border-radius: 10px;
+  background: #fff2f2;
+  color: #b42318;
+  padding: 14px 18px;
+  font-size: 0.92rem;
+  font-weight: 750;
 }
 
 .appointment-change-select {
@@ -278,6 +310,7 @@
   color: #0876df;
   font-size: 0.95rem;
   font-weight: 850;
+  text-decoration: none;
 }
 
 .appointment-change-new-patient .app-icon {
@@ -466,6 +499,10 @@
   box-shadow: 0 10px 18px rgba(8, 109, 226, 0.2);
 }
 
+.appointment-change-calendar button.is-disabled {
+  color: #b7c1d0;
+}
+
 .appointment-change-times {
   padding-left: 28px;
   border-left: 1px solid #dce8f3;
@@ -505,15 +542,30 @@
   box-shadow: 0 8px 18px rgba(8, 109, 226, 0.18);
 }
 
-.appointment-change-times button.is-disabled {
+.appointment-change-times button.is-disabled,
+.appointment-change-times button.is-current {
   background: #f8fafc;
   color: #8795ad;
 }
 
-.appointment-change-times button.is-disabled .app-icon {
+.appointment-change-times button.is-disabled .app-icon,
+.appointment-change-times button.is-current .app-icon {
   width: 14px;
   height: 14px;
   color: #8795ad;
+}
+
+.appointment-change-empty-times {
+  grid-column: 1 / -1;
+  display: grid;
+  min-height: 42px;
+  place-items: center;
+  border: 1px dashed #c8d9ed;
+  border-radius: 6px;
+  color: #667590;
+  font-size: 0.86rem;
+  font-weight: 750;
+  text-align: center;
 }
 
 .appointment-change-comparison {
@@ -722,6 +774,7 @@
   border-color: #91c8ff;
   color: #0876df;
   background: #ffffff;
+  text-decoration: none;
 }
 
 .appointment-change-return {
@@ -732,6 +785,7 @@
   border-radius: 0;
   background: transparent;
   color: #0876df;
+  text-decoration: none;
 }
 
 .appointment-change-return .app-icon {
