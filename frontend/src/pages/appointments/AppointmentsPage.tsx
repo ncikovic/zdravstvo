@@ -1,14 +1,24 @@
-import type { AppointmentResponseDto } from "@zdravstvo/contracts";
+import type {
+  AppointmentListQueryDto,
+  AppointmentResponseDto,
+  AppointmentTypeDto,
+  DoctorResponseDto,
+} from "@zdravstvo/contracts";
 import { useEffect, useMemo, useState } from "react";
 import type { ReactElement } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 
 import { AppIcon } from "@/components";
-import { appointmentsService } from "@/services";
+import {
+  useAppointmentsQuery,
+  useAppointmentTypesQuery,
+  useDoctorsQuery,
+} from "@/hooks";
 
 import "./appointments.css";
 
 type AppointmentTone = "blue" | "teal" | "orange" | "red" | "gray";
+type FilterKey = "date" | "doctorId" | "appointmentTypeId" | "q";
 
 interface DoctorColumn {
   id: string;
@@ -106,6 +116,9 @@ const getInitials = (firstName: string, lastName: string): string =>
 const getDoctorName = (appointment: AppointmentResponseDto): string =>
   `Dr. ${appointment.doctor.firstName} ${appointment.doctor.lastName}`;
 
+const getDoctorOptionName = (doctor: DoctorResponseDto): string =>
+  `Dr. ${doctor.firstName} ${doctor.lastName}`;
+
 const getPatientName = (appointment: AppointmentResponseDto): string =>
   `${appointment.patient.firstName} ${appointment.patient.lastName}`;
 
@@ -149,8 +162,21 @@ const getAppointmentDurationLabel = (
   return `${durationMinutes} min`;
 };
 
+const mapDoctorOptionToColumn = (
+  doctor: DoctorResponseDto,
+  index: number,
+): DoctorColumn => ({
+  id: doctor.id,
+  name: getDoctorOptionName(doctor),
+  specialty: doctor.title ?? "Lijecnik",
+  initials: getInitials(doctor.firstName, doctor.lastName),
+  tone: index % 2 === 0 ? "orange" : "blue",
+});
+
 const buildDoctorColumns = (
   appointments: AppointmentResponseDto[],
+  doctorOptions: DoctorResponseDto[],
+  selectedDoctorId: string,
 ): DoctorColumn[] => {
   const doctorsById = new Map<string, DoctorColumn>();
 
@@ -171,7 +197,30 @@ const buildDoctorColumns = (
     });
   });
 
-  return Array.from(doctorsById.values()).slice(0, DISPLAYED_DOCTOR_LIMIT);
+  if (selectedDoctorId) {
+    const selectedDoctor = doctorOptions.find(
+      (doctor) => doctor.id === selectedDoctorId,
+    );
+
+    if (selectedDoctor && !doctorsById.has(selectedDoctor.id)) {
+      doctorsById.set(
+        selectedDoctor.id,
+        mapDoctorOptionToColumn(selectedDoctor, 0),
+      );
+    }
+
+    return Array.from(doctorsById.values()).filter(
+      (doctor) => doctor.id === selectedDoctorId,
+    );
+  }
+
+  if (doctorsById.size > 0) {
+    return Array.from(doctorsById.values()).slice(0, DISPLAYED_DOCTOR_LIMIT);
+  }
+
+  return doctorOptions
+    .slice(0, DISPLAYED_DOCTOR_LIMIT)
+    .map((doctor, index) => mapDoctorOptionToColumn(doctor, index));
 };
 
 const buildCalendarAppointments = (
@@ -223,93 +272,101 @@ const buildFreeSlotSummaries = (
   });
 };
 
+const getErrorMessage = (error: unknown): string | null => {
+  if (!error) {
+    return null;
+  }
+
+  if (
+    typeof error === "object" &&
+    "message" in error &&
+    typeof error.message === "string"
+  ) {
+    return error.message;
+  }
+
+  return "Termini se trenutno ne mogu ucitati.";
+};
+
 function AppointmentsPage(): ReactElement {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const dateFromQuery = useMemo(
-    () => parseDateQuery(new URLSearchParams(location.search).get("date")),
-    [location.search],
-  );
-  const [appointments, setAppointments] = useState<AppointmentResponseDto[]>(
-    [],
-  );
-  const [selectedDate, setSelectedDate] = useState<Date>(
-    dateFromQuery ?? startOfLocalDay(new Date()),
-  );
+  const [searchParams, setSearchParams] = useSearchParams();
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<
     string | null
   >(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    setSelectedDate(dateFromQuery ?? startOfLocalDay(new Date()));
-    setSelectedAppointmentId(null);
-  }, [dateFromQuery]);
+  const selectedDate = useMemo(
+    () =>
+      parseDateQuery(searchParams.get("date")) ?? startOfLocalDay(new Date()),
+    [searchParams],
+  );
+  const selectedDoctorId = searchParams.get("doctorId") ?? "";
+  const selectedAppointmentTypeId = searchParams.get("appointmentTypeId") ?? "";
+  const searchTerm = searchParams.get("q") ?? "";
+  const hasActiveFilters = Boolean(
+    selectedDoctorId || selectedAppointmentTypeId || searchTerm.trim(),
+  );
 
-  useEffect(() => {
-    let isMounted = true;
-
-    const loadAppointments = async (): Promise<void> => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const dayRange = getDayRange(selectedDate);
-
-        const data = await appointmentsService.list({
-          startAt: dayRange.startAt,
-          endAt: dayRange.endAt,
-          limit: APPOINTMENT_LIMIT,
-        });
-
-        if (!isMounted) {
-          return;
-        }
-
-        const sortedAppointments = [...data].sort(
-          (first, second) =>
-            new Date(first.startAt).getTime() -
-            new Date(second.startAt).getTime(),
-        );
-
-        setAppointments(sortedAppointments);
-        setSelectedAppointmentId((currentAppointmentId) =>
-          sortedAppointments.some(
-            (appointment) => appointment.id === currentAppointmentId,
-          )
-            ? currentAppointmentId
-            : (sortedAppointments[0]?.id ?? null),
-        );
-      } catch (loadError) {
-        if (!isMounted) {
-          return;
-        }
-
-        setError(
-          loadError instanceof Error
-            ? loadError.message
-            : "Termini se trenutno ne mogu ucitati.",
-        );
-        setAppointments([]);
-        setSelectedAppointmentId(null);
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
+  const dayRange = useMemo(() => getDayRange(selectedDate), [selectedDate]);
+  const appointmentsQuery = useMemo<AppointmentListQueryDto>(() => {
+    const query: AppointmentListQueryDto = {
+      ...dayRange,
+      limit: APPOINTMENT_LIMIT,
     };
+    const normalizedSearchTerm = searchTerm.trim();
 
-    void loadAppointments();
+    if (selectedDoctorId) {
+      query.doctorId = selectedDoctorId;
+    }
 
-    return () => {
-      isMounted = false;
-    };
-  }, [selectedDate]);
+    if (selectedAppointmentTypeId) {
+      query.appointmentTypeId = selectedAppointmentTypeId;
+    }
 
+    if (normalizedSearchTerm) {
+      query.search = normalizedSearchTerm;
+    }
+
+    return query;
+  }, [dayRange, searchTerm, selectedAppointmentTypeId, selectedDoctorId]);
+
+  const {
+    data: appointmentsData = [],
+    error: appointmentsError,
+    isLoading: areAppointmentsLoading,
+  } = useAppointmentsQuery(appointmentsQuery);
+  const {
+    data: doctorsData,
+    error: doctorsError,
+    isLoading: areDoctorsLoading,
+  } = useDoctorsQuery();
+  const {
+    data: appointmentTypesData,
+    error: appointmentTypesError,
+    isLoading: areAppointmentTypesLoading,
+  } = useAppointmentTypesQuery();
+
+  const doctorOptions: DoctorResponseDto[] = doctorsData ?? [];
+  const appointmentTypeOptions: AppointmentTypeDto[] =
+    appointmentTypesData ?? [];
+
+  const appointments = useMemo(
+    () =>
+      [...appointmentsData].sort(
+        (first, second) =>
+          new Date(first.startAt).getTime() -
+          new Date(second.startAt).getTime(),
+      ),
+    [appointmentsData],
+  );
   const selectedDayAppointments = appointments;
   const doctors = useMemo(
-    () => buildDoctorColumns(selectedDayAppointments),
-    [selectedDayAppointments],
+    () =>
+      buildDoctorColumns(
+        selectedDayAppointments,
+        doctorOptions,
+        selectedDoctorId,
+      ),
+    [doctorOptions, selectedDayAppointments, selectedDoctorId],
   );
   const calendarAppointments = useMemo(
     () =>
@@ -338,16 +395,51 @@ function AppointmentsPage(): ReactElement {
         .slice(0, 3),
     [appointments],
   );
+  const error = getErrorMessage(
+    appointmentsError ?? doctorsError ?? appointmentTypesError,
+  );
 
-  const changeDate = (days: number): void => {
-    const nextDate = startOfLocalDay(addDays(selectedDate, days));
-    navigate(`/appointments?date=${formatDateKey(nextDate)}`);
+  useEffect(() => {
+    setSelectedAppointmentId((currentAppointmentId) =>
+      selectedDayAppointments.some(
+        (appointment) => appointment.id === currentAppointmentId,
+      )
+        ? currentAppointmentId
+        : (selectedDayAppointments[0]?.id ?? null),
+    );
+  }, [selectedDayAppointments]);
+
+  const updateFilters = (updates: Partial<Record<FilterKey, string>>): void => {
+    const nextParams = new URLSearchParams(searchParams);
+
+    (Object.entries(updates) as [FilterKey, string][]).forEach(
+      ([key, value]) => {
+        const normalizedValue = key === "q" ? value : value.trim();
+
+        if (normalizedValue.trim()) {
+          nextParams.set(key, normalizedValue);
+          return;
+        }
+
+        nextParams.delete(key);
+      },
+    );
+
+    setSearchParams(nextParams);
     setSelectedAppointmentId(null);
   };
 
+  const changeDate = (days: number): void => {
+    const nextDate = startOfLocalDay(addDays(selectedDate, days));
+    updateFilters({ date: formatDateKey(nextDate) });
+  };
+
   const useToday = (): void => {
-    navigate(`/appointments?date=${formatDateKey(new Date())}`);
-    setSelectedAppointmentId(null);
+    updateFilters({ date: formatDateKey(new Date()) });
+  };
+
+  const clearFilters = (): void => {
+    updateFilters({ doctorId: "", appointmentTypeId: "", q: "" });
   };
 
   return (
@@ -375,9 +467,12 @@ function AppointmentsPage(): ReactElement {
           <span>Datum</span>
           <div>
             <AppIcon name="calendar" />
-            <strong>
-              {selectedDate ? formatShortDate(selectedDate) : "Ucitavanje..."}
-            </strong>
+            <input
+              aria-label="Datum termina"
+              type="date"
+              value={formatDateKey(selectedDate)}
+              onChange={(event) => updateFilters({ date: event.target.value })}
+            />
             <AppIcon name="chevronDown" />
           </div>
         </label>
@@ -385,7 +480,21 @@ function AppointmentsPage(): ReactElement {
           <span>Lijecnik</span>
           <div>
             <AppIcon name="user" />
-            <strong>Svi lijecnici</strong>
+            <select
+              aria-label="Lijecnik"
+              disabled={areDoctorsLoading}
+              value={selectedDoctorId}
+              onChange={(event) =>
+                updateFilters({ doctorId: event.target.value })
+              }
+            >
+              <option value="">Svi lijecnici</option>
+              {doctorOptions.map((doctor) => (
+                <option key={doctor.id} value={doctor.id}>
+                  {getDoctorOptionName(doctor)}
+                </option>
+              ))}
+            </select>
             <AppIcon name="chevronDown" />
           </div>
         </label>
@@ -393,7 +502,21 @@ function AppointmentsPage(): ReactElement {
           <span>Vrsta termina</span>
           <div>
             <AppIcon name="tag" />
-            <strong>Sve vrste</strong>
+            <select
+              aria-label="Vrsta termina"
+              disabled={areAppointmentTypesLoading}
+              value={selectedAppointmentTypeId}
+              onChange={(event) =>
+                updateFilters({ appointmentTypeId: event.target.value })
+              }
+            >
+              <option value="">Sve vrste</option>
+              {appointmentTypeOptions.map((appointmentType) => (
+                <option key={appointmentType.id} value={appointmentType.id}>
+                  {appointmentType.name}
+                </option>
+              ))}
+            </select>
             <AppIcon name="chevronDown" />
           </div>
         </label>
@@ -403,7 +526,9 @@ function AppointmentsPage(): ReactElement {
             <AppIcon name="search" />
             <input
               type="search"
-              placeholder="Pretrazite pacijente, termine..."
+              placeholder="Pretrazite pacijente, lijecnike, termine..."
+              value={searchTerm}
+              onChange={(event) => updateFilters({ q: event.target.value })}
             />
           </div>
         </label>
@@ -436,7 +561,7 @@ function AppointmentsPage(): ReactElement {
             </div>
 
             <div className="appointments-current-day">
-              {selectedDate ? formatLongDate(selectedDate) : "Ucitavanje..."}
+              {formatLongDate(selectedDate)}
               <AppIcon name="calendar" />
             </div>
 
@@ -520,15 +645,19 @@ function AppointmentsPage(): ReactElement {
             ))}
           </div>
 
-          {isLoading ? (
+          {areAppointmentsLoading ? (
             <div className="appointments-legend">
               <span>Ucitavanje termina iz baze...</span>
             </div>
           ) : null}
 
-          {!isLoading && selectedDayAppointments.length === 0 ? (
+          {!areAppointmentsLoading && selectedDayAppointments.length === 0 ? (
             <div className="appointments-legend">
-              <span>Nema termina za odabrani dan.</span>
+              <span>
+                {hasActiveFilters
+                  ? "Nema termina za odabrane filtere."
+                  : "Nema termina za odabrani dan."}
+              </span>
             </div>
           ) : null}
 
@@ -553,15 +682,22 @@ function AppointmentsPage(): ReactElement {
               <i className="appointments-dot appointments-dot--gray" />
               Zavrseno
             </span>
+            {hasActiveFilters ? (
+              <button
+                className="appointments-clear-filter-button"
+                type="button"
+                onClick={clearFilters}
+              >
+                Ocisti filtere
+              </button>
+            ) : null}
           </div>
         </section>
 
         <aside className="appointments-side-stack" aria-label="Sazetak termina">
           <section className="appointments-side-panel">
             <h2>Slobodni termini</h2>
-            <p>
-              {selectedDate ? formatShortDate(selectedDate) : "Ucitavanje..."}
-            </p>
+            <p>{formatShortDate(selectedDate)}</p>
             <div className="appointments-free-list">
               {freeSlots.length > 0 ? (
                 freeSlots.map(([name, time, badge]) => (

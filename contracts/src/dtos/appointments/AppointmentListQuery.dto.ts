@@ -8,7 +8,9 @@ export const appointmentListQuerySchema = z
     endAt: z.iso.datetime().optional(),
     doctorId: z.string().uuid().optional(),
     patientId: z.string().uuid().optional(),
+    appointmentTypeId: z.string().uuid().optional(),
     status: appointmentStatusSchema.optional(),
+    search: z.string().trim().max(120).optional(),
     limit: z.coerce.number().int().min(1).max(200).optional(),
   })
   .refine(
