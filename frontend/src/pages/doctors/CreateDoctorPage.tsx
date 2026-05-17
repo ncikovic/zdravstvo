@@ -273,15 +273,15 @@ function CreateDoctorPage(): ReactElement {
             <div className="create-doctor-info-section">
               <span className="create-doctor-info-section__title">Status</span>
               <p>
-                <em className={formData.status === 'Aktivan' ? 'status-badge status-badge--active' : 'status-badge'}>
-                  {formData.status}
+                <em className="status-badge status-badge--active">
+                  Aktivan
                 </em>
               </p>
             </div>
 
             <div className="create-doctor-info-section">
               <span className="create-doctor-info-section__title">Ustanova</span>
-              <p>{formData.institution}</p>
+              <p>Dodjeljuje se iz organizacije</p>
             </div>
           </div>
 

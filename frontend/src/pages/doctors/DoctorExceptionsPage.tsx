@@ -9,6 +9,13 @@ import type { DoctorResponseDto, DoctorTimeOffResponseDto } from '@zdravstvo/con
 
 import './doctors.css'
 
+const initialException = {
+  type: 'GodiÅ¡nji odmor',
+  dateFrom: '',
+  dateTo: '',
+  reason: '',
+}
+
 function DoctorExceptionsPage(): ReactElement {
   const navigate = useNavigate()
   const { doctorId } = useParams<{ doctorId: string }>()
@@ -17,6 +24,8 @@ function DoctorExceptionsPage(): ReactElement {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState<string | null>(null)
+  const [isSaving, setIsSaving] = useState(false)
+  const [newException, setNewException] = useState(initialException)
   useEffect(() => {
     if (!doctorId) {
       setError('Doctor ID not found')
@@ -57,6 +66,31 @@ function DoctorExceptionsPage(): ReactElement {
       setError(err instanceof Error ? err.message : 'Failed to delete time-off')
     } finally {
       setIsDeleting(null)
+    }
+  }
+
+  const handleSave = async () => {
+    if (!doctorId) return
+
+    if (!newException.dateFrom || !newException.dateTo) {
+      setError('Odaberite datum poÄetka i zavrÅ¡etka iznimke')
+      return
+    }
+
+    try {
+      setIsSaving(true)
+      const timeOffData = await doctorsService.createTimeOff(doctorId, {
+        startAt: new Date(`${newException.dateFrom}T00:00:00`).toISOString(),
+        endAt: new Date(`${newException.dateTo}T23:59:59`).toISOString(),
+        reason: newException.reason || newException.type || null,
+      })
+      setTimeOffList(timeOffData.timeOff)
+      setNewException(initialException)
+      setError(null)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save time-off')
+    } finally {
+      setIsSaving(false)
     }
   }
 
@@ -290,12 +324,21 @@ function DoctorExceptionsPage(): ReactElement {
             </p>
 
             <div className="doctor-exceptions-form-actions">
-              <button className="doctor-exceptions-btn doctor-exceptions-btn--secondary" type="button">
+              <button
+                className="doctor-exceptions-btn doctor-exceptions-btn--secondary"
+                type="button"
+                onClick={() => setNewException(initialException)}
+              >
                 Odustani
               </button>
-              <button className="doctor-exceptions-btn doctor-exceptions-btn--primary" type="button" onClick={handleSave}>
+              <button
+                className="doctor-exceptions-btn doctor-exceptions-btn--primary"
+                type="button"
+                onClick={handleSave}
+                disabled={isSaving}
+              >
                 <AppIcon name="note" />
-                Spremi iznimku
+                {isSaving ? 'Sprema se...' : 'Spremi iznimku'}
               </button>
             </div>
           </div>
