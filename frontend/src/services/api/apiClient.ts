@@ -13,6 +13,7 @@ const NETWORK_ERROR_MESSAGE = 'Network error. Please try again.'
 const NOT_FOUND_ERROR_MESSAGE =
   'The requested service is currently unavailable. Please try again.'
 const UNAUTHORIZED_GUARD_MS = 250
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '/api'
 
 let isHandlingUnauthorized = false
 
@@ -104,7 +105,7 @@ const handleUnauthorized = (): void => {
 }
 
 export const apiClient = axios.create({
-  baseURL: '/api',
+  baseURL: apiBaseUrl,
   timeout: 10000,
 })
 
