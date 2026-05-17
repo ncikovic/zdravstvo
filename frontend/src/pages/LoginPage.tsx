@@ -1,45 +1,45 @@
-import { zodResolver } from '@hookform/resolvers/zod';
+import { zodResolver } from '@hookform/resolvers/zod'
 import type {
   LoginOrganizationSelectionRequiredResponseDto,
   LoginRequestDto,
-} from '@zdravstvo/contracts';
-import { loginRequestSchema } from '@zdravstvo/contracts';
-import type { ReactElement } from 'react';
-import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import type { z } from 'zod';
+} from '@zdravstvo/contracts'
+import { loginRequestSchema } from '@zdravstvo/contracts'
+import type { ReactElement } from 'react'
+import { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import type { z } from 'zod'
 
-import { AuthBrandLogo, PatientRegistrationForm } from '@/components';
-import { APP_ROUTES } from '@/app/routes';
+import { APP_ROUTES } from '@/app/routes'
+import { AuthBrandLogo, PatientRegistrationForm } from '@/components'
 import {
   useLoginMutation,
   usePublicOrganizationsQuery,
   useSelectOrganizationMutation,
-} from '@/hooks';
-import { useAuthStore } from '@/stores';
-import type { Organization } from '@/types';
+} from '@/hooks'
+import { useAuthStore } from '@/stores'
+import type { Organization } from '@/types'
 
 interface LocationState {
-  registrationSuccess?: boolean;
-  registeredEmail?: string;
+  registrationSuccess?: boolean
+  registeredEmail?: string
   from?: {
-    pathname?: string;
-  };
+    pathname?: string
+  }
 }
 
-type AuthStep = 'login' | 'organizationSelection' | 'register';
-type LoginFormValues = z.input<typeof loginRequestSchema>;
+type AuthStep = 'login' | 'organizationSelection' | 'register'
+type LoginFormValues = z.input<typeof loginRequestSchema>
 
 interface LoginPageProps {
-  initialStep?: AuthStep;
+  initialStep?: AuthStep
 }
 
 const resolveRedirectPath = (state: LocationState | null | undefined): string => {
-  const redirectPath = state?.from?.pathname;
+  const redirectPath = state?.from?.pathname
 
-  return redirectPath && redirectPath !== '/login' ? redirectPath : '/';
-};
+  return redirectPath && redirectPath !== '/login' ? redirectPath : '/'
+}
 
 const OrganizationCardIcon = (): ReactElement => (
   <span className="organization-card__icon" aria-hidden="true">
@@ -52,44 +52,44 @@ const OrganizationCardIcon = (): ReactElement => (
       <path d="M10 16.1h4" />
     </svg>
   </span>
-);
+)
 
 const SearchIcon = (): ReactElement => (
   <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
     <path d="M10.8 18.1a7.3 7.3 0 1 0 0-14.6 7.3 7.3 0 0 0 0 14.6Z" />
     <path d="m16.2 16.2 4.3 4.3" />
   </svg>
-);
+)
 
 const ChevronIcon = (): ReactElement => (
   <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
     <path d="m9 5 7 7-7 7" />
   </svg>
-);
+)
 
 export function LoginPage({ initialStep = 'login' }: LoginPageProps): ReactElement {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  const loginMutation = useLoginMutation();
-  const selectOrganizationMutation = useSelectOrganizationMutation();
-  const locationState = location.state as LocationState | null;
-  const [authStep, setAuthStep] = useState<AuthStep>(initialStep);
-  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const navigate = useNavigate()
+  const location = useLocation()
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const loginMutation = useLoginMutation()
+  const selectOrganizationMutation = useSelectOrganizationMutation()
+  const locationState = location.state as LocationState | null
+  const [authStep, setAuthStep] = useState<AuthStep>(initialStep)
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false)
   const [organizationSelection, setOrganizationSelection] =
-    useState<LoginOrganizationSelectionRequiredResponseDto | null>(null);
-  const [selectedOrganizationId, setSelectedOrganizationId] = useState<string | null>(null);
-  const [organizationSearch, setOrganizationSearch] = useState('');
-  const [organizationPage, setOrganizationPage] = useState(1);
+    useState<LoginOrganizationSelectionRequiredResponseDto | null>(null)
+  const [selectedOrganizationId, setSelectedOrganizationId] = useState<string | null>(null)
+  const [organizationSearch, setOrganizationSearch] = useState('')
+  const [organizationPage, setOrganizationPage] = useState(1)
   const [selectedRegistrationOrganization, setSelectedRegistrationOrganization] =
-    useState<Organization | null>(null);
+    useState<Organization | null>(null)
   const organizationsQuery = usePublicOrganizationsQuery(
     {
       page: organizationPage,
       search: organizationSearch,
     },
-    authStep === 'organizationSelection' && !organizationSelection,
-  );
+    authStep === 'organizationSelection' && !organizationSelection
+  )
   const {
     register,
     handleSubmit,
@@ -97,117 +97,117 @@ export function LoginPage({ initialStep = 'login' }: LoginPageProps): ReactEleme
   } = useForm<LoginFormValues, unknown, LoginRequestDto>({
     resolver: zodResolver(loginRequestSchema),
     defaultValues: {
-      identifier: 'admin@zdravstvo-demo.test',
-      password: 'Demo1234!',
+      identifier: 'Unesite email ili telefon',
+      password: '',
     },
-  });
+  })
 
   useEffect(() => {
     if (!isAuthenticated) {
-      return;
+      return
     }
 
     navigate(resolveRedirectPath(locationState), {
       replace: true,
-    });
-  }, [isAuthenticated, locationState, navigate]);
+    })
+  }, [isAuthenticated, locationState, navigate])
 
   const onSubmit = async (values: LoginRequestDto): Promise<void> => {
-    setOrganizationSelection(null);
-    const loginResponse = await loginMutation.mutateAsync(values);
+    setOrganizationSelection(null)
+    const loginResponse = await loginMutation.mutateAsync(values)
 
     if (loginResponse.requiresOrganizationSelection) {
-      setOrganizationSelection(loginResponse);
-      return;
+      setOrganizationSelection(loginResponse)
+      return
     }
 
     navigate(resolveRedirectPath(locationState), {
       replace: true,
-    });
-  };
+    })
+  }
 
   const onSelectOrganization = async (organizationId: string): Promise<void> => {
     if (!organizationSelection) {
-      return;
+      return
     }
 
-    setSelectedOrganizationId(organizationId);
+    setSelectedOrganizationId(organizationId)
 
     await selectOrganizationMutation.mutateAsync({
       selectionToken: organizationSelection.selectionToken,
       organizationId,
-    });
+    })
 
     navigate(resolveRedirectPath(locationState), {
       replace: true,
-    });
-  };
+    })
+  }
 
   const startRegistration = (): void => {
-    setOrganizationSelection(null);
-    setSelectedOrganizationId(null);
-    setSelectedRegistrationOrganization(null);
-    setOrganizationSearch('');
-    setOrganizationPage(1);
-    setAuthStep('organizationSelection');
-  };
+    setOrganizationSelection(null)
+    setSelectedOrganizationId(null)
+    setSelectedRegistrationOrganization(null)
+    setOrganizationSearch('')
+    setOrganizationPage(1)
+    setAuthStep('organizationSelection')
+  }
 
   const returnToLogin = (): void => {
-    setOrganizationSelection(null);
-    setSelectedOrganizationId(null);
-    setSelectedRegistrationOrganization(null);
-    setOrganizationSearch('');
-    setOrganizationPage(1);
-    setAuthStep('login');
-  };
+    setOrganizationSelection(null)
+    setSelectedOrganizationId(null)
+    setSelectedRegistrationOrganization(null)
+    setOrganizationSearch('')
+    setOrganizationPage(1)
+    setAuthStep('login')
+  }
 
   const selectRegistrationOrganization = (organization: Organization): void => {
-    setSelectedRegistrationOrganization(organization);
-    setAuthStep('register');
-  };
+    setSelectedRegistrationOrganization(organization)
+    setAuthStep('register')
+  }
 
   const handleRegistrationSuccess = (registeredEmail: string): void => {
-    setAuthStep('login');
-    setSelectedRegistrationOrganization(null);
-    setOrganizationSearch('');
-    setOrganizationPage(1);
+    setAuthStep('login')
+    setSelectedRegistrationOrganization(null)
+    setOrganizationSearch('')
+    setOrganizationPage(1)
     navigate(APP_ROUTES.accountCreated, {
       replace: true,
       state: {
         registeredEmail,
       },
-    });
-  };
+    })
+  }
 
-  const isPending = loginMutation.isPending || isSubmitting;
-  const isSelecting = selectOrganizationMutation.isPending;
-  const organizations = organizationsQuery.data?.organizations ?? [];
-  const organizationsPagination = organizationsQuery.data?.pagination;
-  const hasPreviousOrganizationPage = (organizationsPagination?.page ?? organizationPage) > 1;
+  const isPending = loginMutation.isPending || isSubmitting
+  const isSelecting = selectOrganizationMutation.isPending
+  const organizations = organizationsQuery.data?.organizations ?? []
+  const organizationsPagination = organizationsQuery.data?.pagination
+  const hasPreviousOrganizationPage = (organizationsPagination?.page ?? organizationPage) > 1
   const hasNextOrganizationPage = organizationsPagination
     ? organizationsPagination.page < organizationsPagination.totalPages
-    : false;
-  const isRegistrationFlow = !organizationSelection && authStep !== 'login';
+    : false
+  const isRegistrationFlow = !organizationSelection && authStep !== 'login'
   const pageClassName = isRegistrationFlow
     ? `login-page register-page ${authStep === 'register' ? 'patient-register-page' : 'organization-register-page'}`
-    : 'login-page';
+    : 'login-page'
   const formPanelClassName = isRegistrationFlow
     ? 'login-form-panel register-form-panel'
-    : 'login-form-panel';
-  const heroClassName = isRegistrationFlow ? 'login-hero register-hero' : 'login-hero';
+    : 'login-form-panel'
+  const heroClassName = isRegistrationFlow ? 'login-hero register-hero' : 'login-hero'
   const heroContentClassName = isRegistrationFlow
     ? 'login-hero__content register-hero__content'
-    : 'login-hero__content';
+    : 'login-hero__content'
   const featureListClassName = isRegistrationFlow
     ? 'login-feature-list register-feature-list'
-    : 'login-feature-list';
-  const featureClassName = isRegistrationFlow ? 'login-feature register-feature' : 'login-feature';
+    : 'login-feature-list'
+  const featureClassName = isRegistrationFlow ? 'login-feature register-feature' : 'login-feature'
   const cardClassName =
     authStep === 'login' && !organizationSelection
       ? 'login-card'
       : authStep === 'register'
         ? 'login-card register-card auth-flow-card auth-flow-card--register'
-        : 'login-card auth-flow-card';
+        : 'login-card auth-flow-card'
 
   return (
     <main className={pageClassName}>
@@ -513,8 +513,8 @@ export function LoginPage({ initialStep = 'login' }: LoginPageProps): ReactEleme
                     placeholder="Pretražite ustanovu"
                     value={organizationSearch}
                     onChange={(event) => {
-                      setOrganizationSearch(event.target.value);
-                      setOrganizationPage(1);
+                      setOrganizationSearch(event.target.value)
+                      setOrganizationPage(1)
                     }}
                   />
                 </div>
@@ -630,5 +630,5 @@ export function LoginPage({ initialStep = 'login' }: LoginPageProps): ReactEleme
         </div>
       </section>
     </main>
-  );
+  )
 }
