@@ -253,12 +253,15 @@
   color: #ffffff !important;
 }
 
+.appointments-calendar-scroll {
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: min(600px, calc(100vh - 320px));
+}
+
 .appointments-calendar {
   display: grid;
-  grid-template-columns: 76px repeat(4, minmax(182px, 1fr));
-  min-width: 840px;
   border-bottom: 1px solid #e1ebf5;
-  overflow-x: auto;
 }
 
 .appointments-calendar__header-spacer {
@@ -377,8 +380,6 @@
 
 .appointment-card {
   position: absolute;
-  right: 9px;
-  left: 9px;
   z-index: 1;
   display: grid;
   gap: 1px;
@@ -902,7 +903,17 @@
   }
 }
 
+@media (max-width: 1020px) {
+  .appointments-calendar-scroll {
+    max-height: min(540px, calc(100vh - 280px));
+  }
+}
+
 @media (max-width: 680px) {
+  .appointments-calendar-scroll {
+    max-height: min(480px, calc(100vh - 220px));
+  }
+
   .appointments-page__hero h1 {
     font-size: 1.9rem;
   }
