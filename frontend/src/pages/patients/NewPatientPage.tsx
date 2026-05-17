@@ -12,7 +12,6 @@ import "./patients.css";
 function NewPatientPage(): ReactElement {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    profilePhoto: "",
     firstName: "",
     lastName: "",
     dateOfBirth: "",
@@ -119,23 +118,6 @@ function NewPatientPage(): ReactElement {
               {error}
             </div>
           ) : null}
-          {/* Profile Picture Section */}
-          <div className="new-patient-card__section">
-            <div className="new-patient-profile-photo">
-              <div className="new-patient-profile-photo__placeholder">
-                <AppIcon name="user" />
-              </div>
-              <span className="new-patient-profile-photo__label">
-                Profilna fotografija
-              </span>
-              <p className="new-patient-profile-photo__hint">
-                Kliknite za dodati ili povucite sliku ovdje
-                <br />
-                PNG, JPG ili WEBP do 2MB
-              </p>
-            </div>
-          </div>
-
           {/* Basic Info Section */}
           <div className="new-patient-card__section">
             <h2 className="new-patient-card__section-title">

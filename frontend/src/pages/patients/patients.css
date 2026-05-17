@@ -818,55 +818,6 @@
   font-weight: 800;
 }
 
-.new-patient-profile-photo {
-  display: grid;
-  gap: 12px;
-  align-content: start;
-  padding: 20px;
-  border: 2px dashed #d9e6f2;
-  border-radius: 8px;
-  background: #fafbfc;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.new-patient-profile-photo:hover {
-  border-color: #0ca4a0;
-  background: #e5f7f6;
-}
-
-.new-patient-profile-photo__placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100px;
-  height: 100px;
-  margin: 0 auto;
-  border-radius: 8px;
-  background: #e5f7f6;
-  color: #0ca4a0;
-}
-
-.new-patient-profile-photo__placeholder .app-icon {
-  width: 40px;
-  height: 40px;
-}
-
-.new-patient-profile-photo__label {
-  display: block;
-  color: #07183a;
-  font-weight: 700;
-  margin-top: 8px;
-}
-
-.new-patient-profile-photo__hint {
-  margin: 0;
-  color: #8a97af;
-  font-size: 0.85rem;
-  line-height: 1.4;
-}
-
 .new-patient-fields-row {
   display: grid;
   gap: 16px;

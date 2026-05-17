@@ -73,20 +73,6 @@ function CreateDoctorPage(): ReactElement {
           </div>
         )}
         <section className="create-doctor-card">
-          {/* Profile Picture Section */}
-          <div className="create-doctor-card__section">
-            <div className="create-doctor-profile-photo">
-              <div className="create-doctor-profile-photo__placeholder">
-                <AppIcon name="doctor" />
-              </div>
-              <span className="create-doctor-profile-photo__label">Profilna fotografija</span>
-              <p className="create-doctor-profile-photo__hint">
-                Kliknite za dodati ili povucite sliku ovdje<br />
-                PNG, JPG ili WEBP do 2MB
-              </p>
-            </div>
-          </div>
-
           {/* Basic Info Section */}
           <div className="create-doctor-card__section">
             <h2 className="create-doctor-card__section-title">Osnovni podaci</h2>
