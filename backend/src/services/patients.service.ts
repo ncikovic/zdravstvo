@@ -5,6 +5,7 @@ import type {
   PatientListResponseDto,
   UpdatePatientRequestDto,
 } from "@zdravstvo/contracts";
+import { OrganizationUserRole } from "@zdravstvo/contracts";
 import { v4 as uuidv4 } from "uuid";
 
 import { patientsRepository } from "../repositories/index.js";
@@ -64,8 +65,12 @@ export const patientsService = {
 
   async getPatient(
     id: string,
-    context?: Pick<AuthenticatedRequestContext, "organizationId">,
+    context?: Pick<AuthenticatedRequestContext, "organizationId" | "role" | "userId">,
   ): Promise<PatientDto> {
+    if (context?.role === OrganizationUserRole.PATIENT && id !== context.userId) {
+      throw AppError.forbidden();
+    }
+
     const patient = context
       ? await patientsRepository.findActiveByOrganizationAndId(
           context.organizationId,
@@ -96,8 +101,12 @@ export const patientsService = {
   async updatePatient(
     id: string,
     payload: UpdatePatientRequestDto,
-    context?: Pick<AuthenticatedRequestContext, "organizationId">,
+    context?: Pick<AuthenticatedRequestContext, "organizationId" | "role" | "userId">,
   ): Promise<PatientDto> {
+    if (context?.role === OrganizationUserRole.PATIENT && id !== context.userId) {
+      throw AppError.forbidden();
+    }
+
     if (context) {
       const existingPatient =
         await patientsRepository.findActiveByOrganizationAndId(

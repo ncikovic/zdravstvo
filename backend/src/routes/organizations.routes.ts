@@ -16,14 +16,17 @@ import {
   updateOrganizationValidationSchemas,
 } from '../validations/index.js';
 
-const canManageOrganizations = requireRoles(OrganizationUserRole.MANAGER);
+// Only SYSTEM_ADMIN can create or delete organizations (requireRoles() with no args
+// allows isSystemAdmin=true and denies all org-scoped roles).
+const systemAdminOnly = requireRoles();
+const canReadOrUpdateOrganization = requireRoles(OrganizationUserRole.MANAGER);
 
 export const organizationsRouter = Router();
 
 organizationsRouter.post(
   '/organizations',
   authenticateRequest,
-  canManageOrganizations,
+  systemAdminOnly,
   validateRequest(createOrganizationValidationSchemas),
   asyncHandler(async (request, response) => {
     await organizationsController.create(request, response);
@@ -33,7 +36,7 @@ organizationsRouter.post(
 organizationsRouter.get(
   '/organizations',
   authenticateRequest,
-  canManageOrganizations,
+  canReadOrUpdateOrganization,
   asyncHandler(async (request, response) => {
     await organizationsController.list(request, response);
   }),
@@ -50,7 +53,7 @@ organizationsRouter.get(
 organizationsRouter.get(
   '/organizations/:id',
   authenticateRequest,
-  canManageOrganizations,
+  canReadOrUpdateOrganization,
   validateRequest(organizationIdValidationSchemas),
   asyncHandler(async (request, response) => {
     await organizationsController.getById(request, response);
@@ -60,7 +63,7 @@ organizationsRouter.get(
 organizationsRouter.patch(
   '/organizations/:id',
   authenticateRequest,
-  canManageOrganizations,
+  canReadOrUpdateOrganization,
   validateRequest(updateOrganizationValidationSchemas),
   asyncHandler(async (request, response) => {
     await organizationsController.update(request, response);
@@ -70,7 +73,7 @@ organizationsRouter.patch(
 organizationsRouter.delete(
   '/organizations/:id',
   authenticateRequest,
-  canManageOrganizations,
+  systemAdminOnly,
   validateRequest(deleteOrganizationValidationSchemas),
   asyncHandler(async (request, response) => {
     await organizationsController.delete(request, response);

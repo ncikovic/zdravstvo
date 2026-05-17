@@ -8,7 +8,7 @@ import { OrganizationUserRole } from '@zdravstvo/contracts';
 export const auditRouter = Router();
 
 auditRouter.use(authenticateRequest);
-auditRouter.use(requireRoles(OrganizationUserRole.MANAGER, OrganizationUserRole.RECEPTION));
+auditRouter.use(requireRoles(OrganizationUserRole.MANAGER));
 
 auditRouter.get('/', auditController.listLogs);
 auditRouter.get('/:id', auditController.getLog);

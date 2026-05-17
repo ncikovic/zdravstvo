@@ -50,5 +50,6 @@ export interface AppNavigationItem {
   path: string
   icon: AppIconName
   allowedRoles: readonly OrganizationUserRole[]
+  isSystemAdminItem?: boolean
   section?: AppNavigationSection
 }

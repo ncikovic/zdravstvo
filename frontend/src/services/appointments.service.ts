@@ -8,6 +8,7 @@ import type {
   CancelAppointmentRequestDto,
   CreateAppointmentRequestDto,
   UpdateAppointmentScheduleRequestDto,
+  UpdateAppointmentStatusRequestDto,
 } from "@zdravstvo/contracts";
 
 import { apiClient } from "@/services/api";
@@ -77,6 +78,18 @@ export const appointmentsService = {
   ): Promise<AppointmentResponseDto> {
     const response = await apiClient.patch<ApiResponse<AppointmentResponseDto>>(
       `/appointments/${appointmentId}/cancel`,
+      data,
+    );
+
+    return response.data.data;
+  },
+
+  async updateStatus(
+    appointmentId: string,
+    data: UpdateAppointmentStatusRequestDto,
+  ): Promise<AppointmentResponseDto> {
+    const response = await apiClient.patch<ApiResponse<AppointmentResponseDto>>(
+      `/appointments/${appointmentId}/status`,
       data,
     );
 

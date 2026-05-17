@@ -18,7 +18,6 @@ const canReadAppointmentTypes = requireRoles(
 );
 const canManageAppointmentTypes = requireRoles(
   OrganizationUserRole.MANAGER,
-  OrganizationUserRole.RECEPTION,
 );
 
 appointmentTypesRouter.get(

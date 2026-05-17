@@ -1,5 +1,6 @@
 import type {
   ApiResponse,
+  CreateOrganizationRequestDto,
   OrganizationListPaginationDto,
   OrganizationListQueryDto,
   OrganizationListResponseDto,
@@ -52,12 +53,31 @@ export class OrganizationsService {
     return mapOrganization(response.data.data);
   }
 
+  public async listAll(): Promise<Organization[]> {
+    const response = await apiClient.get<ApiResponse<OrganizationListResponseDto>>(
+      '/organizations',
+    );
+    return response.data.data.organizations.map(mapOrganization);
+  }
+
+  public async create(payload: CreateOrganizationRequestDto): Promise<Organization> {
+    const response = await apiClient.post<ApiResponse<OrganizationResponseDto>>(
+      '/organizations',
+      payload,
+    );
+    return mapOrganization(response.data.data);
+  }
+
   public async update(id: string, payload: UpdateOrganizationRequestDto): Promise<Organization> {
     const response = await apiClient.patch<ApiResponse<OrganizationResponseDto>>(
       `/organizations/${id}`,
       payload,
     );
     return mapOrganization(response.data.data);
+  }
+
+  public async delete(id: string): Promise<void> {
+    await apiClient.delete(`/organizations/${id}`);
   }
 }
 

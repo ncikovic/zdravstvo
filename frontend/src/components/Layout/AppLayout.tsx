@@ -91,12 +91,13 @@ const PAGE_TITLES: Record<string, string> = {
 
 export function AppLayout(): ReactElement {
   const role = useAuthStore((state) => state.role)
+  const isSystemAdmin = useAuthStore((state) => state.isSystemAdmin)
   const user = useAuthStore((state) => state.user)
   const clearAuth = useAuthStore((state) => state.clearAuth)
   const [openMenu, setOpenMenu] = useState<TopbarMenu | null>(null)
   const [searchParams, setSearchParams] = useSearchParams()
-  const navigationItems = useRoleNavigation(role)
-  const shellConfig = getRoleShellConfig(role)
+  const navigationItems = useRoleNavigation(role, isSystemAdmin)
+  const shellConfig = getRoleShellConfig(role, isSystemAdmin)
   const location = useLocation()
   const { announce } = useAccessibility()
 

@@ -5,6 +5,7 @@ import {
   cancelAppointmentRequestSchema,
   createAppointmentRequestSchema,
   updateAppointmentScheduleRequestSchema,
+  updateAppointmentStatusRequestSchema,
 } from "@zdravstvo/contracts";
 
 export const listAppointmentsValidationSchemas = {
@@ -30,5 +31,10 @@ export const updateAppointmentScheduleValidationSchemas = {
 
 export const cancelAppointmentValidationSchemas = {
   body: cancelAppointmentRequestSchema,
+  params: appointmentIdParamsSchema,
+};
+
+export const updateAppointmentStatusValidationSchemas = {
+  body: updateAppointmentStatusRequestSchema,
   params: appointmentIdParamsSchema,
 };

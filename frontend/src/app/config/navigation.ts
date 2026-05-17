@@ -4,31 +4,51 @@ import type { AppNavigationItem } from '@/types'
 
 import { APP_ROUTES } from '../routes'
 
-const ADMIN_RECEPTION_ROLES: readonly OrganizationUserRole[] = [
-  OrganizationUserRole.MANAGER,
-  OrganizationUserRole.RECEPTION,
-]
-
 export const APP_NAVIGATION_ITEMS: readonly AppNavigationItem[] = [
+  // SYSTEM_ADMIN navigation
   {
-    id: 'dashboard',
-    label: 'Nadzorna ploča',
-    path: APP_ROUTES.dashboard,
-    icon: 'dashboard',
-    allowedRoles: [
-      OrganizationUserRole.MANAGER,
-      OrganizationUserRole.RECEPTION,
-      OrganizationUserRole.DOCTOR,
-      OrganizationUserRole.PATIENT,
-    ],
+    id: 'admin-organizations',
+    label: 'Organizacije',
+    path: APP_ROUTES.adminOrganizations,
+    icon: 'building',
+    allowedRoles: [],
+    isSystemAdminItem: true,
     section: 'primary',
   },
   {
-    id: 'appointments',
-    label: 'Termini',
-    path: APP_ROUTES.appointments,
+    id: 'admin-users',
+    label: 'Korisnici',
+    path: APP_ROUTES.adminUsers,
+    icon: 'users',
+    allowedRoles: [],
+    isSystemAdminItem: true,
+    section: 'primary',
+  },
+  {
+    id: 'admin-audit',
+    label: 'Audit',
+    path: APP_ROUTES.adminAudit,
+    icon: 'shieldCheck',
+    allowedRoles: [],
+    isSystemAdminItem: true,
+    section: 'administration',
+  },
+
+  // MANAGER navigation
+  {
+    id: 'schedule',
+    label: 'Raspored',
+    path: APP_ROUTES.schedule,
     icon: 'calendar',
-    allowedRoles: ADMIN_RECEPTION_ROLES,
+    allowedRoles: [OrganizationUserRole.MANAGER, OrganizationUserRole.RECEPTION],
+    section: 'primary',
+  },
+  {
+    id: 'patients',
+    label: 'Pacijenti',
+    path: APP_ROUTES.patients,
+    icon: 'patients',
+    allowedRoles: [OrganizationUserRole.MANAGER, OrganizationUserRole.RECEPTION],
     section: 'clinical',
   },
   {
@@ -36,19 +56,7 @@ export const APP_NAVIGATION_ITEMS: readonly AppNavigationItem[] = [
     label: 'Liječnici',
     path: APP_ROUTES.doctors,
     icon: 'doctor',
-    allowedRoles: ADMIN_RECEPTION_ROLES,
-    section: 'clinical',
-  },
-  {
-    id: 'patients',
-    label: 'Pacijenti',
-    path: APP_ROUTES.patients,
-    icon: 'patients',
-    allowedRoles: [
-      OrganizationUserRole.MANAGER,
-      OrganizationUserRole.RECEPTION,
-      OrganizationUserRole.DOCTOR,
-    ],
+    allowedRoles: [OrganizationUserRole.MANAGER],
     section: 'clinical',
   },
   {
@@ -56,7 +64,15 @@ export const APP_NAVIGATION_ITEMS: readonly AppNavigationItem[] = [
     label: 'Vrste termina',
     path: APP_ROUTES.appointmentTypes,
     icon: 'tag',
-    allowedRoles: ADMIN_RECEPTION_ROLES,
+    allowedRoles: [OrganizationUserRole.MANAGER],
+    section: 'administration',
+  },
+  {
+    id: 'users',
+    label: 'Korisnici',
+    path: APP_ROUTES.settings,
+    icon: 'users',
+    allowedRoles: [OrganizationUserRole.MANAGER],
     section: 'administration',
   },
   {
@@ -64,19 +80,23 @@ export const APP_NAVIGATION_ITEMS: readonly AppNavigationItem[] = [
     label: 'Audit',
     path: APP_ROUTES.audit,
     icon: 'shieldCheck',
-    allowedRoles: ADMIN_RECEPTION_ROLES,
+    allowedRoles: [OrganizationUserRole.MANAGER],
     section: 'administration',
   },
+
+  // DOCTOR navigation
   {
-    id: 'doctor-schedule',
+    id: 'doctor-own-schedule',
     label: 'Moj raspored',
-    path: APP_ROUTES.schedule,
-    icon: 'calendar',
+    path: APP_ROUTES.doctorOwnSchedule,
+    icon: 'calendarCheck',
     allowedRoles: [OrganizationUserRole.DOCTOR],
-    section: 'clinical',
+    section: 'primary',
   },
+
+  // PATIENT navigation
   {
-    id: 'patient-appointments',
+    id: 'my-appointments',
     label: 'Moji termini',
     path: APP_ROUTES.myAppointments,
     icon: 'calendar',
@@ -84,24 +104,30 @@ export const APP_NAVIGATION_ITEMS: readonly AppNavigationItem[] = [
     section: 'clinical',
   },
   {
-    id: 'accessibility',
-    label: 'Pristupacnost',
-    path: APP_ROUTES.accessibility,
-    icon: 'accessibility',
+    id: 'book-appointment',
+    label: 'Zakaži termin',
+    path: APP_ROUTES.book,
+    icon: 'plus',
+    allowedRoles: [OrganizationUserRole.PATIENT],
+    section: 'clinical',
+  },
+  {
+    id: 'profile',
+    label: 'Profil',
+    path: APP_ROUTES.profile,
+    icon: 'user',
     allowedRoles: [OrganizationUserRole.PATIENT],
     section: 'system',
   },
+
+  // Shared settings for MANAGER + SYSTEM_ADMIN
   {
     id: 'settings',
     label: 'Postavke',
     path: APP_ROUTES.settings,
     icon: 'settings',
-    allowedRoles: [
-      OrganizationUserRole.MANAGER,
-      OrganizationUserRole.RECEPTION,
-      OrganizationUserRole.DOCTOR,
-      OrganizationUserRole.PATIENT,
-    ],
+    allowedRoles: [OrganizationUserRole.MANAGER],
+    isSystemAdminItem: true,
     section: 'system',
   },
 ]

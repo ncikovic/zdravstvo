@@ -9,6 +9,7 @@ import {
   type CreateAppointmentRequestDto,
   OrganizationUserRole,
   type UpdateAppointmentScheduleRequestDto,
+  type UpdateAppointmentStatusRequestDto,
 } from "@zdravstvo/contracts";
 import type { Knex } from "knex";
 
@@ -56,6 +57,7 @@ type AppointmentsRepositoryContract = Pick<
   | "countMany"
   | "createAppointment"
   | "updateSchedule"
+  | "updateStatus"
   | "cancelAppointment"
 >;
 
@@ -449,16 +451,11 @@ const ensureCreateAccess = (
   context: AppointmentsRequestContext,
   payload: CreateAppointmentRequestDto,
 ): void => {
-  ensureSchedulingRole(context.role);
-
-  if (isManagerRole(context.role)) {
-    return;
+  if (!context.role) {
+    throw AppError.forbidden();
   }
 
-  if (
-    context.role === OrganizationUserRole.DOCTOR &&
-    payload.doctorId === context.userId
-  ) {
+  if (isManagerRole(context.role)) {
     return;
   }
 
@@ -469,6 +466,7 @@ const ensureCreateAccess = (
     return;
   }
 
+  // DOCTOR cannot book appointments
   throw AppError.forbidden();
 };
 
@@ -1068,12 +1066,62 @@ export class AppointmentsService {
     });
   }
 
+  public async updateStatus(
+    context: AppointmentsRequestContext,
+    appointmentId: string,
+    payload: UpdateAppointmentStatusRequestDto,
+  ): Promise<AppointmentResponseDto> {
+    ensureSchedulingRole(context.role);
+
+    const appointment = await this.appointmentsRepository.findById(
+      context.organizationId,
+      appointmentId,
+    );
+
+    if (!appointment) {
+      throw AppError.notFound("Appointment not found.");
+    }
+
+    if (
+      context.role === OrganizationUserRole.DOCTOR &&
+      appointment.doctor.id !== context.userId
+    ) {
+      throw AppError.forbidden();
+    }
+
+    if (appointment.status !== "SCHEDULED") {
+      throw AppError.conflict(
+        "APPOINTMENT_NOT_UPDATABLE",
+        "Only scheduled appointments can be marked as completed or no-show.",
+      );
+    }
+
+    const updated = await this.appointmentsRepository.updateStatus(
+      context.organizationId,
+      appointmentId,
+      {
+        status: payload.status,
+        updatedByOrgUserId: context.organizationUserId,
+      },
+    );
+
+    if (!updated) {
+      throw AppError.notFound("Appointment not found.");
+    }
+
+    return mapAppointmentResponse(updated);
+  }
+
   public async cancel(
     context: AppointmentsRequestContext,
     appointmentId: string,
     payload: CancelAppointmentRequestDto,
   ): Promise<AppointmentResponseDto> {
     ensureSchedulingRole(context.role);
+
+    if (context.role === OrganizationUserRole.DOCTOR) {
+      throw AppError.forbidden();
+    }
 
     return this.runInTransaction(async (repository) => {
       const appointment = await repository.findById(

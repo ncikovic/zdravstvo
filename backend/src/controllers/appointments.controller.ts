@@ -9,6 +9,7 @@ import type {
   CancelAppointmentRequestDto,
   CreateAppointmentRequestDto,
   UpdateAppointmentScheduleRequestDto,
+  UpdateAppointmentStatusRequestDto,
 } from "@zdravstvo/contracts";
 import type { Request, Response } from "express";
 
@@ -89,6 +90,27 @@ export class AppointmentsController {
     const context = requireAuthenticatedUser(request as Request);
     const { id } = request.params as AppointmentIdParamsDto;
     const appointment = await appointmentsService.reschedule(
+      context,
+      id,
+      request.body,
+    );
+
+    response.status(200).json({
+      data: appointment,
+    });
+  }
+
+  public async updateStatus(
+    request: Request<
+      unknown,
+      ApiResponse<AppointmentResponseDto>,
+      UpdateAppointmentStatusRequestDto
+    >,
+    response: Response<ApiResponse<AppointmentResponseDto>>,
+  ): Promise<void> {
+    const context = requireAuthenticatedUser(request as Request);
+    const { id } = request.params as AppointmentIdParamsDto;
+    const appointment = await appointmentsService.updateStatus(
       context,
       id,
       request.body,

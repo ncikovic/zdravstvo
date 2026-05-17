@@ -21,7 +21,11 @@ export const patientsController = {
   async getPatient(request: Request, response: Response): Promise<void> {
     const context = requireAuthenticatedUser(request);
     const { id } = idParamsSchema.parse(request.params);
-    const patient = await patientsService.getPatient(id, context);
+    const patient = await patientsService.getPatient(id, {
+      organizationId: context.organizationId,
+      role: context.role,
+      userId: context.userId,
+    });
 
     response.status(200).json(patient);
   },
@@ -38,7 +42,11 @@ export const patientsController = {
     const context = requireAuthenticatedUser(request);
     const { id } = idParamsSchema.parse(request.params);
     const payload = updatePatientSchema.parse(request.body);
-    const patient = await patientsService.updatePatient(id, payload, context);
+    const patient = await patientsService.updatePatient(id, payload, {
+      organizationId: context.organizationId,
+      role: context.role,
+      userId: context.userId,
+    });
 
     response.status(200).json(patient);
   },

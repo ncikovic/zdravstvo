@@ -15,6 +15,7 @@ import {
   createAppointmentValidationSchemas,
   listAppointmentsValidationSchemas,
   updateAppointmentScheduleValidationSchemas,
+  updateAppointmentStatusValidationSchemas,
 } from "../validations/index.js";
 
 const canUseAppointments = requireRoles(
@@ -22,6 +23,18 @@ const canUseAppointments = requireRoles(
   OrganizationUserRole.RECEPTION,
   OrganizationUserRole.DOCTOR,
   OrganizationUserRole.PATIENT,
+);
+
+const canBookOrCancel = requireRoles(
+  OrganizationUserRole.MANAGER,
+  OrganizationUserRole.RECEPTION,
+  OrganizationUserRole.PATIENT,
+);
+
+const canUpdateStatus = requireRoles(
+  OrganizationUserRole.MANAGER,
+  OrganizationUserRole.RECEPTION,
+  OrganizationUserRole.DOCTOR,
 );
 
 export const appointmentsRouter = Router();
@@ -54,6 +67,7 @@ appointmentsRouter.get(
 
 appointmentsRouter.post(
   "/",
+  canBookOrCancel,
   validateRequest(createAppointmentValidationSchemas),
   asyncHandler(async (request, response) => {
     await appointmentsController.create(request, response);
@@ -69,7 +83,17 @@ appointmentsRouter.patch(
 );
 
 appointmentsRouter.patch(
+  "/:id/status",
+  canUpdateStatus,
+  validateRequest(updateAppointmentStatusValidationSchemas),
+  asyncHandler(async (request, response) => {
+    await appointmentsController.updateStatus(request, response);
+  }),
+);
+
+appointmentsRouter.patch(
   "/:id/cancel",
+  canBookOrCancel,
   validateRequest(cancelAppointmentValidationSchemas),
   asyncHandler(async (request, response) => {
     await appointmentsController.cancel(request, response);

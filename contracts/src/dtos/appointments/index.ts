@@ -6,3 +6,4 @@ export * from "./AvailableSlot.dto.js";
 export * from "./CancelAppointmentRequest.dto.js";
 export * from "./CreateAppointmentRequest.dto.js";
 export * from "./UpdateAppointmentScheduleRequest.dto.js";
+export * from "./UpdateAppointmentStatusRequest.dto.js";

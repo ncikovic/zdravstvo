@@ -65,6 +65,11 @@ export interface CancelAppointmentInput {
   cancellationReason: string;
 }
 
+export interface UpdateAppointmentStatusInput {
+  status: "COMPLETED" | "NO_SHOW";
+  updatedByOrgUserId: string;
+}
+
 interface DateLikeRow {
   start_at: Date | string;
   end_at: Date | string;
@@ -772,6 +777,28 @@ export class AppointmentsRepository {
       .update({
         status: "CANCELLED",
         cancellation_reason: input.cancellationReason,
+        updated_by_org_user_id: uuidToBuffer(input.updatedByOrgUserId),
+      });
+
+    if (affectedRows === 0) {
+      return null;
+    }
+
+    return this.findById(organizationId, appointmentId);
+  }
+
+  public async updateStatus(
+    organizationId: string,
+    appointmentId: string,
+    input: UpdateAppointmentStatusInput,
+  ): Promise<AppointmentRecord | null> {
+    const affectedRows = await this.executor("appointments")
+      .where({
+        id: uuidToBuffer(appointmentId),
+        organization_id: uuidToBuffer(organizationId),
+      })
+      .update({
+        status: input.status,
         updated_by_org_user_id: uuidToBuffer(input.updatedByOrgUserId),
       });
 

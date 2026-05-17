@@ -99,6 +99,25 @@ const ROLE_SHELL_CONFIG: Record<OrganizationUserRole, RoleShellConfig> = {
   },
 }
 
+const SYSTEM_ADMIN_SHELL_CONFIG: RoleShellConfig = {
+  roleLabel: 'Sistem administrator',
+  headerVariant: 'workspace',
+  searchPlaceholder: 'Pretražite organizacije, korisnike...',
+  notificationCount: 0,
+  dateLabel: 'Danas',
+  workspaceName: 'Zdravstvo Admin',
+  sidebar: {
+    title: 'Administracija',
+    text: 'Upravljanje sustavom.',
+    actionLabel: 'Kontaktirajte podršku',
+    brandIcon: 'shield',
+  },
+}
+
 export const getRoleShellConfig = (
   role: OrganizationUserRole | null,
-): RoleShellConfig => (role ? ROLE_SHELL_CONFIG[role] : DEFAULT_SHELL_CONFIG)
+  isSystemAdmin?: boolean | null,
+): RoleShellConfig => {
+  if (isSystemAdmin) return SYSTEM_ADMIN_SHELL_CONFIG
+  return role ? ROLE_SHELL_CONFIG[role] : DEFAULT_SHELL_CONFIG
+}
