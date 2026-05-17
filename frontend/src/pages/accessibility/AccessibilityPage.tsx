@@ -1,8 +1,10 @@
 import type { ReactElement } from 'react'
 
+import { useEffect, useState } from 'react'
+
 import { AppIcon } from '@/components'
 import { useAccessibility } from '@/contexts/AccessibilityContext'
-import { isSpeechSupported, speakText } from '@/utils/accessibility'
+import { hasCroatianVoice, isSpeechSupported, speakText } from '@/utils/accessibility'
 
 import './accessibility-page.css'
 
@@ -35,6 +37,16 @@ function Toggle({ id, checked, onChange, ariaLabel }: ToggleProps): ReactElement
 function AccessibilityPage(): ReactElement {
   const { prefs, updatePref, resetPrefs } = useAccessibility()
   const speechSupported = isSpeechSupported()
+  const [croatianVoiceAvailable, setCroatianVoiceAvailable] = useState(false)
+
+  useEffect(() => {
+    if (!speechSupported) return
+    // Voices may load asynchronously (Chrome); check after voiceschanged too.
+    const check = (): void => { setCroatianVoiceAvailable(hasCroatianVoice()) }
+    check()
+    window.speechSynthesis.addEventListener('voiceschanged', check)
+    return () => { window.speechSynthesis.removeEventListener('voiceschanged', check) }
+  }, [speechSupported])
 
   const handleReadPage = (): void => {
     const main = document.querySelector('main')
@@ -188,6 +200,13 @@ function AccessibilityPage(): ReactElement {
                 {!prefs.voiceReadout && (
                   <p className="a11y-voice-hint">
                     Uključite glasovno čitanje kako biste koristili ovu funkciju.
+                  </p>
+                )}
+                {prefs.voiceReadout && !croatianVoiceAvailable && (
+                  <p className="a11y-voice-hint a11y-voice-hint--warn">
+                    Na ovom uređaju nije pronađen hrvatski glas — čitanje će koristiti zadani
+                    glas operacijskog sustava. Za hrvatski, instalirajte hrvatski TTS glas u
+                    postavkama vašeg sustava.
                   </p>
                 )}
               </div>
