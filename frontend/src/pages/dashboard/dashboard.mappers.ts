@@ -469,6 +469,7 @@ const mapPatientAppointmentDetails = (
     .join(", ");
 
   return {
+    id: appointment.id,
     status: getStatusLabel(appointment.status),
     statusTone: getStatusTone(appointment.status),
     doctorInitials: getInitials(formatPersonName(appointment.doctor)),

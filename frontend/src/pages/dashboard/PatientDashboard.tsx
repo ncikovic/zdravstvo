@@ -1,4 +1,5 @@
 import type { ReactElement } from 'react'
+import { Link } from 'react-router-dom'
 
 import { AppIcon } from '@/components'
 import type { PatientDashboard as PatientDashboardData } from '@/types'
@@ -83,14 +84,14 @@ export function PatientDashboard({ dashboard }: PatientDashboardProps): ReactEle
                 {view.nextAppointment.note}
               </p>
               <div className="patient-appointment__actions">
-                <button className="dashboard-gradient-action" type="button">
+                <Link className="dashboard-gradient-action" to={`/appointments/${view.nextAppointment.id}`}>
                   <AppIcon name="calendarCheck" />
                   Detalji termina
-                </button>
-                <button className="dashboard-secondary-action" type="button">
+                </Link>
+                <Link className="dashboard-secondary-action" to={`/appointments/${view.nextAppointment.id}/change`}>
                   <AppIcon name="calendar" />
                   Promijeni termin
-                </button>
+                </Link>
               </div>
             </>
           ) : (
@@ -118,22 +119,22 @@ export function PatientDashboard({ dashboard }: PatientDashboardProps): ReactEle
 
         <div className="dashboard-side-stack">
           <DashboardSection title="Brze akcije" icon="plus">
-            <button className="patient-action patient-action--primary" type="button">
+            <Link className="patient-action patient-action--primary" to="/appointments/create">
               <IconTile icon="calendarCheck" tone="teal" />
               <span>
                 <strong>Rezerviraj termin</strong>
                 <small>Odaberite liječnika i pronađite slobodan termin</small>
               </span>
               <AppIcon name="chevronRight" />
-            </button>
-            <button className="patient-action" type="button">
+            </Link>
+            <Link className="patient-action" to="/my-appointments">
               <IconTile icon="calendar" tone="blue" />
               <span>
                 <strong>Pregledaj moje termine</strong>
                 <small>Pogledajte sve svoje nadolazeće termine</small>
               </span>
               <AppIcon name="chevronRight" />
-            </button>
+            </Link>
           </DashboardSection>
 
           <DashboardSection

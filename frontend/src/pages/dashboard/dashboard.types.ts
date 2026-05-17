@@ -70,6 +70,7 @@ export interface DoctorNextPatient {
 }
 
 export interface PatientAppointmentDetails {
+  id: string
   status: string
   statusTone: DashboardTone
   doctorInitials: string
