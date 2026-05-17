@@ -1,37 +1,43 @@
-import { useState } from 'react'
-import type { ReactElement } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import type { ChangeEvent, ReactElement } from 'react'
 
 import { AppIcon } from '@/components'
+import { useAuthStore } from '@/stores'
+import { organizationsService } from '@/services'
 import type { AppIconName } from '@/types'
 
 import './settings.css'
-
-type SettingsTab = 'general' | 'contact'
 
 interface ActiveModule {
   readonly label: string
   readonly icon: AppIconName
 }
 
-interface QuickLink {
-  readonly icon: AppIconName
-  readonly title: string
-  readonly description: string
+interface OrgForm {
+  name: string
+  email: string
+  phone: string
+  address: string
+  city: string
+  timezone: string
 }
 
-const MOCK_FORM = {
-  name: 'Poliklinika Medica Zagreb',
-  oib: '12345678901',
-  email: 'info@medicazagreb.hr',
-  phone: '01 1234 567',
-  address: 'Ulica grada Vukovara 269d',
-  city: 'Zagreb',
-  postalCode: '10000',
-  description:
-    'Poliklinika Medica Zagreb pruža specijalizacijske zdravstvene usluge uz primjenu suvremene medicinske opreme i visokih standarda kvalitete.',
-  website: 'www.medicazagreb.hr',
-  country: 'Hrvatska',
-} as const
+const EMPTY_FORM: OrgForm = {
+  name: '',
+  email: '',
+  phone: '',
+  address: '',
+  city: '',
+  timezone: '',
+}
+
+const ALL_TIMEZONES: readonly string[] = (() => {
+  try {
+    return Intl.supportedValuesOf('timeZone')
+  } catch {
+    return ['Europe/Zagreb', 'Europe/London', 'America/New_York', 'America/Los_Angeles', 'Asia/Tokyo']
+  }
+})()
 
 const ACTIVE_MODULES: readonly ActiveModule[] = [
   { label: 'Termini', icon: 'calendar' },
@@ -41,27 +47,103 @@ const ACTIVE_MODULES: readonly ActiveModule[] = [
   { label: 'Online rezervacije', icon: 'checkCircle' },
 ]
 
-const QUICK_LINKS: readonly QuickLink[] = [
-  {
-    icon: 'bell',
-    title: 'Uredi obavijesti',
-    description: 'Upravljajte porukama i podsjetnicima pacijentima',
-  },
-  {
-    icon: 'settings',
-    title: 'Postavi integracije',
-    description: 'Povežite sustav s vanjskim servisima',
-  },
-  {
-    icon: 'shield',
-    title: 'Provjeri sigurnost',
-    description: 'Pregledajte postavke pristupa i aktivnosti',
-  },
-]
-
 function SettingsPage(): ReactElement {
-  const [activeTab, setActiveTab] = useState<SettingsTab>('general')
-  const [onlineBooking, setOnlineBooking] = useState(true)
+  const [form, setForm] = useState<OrgForm>(EMPTY_FORM)
+  const [saved, setSaved] = useState<OrgForm>(EMPTY_FORM)
+  const [isLoading, setIsLoading] = useState(true)
+  const [isSaving, setIsSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const [tzSearch, setTzSearch] = useState('')
+  const [tzOpen, setTzOpen] = useState(false)
+  const tzRef = useRef<HTMLDivElement>(null)
+
+  const organizationId = useAuthStore((state) => state.organizationId)
+
+  useEffect(() => {
+    if (!organizationId) return
+
+    setIsLoading(true)
+    organizationsService
+      .getById(organizationId)
+      .then((org) => {
+        const loaded: OrgForm = {
+          name: org.name,
+          email: org.email ?? '',
+          phone: org.phone ?? '',
+          address: org.address ?? '',
+          city: org.city ?? '',
+          timezone: org.timezone,
+        }
+        setForm(loaded)
+        setSaved(loaded)
+        setTzSearch(org.timezone)
+      })
+      .catch(() => { setError('Greška pri učitavanju podataka.') })
+      .finally(() => { setIsLoading(false) })
+  }, [organizationId])
+
+  useEffect(() => {
+    const handler = (e: MouseEvent): void => {
+      if (tzRef.current && !tzRef.current.contains(e.target as Node)) {
+        setTzOpen(false)
+        setTzSearch(form.timezone)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => { document.removeEventListener('mousedown', handler) }
+  }, [form.timezone])
+
+  const filteredTimezones = tzSearch
+    ? ALL_TIMEZONES.filter((tz) => tz.toLowerCase().includes(tzSearch.toLowerCase()))
+    : ALL_TIMEZONES
+
+  const handleChange = (field: keyof OrgForm) => (e: ChangeEvent<HTMLInputElement>) => {
+    setForm((prev) => ({ ...prev, [field]: e.target.value }))
+  }
+
+  const handleTzSelect = (tz: string): void => {
+    setForm((prev) => ({ ...prev, timezone: tz }))
+    setTzSearch(tz)
+    setTzOpen(false)
+  }
+
+  const handleCancel = (): void => {
+    setForm(saved)
+    setTzSearch(saved.timezone)
+  }
+
+  const handleSave = async (): Promise<void> => {
+    if (!organizationId) return
+
+    setIsSaving(true)
+    setError(null)
+    try {
+      const updated = await organizationsService.update(organizationId, {
+        name: form.name || undefined,
+        email: form.email || null,
+        phone: form.phone || null,
+        address: form.address || null,
+        city: form.city || null,
+        timezone: form.timezone || undefined,
+      })
+      const newSaved: OrgForm = {
+        name: updated.name,
+        email: updated.email ?? '',
+        phone: updated.phone ?? '',
+        address: updated.address ?? '',
+        city: updated.city ?? '',
+        timezone: updated.timezone,
+      }
+      setForm(newSaved)
+      setSaved(newSaved)
+      setTzSearch(newSaved.timezone)
+    } catch {
+      setError('Greška pri spremanju podataka.')
+    } finally {
+      setIsSaving(false)
+    }
+  }
 
   return (
     <div className="settings-page">
@@ -70,352 +152,140 @@ function SettingsPage(): ReactElement {
         <p>Upravljajte osnovnim informacijama, kontaktima i postavkama rada ustanove.</p>
       </div>
 
-      <div className="settings-content-grid">
-        <section className="settings-card" aria-label="Postavke ustanove">
-          <nav className="settings-tabs" aria-label="Sekcije postavki">
-            <button
-              className={`settings-tab${activeTab === 'general' ? ' settings-tab--active' : ''}`}
-              type="button"
-              onClick={() => { setActiveTab('general') }}
-            >
-              <AppIcon name="building" />
-              Opći podaci
-            </button>
-            <button
-              className={`settings-tab${activeTab === 'contact' ? ' settings-tab--active' : ''}`}
-              type="button"
-              onClick={() => { setActiveTab('contact') }}
-            >
-              <AppIcon name="home" />
-              Kontakt i lokacija
-            </button>
-          </nav>
+      {error && <p style={{ color: '#d32f2f', margin: 0 }}>{error}</p>}
 
-          {activeTab === 'general' && (
-            <>
-              <div className="settings-card__section">
-                <h2 className="settings-card__section-title">Osnovne informacije</h2>
+      <section className="settings-card" aria-label="Postavke ustanove">
+        <div className="settings-card__body">
+          <div className="settings-fields-col">
+            <h2 className="settings-card__section-title">Osnovne informacije</h2>
 
-                <div className="settings-info-layout">
-                  <div className="settings-fields-stack">
-                    <div className="settings-fields-row settings-fields-row--2">
-                      <div className="settings-field">
-                        <label className="settings-field__label" htmlFor="set-name">
-                          Naziv ustanove <span className="settings-required">*</span>
-                        </label>
-                        <input
-                          id="set-name"
-                          className="settings-field__input"
-                          type="text"
-                          defaultValue={MOCK_FORM.name}
-                          readOnly
-                        />
-                      </div>
-                      <div className="settings-field">
-                        <label className="settings-field__label" htmlFor="set-oib">
-                          OIB <span className="settings-required">*</span>
-                        </label>
-                        <input
-                          id="set-oib"
-                          className="settings-field__input"
-                          type="text"
-                          defaultValue={MOCK_FORM.oib}
-                          readOnly
-                        />
-                      </div>
-                    </div>
-
-                    <div className="settings-fields-row settings-fields-row--2">
-                      <div className="settings-field">
-                        <label className="settings-field__label" htmlFor="set-email">
-                          E-mail <span className="settings-required">*</span>
-                        </label>
-                        <input
-                          id="set-email"
-                          className="settings-field__input"
-                          type="email"
-                          defaultValue={MOCK_FORM.email}
-                          readOnly
-                        />
-                      </div>
-                      <div className="settings-field">
-                        <label className="settings-field__label" htmlFor="set-phone">
-                          Telefon <span className="settings-required">*</span>
-                        </label>
-                        <input
-                          id="set-phone"
-                          className="settings-field__input"
-                          type="tel"
-                          defaultValue={MOCK_FORM.phone}
-                          readOnly
-                        />
-                      </div>
-                    </div>
-
-                    <div className="settings-field">
-                      <label className="settings-field__label" htmlFor="set-address">
-                        Adresa <span className="settings-required">*</span>
-                      </label>
-                      <input
-                        id="set-address"
-                        className="settings-field__input"
-                        type="text"
-                        defaultValue={MOCK_FORM.address}
-                        readOnly
-                      />
-                    </div>
-
-                    <div className="settings-fields-row settings-fields-row--2">
-                      <div className="settings-field">
-                        <label className="settings-field__label" htmlFor="set-city">
-                          Grad <span className="settings-required">*</span>
-                        </label>
-                        <input
-                          id="set-city"
-                          className="settings-field__input"
-                          type="text"
-                          defaultValue={MOCK_FORM.city}
-                          readOnly
-                        />
-                      </div>
-                      <div className="settings-field">
-                        <label className="settings-field__label" htmlFor="set-postal">
-                          Poštanski broj <span className="settings-required">*</span>
-                        </label>
-                        <input
-                          id="set-postal"
-                          className="settings-field__input"
-                          type="text"
-                          defaultValue={MOCK_FORM.postalCode}
-                          readOnly
-                        />
-                      </div>
-                    </div>
-
-                    <div className="settings-field">
-                      <label className="settings-field__label" htmlFor="set-description">
-                        Opis ustanove
-                      </label>
-                      <textarea
-                        id="set-description"
-                        className="settings-field__textarea"
-                        defaultValue={MOCK_FORM.description}
-                        rows={4}
-                        maxLength={500}
-                        readOnly
-                      />
-                      <span className="settings-field__count">121 / 500</span>
-                    </div>
-                  </div>
-
-                  <div className="settings-logo-area">
-                    <span className="settings-logo-area__label">Logo ustanove</span>
-                    <div className="settings-logo-preview">
-                      <div className="settings-logo-icon-box">
-                        <AppIcon name="building" />
-                        <span>POLIKLINIKA</span>
-                        <span>MEDICA ZAGREB</span>
-                      </div>
-                      <button className="settings-logo-upload-btn" type="button">
-                        <AppIcon name="plus" />
-                        Promijeni logo
-                      </button>
-                      <p className="settings-logo-hint">PNG, JPG ili SVG, maksimalno 2 MB</p>
-                    </div>
-                  </div>
+            <div className="settings-fields-stack">
+              <div className="settings-fields-row settings-fields-row--2">
+                <div className="settings-field">
+                  <label className="settings-field__label" htmlFor="set-name">
+                    Naziv ustanove <span className="settings-required">*</span>
+                  </label>
+                  <input
+                    id="set-name"
+                    className="settings-field__input"
+                    type="text"
+                    value={form.name}
+                    onChange={handleChange('name')}
+                    disabled={isLoading}
+                  />
                 </div>
-              </div>
 
-              <div className="settings-card__divider" />
-
-              <div className="settings-card__section">
-                <h2 className="settings-card__section-title">Zadane postavke rada</h2>
-
-                <div className="settings-work-grid">
-                  <div className="settings-field">
-                    <span className="settings-field__label">
-                      Radno vrijeme prijema <span className="settings-required">*</span>
-                    </span>
-                    <div className="settings-select-like" role="button" tabIndex={0}>
-                      08:00 – 16:00
+                <div className="settings-field">
+                  <span className="settings-field__label">
+                    Vremenska zona <span className="settings-required">*</span>
+                  </span>
+                  <div className="settings-tz-wrapper" ref={tzRef}>
+                    <div className="settings-tz-input-row">
+                      <input
+                        className="settings-field__input settings-tz-input"
+                        type="text"
+                        value={tzSearch}
+                        placeholder="Pretraži vremensku zonu..."
+                        disabled={isLoading}
+                        onChange={(e) => {
+                          setTzSearch(e.target.value)
+                          setTzOpen(true)
+                        }}
+                        onFocus={() => {
+                          setTzSearch('')
+                          setTzOpen(true)
+                        }}
+                      />
                       <AppIcon name="chevronDown" />
                     </div>
-                  </div>
-
-                  <div className="settings-field settings-field--toggle">
-                    <div className="settings-field__toggle-header">
-                      <span className="settings-field__label">Omogući online rezervacije</span>
-                      <button
-                        className={`settings-toggle${onlineBooking ? ' settings-toggle--on' : ''}`}
-                        type="button"
-                        role="switch"
-                        aria-checked={onlineBooking}
-                        aria-label="Omogući online rezervacije"
-                        onClick={() => { setOnlineBooking((v) => !v) }}
-                      />
-                    </div>
-                    <p className="settings-field__hint">
-                      <AppIcon name="info" />
-                      Omogućite pacijentima online rezervaciju termina.
-                    </p>
-                  </div>
-
-                  <div className="settings-field">
-                    <span className="settings-field__label">Zadani podsjetnici</span>
-                    <div className="settings-chips-select">
-                      <div className="settings-chips-select__chips">
-                        <span className="settings-chip">24 h prije</span>
-                        <span className="settings-chip">2 h prije</span>
-                      </div>
-                      <AppIcon name="chevronDown" />
-                    </div>
-                  </div>
-
-                  <div className="settings-field">
-                    <span className="settings-field__label">
-                      Vremenska zona <span className="settings-required">*</span>
-                    </span>
-                    <div className="settings-select-like" role="button" tabIndex={0}>
-                      Europe/Zagreb (GMT+02:00)
-                      <AppIcon name="chevronDown" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </>
-          )}
-
-          {activeTab === 'contact' && (
-            <>
-              <div className="settings-card__section">
-                <h2 className="settings-card__section-title">Kontakt informacije</h2>
-
-                <div className="settings-fields-stack">
-                  <div className="settings-fields-row settings-fields-row--2">
-                    <div className="settings-field">
-                      <label className="settings-field__label" htmlFor="cnt-phone">
-                        Telefon <span className="settings-required">*</span>
-                      </label>
-                      <input
-                        id="cnt-phone"
-                        className="settings-field__input"
-                        type="tel"
-                        defaultValue={MOCK_FORM.phone}
-                        readOnly
-                      />
-                    </div>
-                    <div className="settings-field">
-                      <label className="settings-field__label" htmlFor="cnt-email">
-                        E-mail <span className="settings-required">*</span>
-                      </label>
-                      <input
-                        id="cnt-email"
-                        className="settings-field__input"
-                        type="email"
-                        defaultValue={MOCK_FORM.email}
-                        readOnly
-                      />
-                    </div>
-                  </div>
-
-                  <div className="settings-field">
-                    <label className="settings-field__label" htmlFor="cnt-website">
-                      Web stranica
-                    </label>
-                    <input
-                      id="cnt-website"
-                      className="settings-field__input"
-                      type="url"
-                      defaultValue={MOCK_FORM.website}
-                      readOnly
-                    />
+                    {tzOpen && filteredTimezones.length > 0 && (
+                      <ul className="settings-tz-dropdown" role="listbox">
+                        {filteredTimezones.map((tz) => (
+                          <li
+                            key={tz}
+                            className={`settings-tz-option${tz === form.timezone ? ' settings-tz-option--active' : ''}`}
+                            role="option"
+                            aria-selected={tz === form.timezone}
+                            onMouseDown={() => { handleTzSelect(tz) }}
+                          >
+                            {tz}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
                 </div>
               </div>
 
-              <div className="settings-card__divider" />
-
-              <div className="settings-card__section">
-                <h2 className="settings-card__section-title">Lokacija</h2>
-
-                <div className="settings-fields-stack">
-                  <div className="settings-field">
-                    <label className="settings-field__label" htmlFor="cnt-address">
-                      Adresa <span className="settings-required">*</span>
-                    </label>
-                    <input
-                      id="cnt-address"
-                      className="settings-field__input"
-                      type="text"
-                      defaultValue={MOCK_FORM.address}
-                      readOnly
-                    />
-                  </div>
-
-                  <div className="settings-fields-row settings-fields-row--3">
-                    <div className="settings-field">
-                      <label className="settings-field__label" htmlFor="cnt-city">
-                        Grad <span className="settings-required">*</span>
-                      </label>
-                      <input
-                        id="cnt-city"
-                        className="settings-field__input"
-                        type="text"
-                        defaultValue={MOCK_FORM.city}
-                        readOnly
-                      />
-                    </div>
-                    <div className="settings-field">
-                      <label className="settings-field__label" htmlFor="cnt-postal">
-                        Poštanski broj <span className="settings-required">*</span>
-                      </label>
-                      <input
-                        id="cnt-postal"
-                        className="settings-field__input"
-                        type="text"
-                        defaultValue={MOCK_FORM.postalCode}
-                        readOnly
-                      />
-                    </div>
-                    <div className="settings-field">
-                      <label className="settings-field__label" htmlFor="cnt-country">
-                        Država
-                      </label>
-                      <input
-                        id="cnt-country"
-                        className="settings-field__input"
-                        type="text"
-                        defaultValue={MOCK_FORM.country}
-                        readOnly
-                      />
-                    </div>
-                  </div>
+              <div className="settings-fields-row settings-fields-row--2">
+                <div className="settings-field">
+                  <label className="settings-field__label" htmlFor="set-email">
+                    E-mail <span className="settings-required">*</span>
+                  </label>
+                  <input
+                    id="set-email"
+                    className="settings-field__input"
+                    type="email"
+                    value={form.email}
+                    onChange={handleChange('email')}
+                    disabled={isLoading}
+                  />
+                </div>
+                <div className="settings-field">
+                  <label className="settings-field__label" htmlFor="set-phone">
+                    Telefon <span className="settings-required">*</span>
+                  </label>
+                  <input
+                    id="set-phone"
+                    className="settings-field__input"
+                    type="tel"
+                    value={form.phone}
+                    onChange={handleChange('phone')}
+                    disabled={isLoading}
+                  />
                 </div>
               </div>
-            </>
-          )}
 
-          <div className="settings-card__actions">
-            <button className="settings-cancel-btn" type="button">
-              Odustani
-            </button>
-            <button className="settings-save-btn" type="button">
-              <AppIcon name="note" />
-              Spremi promjene
-            </button>
+              <div className="settings-fields-row settings-fields-row--2">
+                <div className="settings-field">
+                  <label className="settings-field__label" htmlFor="set-address">
+                    Adresa <span className="settings-required">*</span>
+                  </label>
+                  <input
+                    id="set-address"
+                    className="settings-field__input"
+                    type="text"
+                    value={form.address}
+                    onChange={handleChange('address')}
+                    disabled={isLoading}
+                  />
+                </div>
+                <div className="settings-field">
+                  <label className="settings-field__label" htmlFor="set-city">
+                    Grad <span className="settings-required">*</span>
+                  </label>
+                  <input
+                    id="set-city"
+                    className="settings-field__input"
+                    type="text"
+                    value={form.city}
+                    onChange={handleChange('city')}
+                    disabled={isLoading}
+                  />
+                </div>
+              </div>
+            </div>
           </div>
-        </section>
 
-        <aside className="settings-sidebar" aria-label="Sažetak i brze poveznice">
-          <div className="settings-summary-card">
-            <h3 className="settings-summary-card__title">Sažetak ustanove</h3>
+          <div className="settings-summary-col">
+            <h2 className="settings-card__section-title">Sažetak ustanove</h2>
 
             <div className="settings-summary-header">
               <div className="settings-summary-logo">
                 <AppIcon name="building" />
               </div>
               <div className="settings-summary-header__info">
-                <strong>Poliklinika Medica Zagreb</strong>
+                <strong>{saved.name || '—'}</strong>
                 <em className="settings-status-badge">Aktivna</em>
               </div>
             </div>
@@ -425,15 +295,19 @@ function SettingsPage(): ReactElement {
               <ul className="settings-summary-contact">
                 <li>
                   <AppIcon name="mail" />
-                  <span>info@medicazagreb.hr</span>
+                  <span>{saved.email || '—'}</span>
                 </li>
                 <li>
                   <AppIcon name="phone" />
-                  <span>01 1234 567</span>
+                  <span>{saved.phone || '—'}</span>
                 </li>
                 <li>
                   <AppIcon name="home" />
-                  <span>Ulica grada Vukovara 269d, 10000 Zagreb</span>
+                  <span>
+                    {saved.address && saved.city
+                      ? `${saved.address}, ${saved.city}`
+                      : saved.address || saved.city || '—'}
+                  </span>
                 </li>
               </ul>
             </div>
@@ -442,54 +316,36 @@ function SettingsPage(): ReactElement {
               <span className="settings-summary-section__title">Aktivni moduli</span>
               <div className="settings-module-chips">
                 {ACTIVE_MODULES.map((mod) => (
-                  <span
-                    key={mod.label}
-                    className="settings-module-chip"
-                  >
+                  <span key={mod.label} className="settings-module-chip">
                     <AppIcon name={mod.icon} />
                     {mod.label}
                   </span>
                 ))}
               </div>
             </div>
-
-            <div className="settings-summary-stats">
-              <div>
-                <AppIcon name="users" />
-                <div>
-                  <strong>42</strong>
-                  <span>Članova tima</span>
-                </div>
-              </div>
-              <div>
-                <AppIcon name="patients" />
-                <div>
-                  <strong>3.842</strong>
-                  <span>Registrirani pacijenti</span>
-                </div>
-              </div>
-            </div>
           </div>
+        </div>
 
-          <div className="settings-quick-links-card">
-            <h3 className="settings-quick-links-card__title">Brze poveznice</h3>
-            <ul className="settings-quick-links">
-              {QUICK_LINKS.map((link) => (
-                <li key={link.title} className="settings-quick-link">
-                  <div className="settings-quick-link__icon-box">
-                    <AppIcon name={link.icon} />
-                  </div>
-                  <div className="settings-quick-link__text">
-                    <strong>{link.title}</strong>
-                    <span>{link.description}</span>
-                  </div>
-                  <AppIcon name="chevronRight" />
-                </li>
-              ))}
-            </ul>
-          </div>
-        </aside>
-      </div>
+        <div className="settings-card__actions">
+          <button
+            className="settings-cancel-btn"
+            type="button"
+            onClick={handleCancel}
+            disabled={isSaving}
+          >
+            Odustani
+          </button>
+          <button
+            className="settings-save-btn"
+            type="button"
+            onClick={() => { void handleSave() }}
+            disabled={isLoading || isSaving}
+          >
+            <AppIcon name="note" />
+            {isSaving ? 'Spremanje...' : 'Spremi promjene'}
+          </button>
+        </div>
+      </section>
     </div>
   )
 }

@@ -4,6 +4,7 @@ import type {
   OrganizationListQueryDto,
   OrganizationListResponseDto,
   OrganizationResponseDto,
+  UpdateOrganizationRequestDto,
 } from '@zdravstvo/contracts';
 
 import { apiClient } from '@/services/api';
@@ -42,6 +43,21 @@ export class OrganizationsService {
       organizations: response.data.data.organizations.map(mapOrganization),
       pagination: response.data.data.pagination,
     };
+  }
+
+  public async getById(id: string): Promise<Organization> {
+    const response = await apiClient.get<ApiResponse<OrganizationResponseDto>>(
+      `/organizations/${id}`,
+    );
+    return mapOrganization(response.data.data);
+  }
+
+  public async update(id: string, payload: UpdateOrganizationRequestDto): Promise<Organization> {
+    const response = await apiClient.patch<ApiResponse<OrganizationResponseDto>>(
+      `/organizations/${id}`,
+      payload,
+    );
+    return mapOrganization(response.data.data);
   }
 }
 
