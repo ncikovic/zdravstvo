@@ -1,5 +1,6 @@
 export * from "./appointments.repository.js";
 export * from "./appointmentTypes.repository.js";
+export * from "./audit.repository.js";
 export * from "./auth.repository.js";
 export * from "./dashboard.repository.js";
 export * from "./doctors.repository.js";
