@@ -1,14 +1,17 @@
 import type {
   CreatePatientRequestDto,
   PatientDto,
+  PatientListResponseDto,
   UpdatePatientRequestDto,
 } from "@zdravstvo/contracts";
 
 import { apiClient } from "@/services/api";
 
 export const patientsService = {
-  async list(): Promise<PatientDto[]> {
-    const response = await apiClient.get<PatientDto[]>("/patients");
+  async list(page = 1): Promise<PatientListResponseDto> {
+    const response = await apiClient.get<PatientListResponseDto>(
+      `/patients?page=${page}`,
+    );
     return response.data;
   },
 

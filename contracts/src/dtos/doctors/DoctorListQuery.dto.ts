@@ -5,6 +5,7 @@ export const doctorListQuerySchema = z.object({
     .enum(["true", "false"])
     .transform((value) => value === "true")
     .optional(),
+  page: z.coerce.number().int().positive().default(1),
 });
 
 export type DoctorListQueryDto = z.infer<typeof doctorListQuerySchema>;

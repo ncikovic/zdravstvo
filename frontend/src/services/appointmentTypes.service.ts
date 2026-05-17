@@ -1,5 +1,6 @@
 import type {
   AppointmentTypeDto,
+  AppointmentTypeListResponseDto,
   CreateAppointmentTypeRequestDto,
   UpdateAppointmentTypeRequestDto,
 } from "@zdravstvo/contracts";
@@ -7,9 +8,10 @@ import type {
 import { apiClient } from "@/services/api";
 
 export const appointmentTypesService = {
-  async list(): Promise<AppointmentTypeDto[]> {
-    const response =
-      await apiClient.get<AppointmentTypeDto[]>("/appointment-types");
+  async list(page = 1): Promise<AppointmentTypeListResponseDto> {
+    const response = await apiClient.get<AppointmentTypeListResponseDto>(
+      `/appointment-types?page=${page}`,
+    );
     return response.data;
   },
 

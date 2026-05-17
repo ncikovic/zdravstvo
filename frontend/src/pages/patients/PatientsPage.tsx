@@ -59,14 +59,19 @@ function PatientsPage(): ReactElement {
   const [search, setSearch] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
 
   useEffect(() => {
     const fetchPatients = async () => {
       try {
         setIsLoading(true);
-        const data = await patientsService.list();
-        setPatients(data);
-        setSelectedPatientId((current) => current ?? data[0]?.id ?? null);
+        const data = await patientsService.list(page);
+        setPatients(data.patients);
+        setTotalPages(data.totalPages);
+        setTotalItems(data.totalItems);
+        setSelectedPatientId((current) => current ?? data.patients[0]?.id ?? null);
         setError(null);
       } catch (err) {
         setError(getErrorMessage(err, "Greska pri ucitavanju pacijenata."));
@@ -77,7 +82,7 @@ function PatientsPage(): ReactElement {
     };
 
     fetchPatients();
-  }, []);
+  }, [page]);
 
   const filteredPatients = useMemo(() => {
     const value = search.trim().toLowerCase();
@@ -276,24 +281,47 @@ function PatientsPage(): ReactElement {
 
             <div className="patients-pagination">
               <span>
-                Prikazano {filteredPatients.length} od {patients.length}{" "}
-                pacijenata
+                Prikazano {Math.min((page - 1) * 10 + 1, totalItems)}–{Math.min(page * 10, totalItems)} od {totalItems} pacijenata
               </span>
               <div>
-                <button type="button" aria-label="Prethodna stranica">
+                <button
+                  type="button"
+                  aria-label="Prethodna stranica"
+                  disabled={page <= 1}
+                  onClick={() => setPage((p) => p - 1)}
+                >
                   <AppIcon name="chevronLeft" />
                 </button>
-                <button className="patients-pagination__active" type="button">
-                  1
-                </button>
-                <button type="button" aria-label="Sljedeca stranica">
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter((p) => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
+                  .reduce<(number | "...")[]>((acc, p, idx, arr) => {
+                    if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push("...");
+                    acc.push(p);
+                    return acc;
+                  }, [])
+                  .map((item, idx) =>
+                    item === "..." ? (
+                      <span key={`ellipsis-${idx}`}>...</span>
+                    ) : (
+                      <button
+                        key={item}
+                        type="button"
+                        className={item === page ? "patients-pagination__active" : undefined}
+                        onClick={() => setPage(item as number)}
+                      >
+                        {item}
+                      </button>
+                    ),
+                  )}
+                <button
+                  type="button"
+                  aria-label="Sljedeca stranica"
+                  disabled={page >= totalPages}
+                  onClick={() => setPage((p) => p + 1)}
+                >
                   <AppIcon name="chevronRight" />
                 </button>
               </div>
-              <button className="patients-page-size" type="button">
-                10 po stranici
-                <AppIcon name="chevronDown" />
-              </button>
             </div>
           </section>
         </div>

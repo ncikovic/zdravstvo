@@ -67,13 +67,29 @@ const buildUpdatePayload = (
 };
 
 export const appointmentTypesRepository = {
+  async countAllByOrganization(organizationId: string): Promise<number> {
+    const result = (await db(TABLE_NAME)
+      .where({ organization_id: uuidToBuffer(organizationId) })
+      .count("* as count")
+      .first()) as { count: number | string };
+
+    return Number(result.count);
+  },
+
   async findAllByOrganization(
     organizationId: string,
+    pagination?: { limit: number; offset: number },
   ): Promise<AppointmentType[]> {
-    const rows = await db<AppointmentTypeRow>(TABLE_NAME)
+    const query = db<AppointmentTypeRow>(TABLE_NAME)
       .select("*")
       .where({ organization_id: uuidToBuffer(organizationId) })
       .orderBy("name", "asc");
+
+    if (pagination) {
+      query.limit(pagination.limit).offset(pagination.offset);
+    }
+
+    const rows = await query;
 
     return rows.map(toAppointmentType);
   },

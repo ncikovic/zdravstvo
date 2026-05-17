@@ -532,9 +532,36 @@ export class DoctorsRepository {
       .update({ is_active: isActive });
   }
 
+  public async countByOrganization(
+    organizationId: string,
+    filters: { isActive?: boolean } = {},
+  ): Promise<number> {
+    const query = this.executor("organization_doctors as organizationDoctor")
+      .innerJoin(
+        "doctor_profiles as doctor",
+        "doctor.user_id",
+        "organizationDoctor.doctor_user_id",
+      )
+      .innerJoin("users as user", "user.id", "doctor.user_id")
+      .where(
+        "organizationDoctor.organization_id",
+        uuidToBuffer(organizationId),
+      )
+      .count("* as count");
+
+    if (filters.isActive !== undefined) {
+      query.andWhere("organizationDoctor.is_active", filters.isActive ? 1 : 0);
+    }
+
+    const result = (await query.first()) as { count: number | string };
+
+    return Number(result.count);
+  }
+
   public async findManyByOrganization(
     organizationId: string,
     filters: { isActive?: boolean } = {},
+    pagination?: { limit: number; offset: number },
   ): Promise<DoctorRecord[]> {
     const query = this.executor<DoctorRow>(
       "organization_doctors as organizationDoctor",
@@ -555,10 +582,16 @@ export class DoctorsRepository {
       query.andWhere("organizationDoctor.is_active", filters.isActive ? 1 : 0);
     }
 
-    const rows = await query
+    query
       .orderBy("doctor.last_name", "asc")
       .orderBy("doctor.first_name", "asc")
       .orderBy("doctor.user_id", "asc");
+
+    if (pagination) {
+      query.limit(pagination.limit).offset(pagination.offset);
+    }
+
+    const rows = await query;
 
     return rows.map(mapDoctorRecord);
   }

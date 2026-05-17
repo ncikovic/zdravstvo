@@ -12,11 +12,11 @@ import type {
 import { apiClient } from '@/services/api'
 
 export const doctorsService = {
-  async list(): Promise<DoctorResponseDto[]> {
+  async list(page = 1): Promise<DoctorListResponseDto> {
     const response = await apiClient.get<ApiResponse<DoctorListResponseDto>>(
-      '/doctors',
+      `/doctors?page=${page}`,
     )
-    return response.data.data.doctors
+    return response.data.data
   },
 
   async getById(doctorId: string): Promise<DoctorResponseDto> {

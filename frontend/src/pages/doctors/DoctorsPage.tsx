@@ -42,14 +42,19 @@ function DoctorsPage(): ReactElement {
   const [selectedDoctorId, setSelectedDoctorId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
 
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
         setIsLoading(true);
-        const data = await doctorsService.list();
-        setDoctors(data);
-        setSelectedDoctorId((current) => current ?? data[0]?.id ?? null);
+        const data = await doctorsService.list(page);
+        setDoctors(data.doctors);
+        setTotalPages(data.totalPages);
+        setTotalItems(data.totalItems);
+        setSelectedDoctorId((current) => current ?? data.doctors[0]?.id ?? null);
         setError(null);
       } catch (err) {
         setError(
@@ -62,7 +67,7 @@ function DoctorsPage(): ReactElement {
     };
 
     fetchDoctors();
-  }, []);
+  }, [page]);
 
   const selectedDoctor =
     doctors.find((doctor) => doctor.id === selectedDoctorId) ??
@@ -219,26 +224,48 @@ function DoctorsPage(): ReactElement {
             )}
 
             <div className="doctors-pagination">
-              <span>Prikazano 1 do 8 od 128 liječnika</span>
+              <span>
+                Prikazano {Math.min((page - 1) * 10 + 1, totalItems)}–{Math.min(page * 10, totalItems)} od {totalItems} liječnika
+              </span>
               <div>
-                <button type="button" aria-label="Prethodna stranica">
+                <button
+                  type="button"
+                  aria-label="Prethodna stranica"
+                  disabled={page <= 1}
+                  onClick={() => setPage((p) => p - 1)}
+                >
                   <AppIcon name="chevronLeft" />
                 </button>
-                <button className="doctors-pagination__active" type="button">
-                  1
-                </button>
-                <button type="button">2</button>
-                <button type="button">3</button>
-                <span>...</span>
-                <button type="button">16</button>
-                <button type="button" aria-label="Sljedeća stranica">
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter((p) => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
+                  .reduce<(number | "...")[]>((acc, p, idx, arr) => {
+                    if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push("...");
+                    acc.push(p);
+                    return acc;
+                  }, [])
+                  .map((item, idx) =>
+                    item === "..." ? (
+                      <span key={`ellipsis-${idx}`}>...</span>
+                    ) : (
+                      <button
+                        key={item}
+                        type="button"
+                        className={item === page ? "doctors-pagination__active" : undefined}
+                        onClick={() => setPage(item as number)}
+                      >
+                        {item}
+                      </button>
+                    ),
+                  )}
+                <button
+                  type="button"
+                  aria-label="Sljedeća stranica"
+                  disabled={page >= totalPages}
+                  onClick={() => setPage((p) => p + 1)}
+                >
                   <AppIcon name="chevronRight" />
                 </button>
               </div>
-              <button className="doctors-page-size" type="button">
-                10 po stranici
-                <AppIcon name="chevronDown" />
-              </button>
             </div>
           </section>
         </div>

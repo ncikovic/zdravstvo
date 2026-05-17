@@ -133,8 +133,29 @@ export const patientsRepository = {
     return rows.map(toPatient);
   },
 
-  async findActiveByOrganization(organizationId: string): Promise<Patient[]> {
-    const rows = await db<PatientRow>(`${TABLE_NAME} as patient`)
+  async countActiveByOrganization(organizationId: string): Promise<number> {
+    const result = (await db(`${TABLE_NAME} as patient`)
+      .innerJoin("users as user", "user.id", "patient.user_id")
+      .innerJoin(
+        "organization_users as organizationUser",
+        "organizationUser.user_id",
+        "patient.user_id",
+      )
+      .where("organizationUser.organization_id", uuidToBuffer(organizationId))
+      .where("organizationUser.role", "PATIENT")
+      .andWhere("organizationUser.is_active", 1)
+      .andWhere("user.status", "ACTIVE")
+      .count("* as count")
+      .first()) as { count: number | string };
+
+    return Number(result.count);
+  },
+
+  async findActiveByOrganization(
+    organizationId: string,
+    pagination?: { limit: number; offset: number },
+  ): Promise<Patient[]> {
+    const query = db<PatientRow>(`${TABLE_NAME} as patient`)
       .innerJoin("users as user", "user.id", "patient.user_id")
       .innerJoin(
         "organization_users as organizationUser",
@@ -148,6 +169,12 @@ export const patientsRepository = {
       .andWhere("user.status", "ACTIVE")
       .orderBy("patient.last_name", "asc")
       .orderBy("patient.first_name", "asc");
+
+    if (pagination) {
+      query.limit(pagination.limit).offset(pagination.offset);
+    }
+
+    const rows = await query;
 
     return rows.map(toPatient);
   },

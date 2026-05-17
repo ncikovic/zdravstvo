@@ -50,6 +50,7 @@ type DoctorsRepositoryContract = Pick<
   | "findOrganizationUser"
   | "createOrganizationUser"
   | "updateOrganizationUserActive"
+  | "countByOrganization"
   | "findManyByOrganization"
   | "findByOrganizationAndDoctorId"
   | "findWorkingHours"
@@ -598,17 +599,28 @@ export class DoctorsService {
 
   public async list(
     context: DoctorsRequestContext,
-    query: DoctorListQueryDto = {},
+    query: DoctorListQueryDto = { page: 1 },
   ): Promise<DoctorListResponseDto> {
-    const doctors = await this.doctorsRepository.findManyByOrganization(
-      context.organizationId,
-      {
-        isActive: query.active,
-      },
-    );
+    const pageSize = 10;
+    const page = query.page ?? 1;
+    const offset = (page - 1) * pageSize;
+    const filters = { isActive: query.active };
+
+    const [doctors, totalItems] = await Promise.all([
+      this.doctorsRepository.findManyByOrganization(
+        context.organizationId,
+        filters,
+        { limit: pageSize, offset },
+      ),
+      this.doctorsRepository.countByOrganization(context.organizationId, filters),
+    ]);
 
     return {
       doctors: doctors.map(mapDoctorResponse),
+      page,
+      pageSize,
+      totalPages: Math.ceil(totalItems / pageSize),
+      totalItems,
     };
   }
 

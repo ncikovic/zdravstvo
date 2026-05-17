@@ -45,14 +45,19 @@ function AppointmentTypesPage(): ReactElement {
   const [search, setSearch] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalItems, setTotalItems] = useState(0)
 
   useEffect(() => {
     const fetchAppointmentTypes = async () => {
       try {
         setIsLoading(true)
-        const data = await appointmentTypesService.list()
-        setAppointmentTypes(data)
-        setSelectedAppointmentTypeId((current) => current ?? data[0]?.id ?? null)
+        const data = await appointmentTypesService.list(page)
+        setAppointmentTypes(data.appointmentTypes)
+        setTotalPages(data.totalPages)
+        setTotalItems(data.totalItems)
+        setSelectedAppointmentTypeId((current) => current ?? data.appointmentTypes[0]?.id ?? null)
         setError(null)
       } catch (err) {
         setError(getErrorMessage(err, 'Greska pri ucitavanju vrsta termina.'))
@@ -63,7 +68,7 @@ function AppointmentTypesPage(): ReactElement {
     }
 
     fetchAppointmentTypes()
-  }, [])
+  }, [page])
 
   const filteredAppointmentTypes = useMemo(() => {
     const value = search.trim().toLowerCase()
@@ -233,24 +238,49 @@ function AppointmentTypesPage(): ReactElement {
 
             <div className="appointment-types-pagination">
               <span>
-                Prikazano {filteredAppointmentTypes.length} od {appointmentTypes.length} vrsta
-                termina
+                Prikazano {Math.min((page - 1) * 10 + 1, totalItems)}–{Math.min(page * 10, totalItems)} od {totalItems} vrsta termina
               </span>
               <div>
-                <button type="button" aria-label="Prethodna stranica">
+                <button
+                  type="button"
+                  aria-label="Prethodna stranica"
+                  disabled={page <= 1}
+                  onClick={() => setPage((p) => p - 1)}
+                >
                   <AppIcon name="chevronLeft" />
                 </button>
-                <button className="appointment-types-pagination__active" type="button">
-                  1
-                </button>
-                <button type="button" aria-label="Sljedeca stranica">
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter((p) => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
+                  .reduce<(number | '...')[]>((acc, p, idx, arr) => {
+                    if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push('...')
+                    acc.push(p)
+                    return acc
+                  }, [])
+                  .map((item, idx) =>
+                    item === '...' ? (
+                      <span key={`ellipsis-${idx}`}>...</span>
+                    ) : (
+                      <button
+                        key={item}
+                        type="button"
+                        className={
+                          item === page ? 'appointment-types-pagination__active' : undefined
+                        }
+                        onClick={() => setPage(item as number)}
+                      >
+                        {item}
+                      </button>
+                    ),
+                  )}
+                <button
+                  type="button"
+                  aria-label="Sljedeca stranica"
+                  disabled={page >= totalPages}
+                  onClick={() => setPage((p) => p + 1)}
+                >
                   <AppIcon name="chevronRight" />
                 </button>
               </div>
-              <button className="appointment-types-page-size" type="button">
-                10 po stranici
-                <AppIcon name="chevronDown" />
-              </button>
             </div>
           </section>
         </div>

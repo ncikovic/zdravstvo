@@ -1,6 +1,8 @@
 import type {
   CreatePatientRequestDto,
   PatientDto,
+  PatientListQueryDto,
+  PatientListResponseDto,
   UpdatePatientRequestDto,
 } from "@zdravstvo/contracts";
 import { v4 as uuidv4 } from "uuid";
@@ -36,15 +38,28 @@ const toPatientDto = (patient: Patient): PatientDto => ({
 
 export const patientsService = {
   async listPatients(
-    context?: Pick<AuthenticatedRequestContext, "organizationId">,
-  ): Promise<PatientDto[]> {
-    const patients = context
-      ? await patientsRepository.findActiveByOrganization(
-          context.organizationId,
-        )
-      : await patientsRepository.findAll();
+    context: Pick<AuthenticatedRequestContext, "organizationId">,
+    query: PatientListQueryDto = { page: 1 },
+  ): Promise<PatientListResponseDto> {
+    const pageSize = 10;
+    const page = query.page ?? 1;
+    const offset = (page - 1) * pageSize;
 
-    return patients.map(toPatientDto);
+    const [patients, totalItems] = await Promise.all([
+      patientsRepository.findActiveByOrganization(context.organizationId, {
+        limit: pageSize,
+        offset,
+      }),
+      patientsRepository.countActiveByOrganization(context.organizationId),
+    ]);
+
+    return {
+      patients: patients.map(toPatientDto),
+      page,
+      pageSize,
+      totalPages: Math.ceil(totalItems / pageSize),
+      totalItems,
+    };
   },
 
   async getPatient(

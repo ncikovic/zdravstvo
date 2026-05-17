@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import { patientListQuerySchema } from "@zdravstvo/contracts";
 
 import { patientsService } from "../services/index.js";
 import { requireAuthenticatedUser } from "../shared/context/index.js";
@@ -11,9 +12,10 @@ import {
 export const patientsController = {
   async listPatients(request: Request, response: Response): Promise<void> {
     const context = requireAuthenticatedUser(request);
-    const patients = await patientsService.listPatients(context);
+    const query = patientListQuerySchema.parse(request.query);
+    const result = await patientsService.listPatients(context, query);
 
-    response.status(200).json(patients);
+    response.status(200).json(result);
   },
 
   async getPatient(request: Request, response: Response): Promise<void> {

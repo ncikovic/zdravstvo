@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import { appointmentTypeListQuerySchema } from "@zdravstvo/contracts";
 
 import { appointmentTypesService } from "../services/index.js";
 import { requireAuthenticatedUser } from "../shared/context/index.js";
@@ -14,10 +15,11 @@ export const appointmentTypesController = {
     response: Response,
   ): Promise<void> {
     const context = requireAuthenticatedUser(request);
-    const appointmentTypes =
-      await appointmentTypesService.listAppointmentTypes(context);
+    const query = appointmentTypeListQuerySchema.parse(request.query);
+    const result =
+      await appointmentTypesService.listAppointmentTypes(context, query);
 
-    response.status(200).json(appointmentTypes);
+    response.status(200).json(result);
   },
 
   async getAppointmentType(

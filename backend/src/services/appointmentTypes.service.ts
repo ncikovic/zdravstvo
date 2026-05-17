@@ -1,5 +1,7 @@
 import type {
   AppointmentTypeDto,
+  AppointmentTypeListQueryDto,
+  AppointmentTypeListResponseDto,
   CreateAppointmentTypeRequestDto,
   UpdateAppointmentTypeRequestDto,
 } from "@zdravstvo/contracts";
@@ -24,13 +26,27 @@ const toAppointmentTypeDto = (
 export const appointmentTypesService = {
   async listAppointmentTypes(
     context: AuthenticatedRequestContext,
-  ): Promise<AppointmentTypeDto[]> {
-    const appointmentTypes =
-      await appointmentTypesRepository.findAllByOrganization(
-        context.organizationId,
-      );
+    query: AppointmentTypeListQueryDto = { page: 1 },
+  ): Promise<AppointmentTypeListResponseDto> {
+    const pageSize = 10;
+    const page = query.page ?? 1;
+    const offset = (page - 1) * pageSize;
 
-    return appointmentTypes.map(toAppointmentTypeDto);
+    const [appointmentTypes, totalItems] = await Promise.all([
+      appointmentTypesRepository.findAllByOrganization(context.organizationId, {
+        limit: pageSize,
+        offset,
+      }),
+      appointmentTypesRepository.countAllByOrganization(context.organizationId),
+    ]);
+
+    return {
+      appointmentTypes: appointmentTypes.map(toAppointmentTypeDto),
+      page,
+      pageSize,
+      totalPages: Math.ceil(totalItems / pageSize),
+      totalItems,
+    };
   },
 
   async getAppointmentType(
