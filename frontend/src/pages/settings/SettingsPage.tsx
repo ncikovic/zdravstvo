@@ -346,6 +346,18 @@ function OrgSettingsView(): ReactElement {
 
 // ─── Patient settings ─────────────────────────────────────────────────────────
 
+const toDateInputValue = (raw: string | null | undefined): string => {
+  if (!raw) return ''
+  return raw.slice(0, 10)
+}
+
+const formatDateDisplay = (raw: string): string => {
+  const iso = raw.slice(0, 10)
+  const [y, m, d] = iso.split('-')
+  if (!y || !m || !d) return raw
+  return `${d}-${m}-${y}`
+}
+
 interface PatientForm {
   firstName: string
   lastName: string
@@ -367,7 +379,7 @@ function PatientSettingsView(): ReactElement {
     lastName: user?.lastName ?? '',
     email: user?.email ?? '',
     phone: user?.phone ?? '',
-    dateOfBirth: user?.dateOfBirth ?? '',
+    dateOfBirth: toDateInputValue(user?.dateOfBirth),
     oib: user?.oib ?? '',
     address: user?.address ?? '',
     emergencyContactName: user?.emergencyContactName ?? '',
@@ -412,7 +424,7 @@ function PatientSettingsView(): ReactElement {
         lastName: updated.lastName,
         email: updated.email ?? '',
         phone: updated.phone ?? '',
-        dateOfBirth: updated.dateOfBirth ?? '',
+        dateOfBirth: toDateInputValue(updated.dateOfBirth),
         oib: updated.oib ?? '',
         address: updated.address ?? '',
         emergencyContactName: updated.emergencyContactName ?? '',
@@ -610,7 +622,7 @@ function PatientSettingsView(): ReactElement {
               <ul className="settings-summary-contact">
                 <li>
                   <AppIcon name="calendar" />
-                  <span>{saved.dateOfBirth || '—'}</span>
+                  <span>{saved.dateOfBirth ? formatDateDisplay(saved.dateOfBirth) : '—'}</span>
                 </li>
                 <li>
                   <AppIcon name="clipboard" />
