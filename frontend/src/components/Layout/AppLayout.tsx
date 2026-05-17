@@ -1,7 +1,8 @@
-import { useState, type ReactElement } from 'react'
-import { Outlet, useSearchParams } from 'react-router-dom'
+import { useEffect, useState, type ReactElement } from 'react'
+import { Outlet, useLocation, useSearchParams } from 'react-router-dom'
 
 import { getRoleShellConfig } from '@/app/config'
+import { useAccessibility } from '@/contexts/AccessibilityContext'
 import { useRoleNavigation } from '@/hooks'
 import { useAuthStore, type AuthUser } from '@/stores'
 
@@ -74,6 +75,20 @@ const getUserInitials = (userName: string): string => {
     .join('')
 }
 
+const PAGE_TITLES: Record<string, string> = {
+  '/': 'Nadzorna ploča',
+  '/appointments': 'Termini',
+  '/appointments/create': 'Novi termin',
+  '/doctors': 'Liječnici',
+  '/patients': 'Pacijenti',
+  '/appointment-types': 'Vrste termina',
+  '/audit': 'Revizijski zapisnik',
+  '/settings': 'Postavke',
+  '/my-appointments': 'Moji termini',
+  '/accessibility': 'Postavke pristupačnosti',
+  '/schedule': 'Moj raspored',
+}
+
 export function AppLayout(): ReactElement {
   const role = useAuthStore((state) => state.role)
   const user = useAuthStore((state) => state.user)
@@ -82,6 +97,13 @@ export function AppLayout(): ReactElement {
   const [searchParams, setSearchParams] = useSearchParams()
   const navigationItems = useRoleNavigation(role)
   const shellConfig = getRoleShellConfig(role)
+  const location = useLocation()
+  const { announce } = useAccessibility()
+
+  useEffect(() => {
+    const title = PAGE_TITLES[location.pathname] ?? 'Zdravstvo'
+    announce(title)
+  }, [location.pathname, announce])
   const userName = formatUserName(user)
   const initials = getUserInitials(userName)
   const selectedDate = resolveSelectedDate(searchParams.get('date'))

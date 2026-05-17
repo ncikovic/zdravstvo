@@ -1,0 +1,193 @@
+/* =================================================================
+   Accessibility overrides — layered on top via html.* class prefix.
+   Do not reorder: font-size → high-contrast → simplified-view.
+   ================================================================= */
+
+/* ── Font Size ───────────────────────────────────────────────────── */
+
+html.font-size-large { font-size: 20px; }
+html.font-size-xl    { font-size: 24px; }
+
+/* ── High Contrast ───────────────────────────────────────────────── */
+
+html.high-contrast,
+html.high-contrast body {
+  background: #000 !important;
+  color: #fff !important;
+}
+
+/* Override gradient background on :root */
+html.high-contrast :root {
+  background: #000 !important;
+}
+
+/* Structural containers */
+html.high-contrast div,
+html.high-contrast section,
+html.high-contrast main,
+html.high-contrast aside,
+html.high-contrast nav,
+html.high-contrast header,
+html.high-contrast article,
+html.high-contrast li,
+html.high-contrast ul,
+html.high-contrast span,
+html.high-contrast p,
+html.high-contrast h1,
+html.high-contrast h2,
+html.high-contrast h3,
+html.high-contrast h4,
+html.high-contrast label,
+html.high-contrast strong,
+html.high-contrast em {
+  background: transparent !important;
+  color: #fff !important;
+  border-color: #fff !important;
+}
+
+/* Links */
+html.high-contrast a,
+html.high-contrast a:visited,
+html.high-contrast a:hover {
+  color: #FFD700 !important;
+}
+
+/* Buttons */
+html.high-contrast button,
+html.high-contrast [role="button"],
+html.high-contrast [type="button"],
+html.high-contrast [type="submit"] {
+  color: #FFD700 !important;
+  background: #000 !important;
+  border: 2px solid #fff !important;
+}
+
+html.high-contrast button:disabled,
+html.high-contrast [type="button"]:disabled {
+  color: #888 !important;
+  border-color: #555 !important;
+}
+
+/* Form inputs */
+html.high-contrast input,
+html.high-contrast select,
+html.high-contrast textarea {
+  background: #111 !important;
+  color: #fff !important;
+  border: 2px solid #fff !important;
+}
+
+html.high-contrast input::placeholder {
+  color: #aaa !important;
+}
+
+/* SVG icons */
+html.high-contrast svg,
+html.high-contrast .app-icon {
+  color: #fff !important;
+  stroke: currentColor;
+}
+
+/* Nav active states */
+html.high-contrast .sidebar-nav__link--active {
+  background: #222 !important;
+  border-left: 4px solid #FFD700 !important;
+  color: #FFD700 !important;
+}
+
+/* Cards & panels */
+html.high-contrast [class*="card"],
+html.high-contrast [class*="panel"],
+html.high-contrast .authenticated-shell__workspace,
+html.high-contrast .authenticated-shell,
+html.high-contrast .app-topbar {
+  background: #000 !important;
+  border-color: #fff !important;
+}
+
+/* Sidebar */
+html.high-contrast .sidebar {
+  background: #111 !important;
+  border-color: #fff !important;
+}
+
+/* Dropdowns */
+html.high-contrast [class*="dropdown"],
+html.high-contrast [class*="tz-dropdown"] {
+  background: #111 !important;
+  border: 2px solid #fff !important;
+}
+
+/* Status/badge chips */
+html.high-contrast [class*="badge"],
+html.high-contrast [class*="chip"],
+html.high-contrast [class*="pill"],
+html.high-contrast [class*="status"] {
+  background: #222 !important;
+  color: #FFD700 !important;
+  border: 1px solid #FFD700 !important;
+}
+
+/* Focus rings — ensure visible in high contrast */
+html.high-contrast *:focus-visible {
+  outline: 3px solid #FFD700 !important;
+  outline-offset: 2px;
+}
+
+/* a11y toggle switch */
+html.high-contrast .a11y-toggle__track {
+  background: #444 !important;
+  border: 2px solid #fff !important;
+}
+
+html.high-contrast .a11y-toggle__track--on {
+  background: #FFD700 !important;
+}
+
+html.high-contrast .a11y-toggle__thumb {
+  background: #fff !important;
+}
+
+/* ── Simplified View ─────────────────────────────────────────────── */
+
+html.simplified-view button,
+html.simplified-view [role="button"],
+html.simplified-view [type="button"],
+html.simplified-view [type="submit"] {
+  min-height: 56px !important;
+  padding-left: 24px !important;
+  padding-right: 24px !important;
+  font-size: 1.05rem !important;
+}
+
+html.simplified-view input,
+html.simplified-view select,
+html.simplified-view textarea {
+  min-height: 52px !important;
+  padding: 12px 16px !important;
+}
+
+html.simplified-view .sidebar-nav__link {
+  padding-top: 14px !important;
+  padding-bottom: 14px !important;
+}
+
+html.simplified-view [class*="card"],
+html.simplified-view [class*="section"] {
+  padding: 32px !important;
+  gap: 24px !important;
+}
+
+html.simplified-view [class*="row"] {
+  gap: 24px !important;
+}
+
+/* Decorative/secondary elements are hidden in simplified view */
+html.simplified-view .simplified-hide {
+  display: none !important;
+}
+
+/* Increase line-height for readability */
+html.simplified-view body {
+  line-height: 1.8;
+}

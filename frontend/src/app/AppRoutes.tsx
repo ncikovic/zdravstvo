@@ -4,6 +4,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { AppLayout } from '@/components';
 import {
   AccessDeniedPage,
+  AccessibilityPage,
   AccountCreatedPage,
   AppointmentDetailsPage,
   AppointmentTypesPage,
@@ -51,12 +52,6 @@ const INTERNAL_PLACEHOLDER_ROUTES: readonly InternalRouteDefinition[] = [
     description: 'Raspored liječnika bit će izdvojen iz dnevnog pregleda na nadzornoj ploči.',
     icon: 'calendarCheck',
   },
-  {
-    path: APP_ROUTES.accessibility,
-    title: 'Pristupacnost',
-    description: 'Postavke pristupačnosti bit će dostupne bez utjecaja na zdravstvene podatke.',
-    icon: 'accessibility',
-  },
 ];
 
 export function AppRoutes(): ReactElement {
@@ -98,6 +93,7 @@ export function AppRoutes(): ReactElement {
             <Route path={APP_ROUTES.audit} element={<AuditPage />} />
             <Route path={APP_ROUTES.settings} element={<SettingsPage />} />
             <Route path={APP_ROUTES.myAppointments} element={<MyAppointmentsPage />} />
+            <Route path={APP_ROUTES.accessibility} element={<AccessibilityPage />} />
             {INTERNAL_PLACEHOLDER_ROUTES.map((route) => (
               <Route
                 key={route.path}

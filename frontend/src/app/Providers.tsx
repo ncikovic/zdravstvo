@@ -1,11 +1,14 @@
 import { QueryClientProvider, QueryErrorResetBoundary } from '@tanstack/react-query';
 import type { PropsWithChildren, ReactElement } from 'react';
 
+import { AccessibilityProvider } from '@/contexts/AccessibilityContext';
+
 import { AppErrorBoundary } from './AppErrorBoundary';
 import { queryClient } from './queryClient';
 
 export function Providers({ children }: PropsWithChildren): ReactElement {
   return (
+    <AccessibilityProvider>
     <QueryClientProvider client={queryClient}>
       <QueryErrorResetBoundary>
         {({ reset }) => (
@@ -32,5 +35,6 @@ export function Providers({ children }: PropsWithChildren): ReactElement {
         )}
       </QueryErrorResetBoundary>
     </QueryClientProvider>
+    </AccessibilityProvider>
   );
 }
