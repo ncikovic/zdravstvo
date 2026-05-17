@@ -4,6 +4,7 @@ import { AppEnvironment } from '@zdravstvo/contracts';
 
 const DEFAULT_PORT = 3001;
 const DEFAULT_JWT_ACCESS_TOKEN_EXPIRES_IN = '1h';
+const DEFAULT_CORS_ORIGIN = 'http://localhost:5173';
 
 const resolveJwtSecret = (
   value: string | undefined,
@@ -43,6 +44,7 @@ const nodeEnv = resolveNodeEnv(process.env.NODE_ENV);
 export const env = {
   nodeEnv,
   port: resolvePort(process.env.PORT),
+  corsOrigin: process.env.CORS_ORIGIN || DEFAULT_CORS_ORIGIN,
   jwtSecret: resolveJwtSecret(process.env.JWT_SECRET, nodeEnv),
   jwtAccessTokenExpiresIn:
     process.env.JWT_ACCESS_TOKEN_EXPIRES_IN?.trim() ||

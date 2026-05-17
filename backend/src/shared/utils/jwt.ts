@@ -21,10 +21,10 @@ export interface OrgScopedAccessTokenClaims {
 
 export type AccessTokenClaims = SystemAdminAccessTokenClaims | OrgScopedAccessTokenClaims;
 
-export interface VerifiedAccessTokenClaims extends AccessTokenClaims {
+export type VerifiedAccessTokenClaims = AccessTokenClaims & {
   iat?: number;
   exp?: number;
-}
+};
 
 export interface OrganizationSelectionTokenClaims {
   sub: string;

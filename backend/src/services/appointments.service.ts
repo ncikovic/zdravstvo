@@ -324,15 +324,21 @@ const toDateOnlyIso = (date: Date | null): string | null => {
   return date ? date.toISOString().slice(0, 10) : null;
 };
 
-const isManagerRole = (role: OrganizationUserRole): boolean => {
+const isManagerRole = (role: OrganizationUserRole | null): boolean => {
+  if (!role) {
+    return false;
+  }
+
   return MANAGER_ROLES.includes(role);
 };
 
-const ensureSchedulingRole = (role: OrganizationUserRole): void => {
-  if (!SCHEDULING_ROLES.includes(role)) {
+function ensureSchedulingRole(
+  role: OrganizationUserRole | null,
+): asserts role is OrganizationUserRole {
+  if (!role || !SCHEDULING_ROLES.includes(role)) {
     throw AppError.forbidden();
   }
-};
+}
 
 const mapAppointmentResponse = (
   appointment: AppointmentRecord,
@@ -416,6 +422,8 @@ const ensureAppointmentIsVisible = (
   context: AppointmentsRequestContext,
   appointment: AppointmentRecord,
 ): void => {
+  ensureSchedulingRole(context.role);
+
   if (isManagerRole(context.role)) {
     return;
   }
