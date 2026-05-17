@@ -28,6 +28,11 @@ interface DoctorColumn {
   tone: AppointmentTone;
 }
 
+interface AppointmentLaneInfo {
+  lane: number;
+  laneCount: number;
+}
+
 interface CalendarAppointment {
   id: string;
   doctorId: string;
@@ -36,6 +41,9 @@ interface CalendarAppointment {
   start: string;
   end: string;
   top: number;
+  height: number;
+  left: string;
+  right: string;
   tone: AppointmentTone;
   selected?: boolean;
 }
@@ -162,6 +170,68 @@ const getAppointmentDurationLabel = (
   return `${durationMinutes} min`;
 };
 
+const getAppointmentHeight = (startAt: Date, endAt: Date): number => {
+  const durationMinutes = Math.max(
+    0,
+    Math.round((endAt.getTime() - startAt.getTime()) / 60000),
+  );
+  return Math.max(50, Math.floor((durationMinutes / 60) * HOUR_ROW_HEIGHT) - 2);
+};
+
+const computeLanes = (
+  appointments: AppointmentResponseDto[],
+): Map<string, AppointmentLaneInfo> => {
+  const sorted = [...appointments].sort(
+    (a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime(),
+  );
+  const laneEndTimes: number[] = [];
+  const assigned = new Map<string, number>();
+
+  for (const appt of sorted) {
+    const startMs = new Date(appt.startAt).getTime();
+    const endMs = new Date(appt.endAt).getTime();
+    const available = laneEndTimes.findIndex((t) => t <= startMs);
+
+    if (available === -1) {
+      assigned.set(appt.id, laneEndTimes.length);
+      laneEndTimes.push(endMs);
+    } else {
+      assigned.set(appt.id, available);
+      laneEndTimes[available] = endMs;
+    }
+  }
+
+  const totalLanes = Math.max(1, laneEndTimes.length);
+  const result = new Map<string, AppointmentLaneInfo>();
+
+  assigned.forEach((lane, id) => {
+    result.set(id, { lane, laneCount: totalLanes });
+  });
+
+  return result;
+};
+
+const getLanePosition = (
+  lane: number,
+  laneCount: number,
+): { left: string; right: string } => {
+  if (laneCount <= 1) {
+    return { left: "9px", right: "9px" };
+  }
+  const leftRatio = lane / laneCount;
+  const rightRatio = (laneCount - 1 - lane) / laneCount;
+  return {
+    left:
+      leftRatio > 0
+        ? `calc(${(leftRatio * 100).toFixed(1)}% + 4px)`
+        : "9px",
+    right:
+      rightRatio > 0
+        ? `calc(${(rightRatio * 100).toFixed(1)}% + 4px)`
+        : "9px",
+  };
+};
+
 const mapDoctorOptionToColumn = (
   doctor: DoctorResponseDto,
   index: number,
@@ -215,7 +285,7 @@ const buildDoctorColumns = (
   }
 
   if (doctorsById.size > 0) {
-    return Array.from(doctorsById.values()).slice(0, DISPLAYED_DOCTOR_LIMIT);
+    return Array.from(doctorsById.values());
   }
 
   return doctorOptions
@@ -226,10 +296,27 @@ const buildDoctorColumns = (
 const buildCalendarAppointments = (
   appointments: AppointmentResponseDto[],
   selectedAppointmentId: string | null,
-): CalendarAppointment[] =>
-  appointments.map((appointment, index) => {
+): CalendarAppointment[] => {
+  const byDoctor = new Map<string, AppointmentResponseDto[]>();
+
+  appointments.forEach((appt) => {
+    const list = byDoctor.get(appt.doctor.id) ?? [];
+    list.push(appt);
+    byDoctor.set(appt.doctor.id, list);
+  });
+
+  const allLanes = new Map<string, AppointmentLaneInfo>();
+
+  byDoctor.forEach((doctorAppts) => {
+    computeLanes(doctorAppts).forEach((info, id) => {
+      allLanes.set(id, info);
+    });
+  });
+
+  return appointments.map((appointment, index) => {
     const startAt = new Date(appointment.startAt);
     const endAt = new Date(appointment.endAt);
+    const laneInfo = allLanes.get(appointment.id) ?? { lane: 0, laneCount: 1 };
 
     return {
       id: appointment.id,
@@ -239,10 +326,13 @@ const buildCalendarAppointments = (
       start: formatTime(startAt),
       end: formatTime(endAt),
       top: getAppointmentTop(startAt),
+      height: getAppointmentHeight(startAt, endAt),
+      ...getLanePosition(laneInfo.lane, laneInfo.laneCount),
       tone: getAppointmentTone(appointment, index),
       selected: appointment.id === selectedAppointmentId,
     };
   });
+};
 
 const buildFreeSlotSummaries = (
   appointments: AppointmentResponseDto[],
@@ -578,10 +668,11 @@ function AppointmentsPage(): ReactElement {
             </div>
           </div>
 
+          <div className="appointments-calendar-scroll" aria-label="Dnevni raspored termina">
           <div
             className="appointments-calendar"
             style={{
-              gridTemplateColumns: `76px repeat(${Math.max(doctors.length, 1)}, minmax(182px, 1fr))`,
+              gridTemplateColumns: `76px repeat(${Math.max(doctors.length, 1)}, minmax(220px, 1fr))`,
             }}
           >
             <div className="appointments-calendar__header-spacer" />
@@ -626,7 +717,12 @@ function AppointmentsPage(): ReactElement {
                         .filter(Boolean)
                         .join(" ")}
                       key={appointment.id}
-                      style={{ top: `${appointment.top}px` }}
+                      style={{
+                        top: `${appointment.top}px`,
+                        height: `${appointment.height}px`,
+                        left: appointment.left,
+                        right: appointment.right,
+                      }}
                       to={`/appointments/${appointment.id}`}
                       onMouseEnter={() =>
                         setSelectedAppointmentId(appointment.id)
@@ -644,6 +740,7 @@ function AppointmentsPage(): ReactElement {
                   ))}
               </div>
             ))}
+          </div>
           </div>
 
           {areAppointmentsLoading ? (
