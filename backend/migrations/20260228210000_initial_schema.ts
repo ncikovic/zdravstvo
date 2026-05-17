@@ -24,7 +24,7 @@ export async function up(knex: Knex) {
     table.string('email', 255);
     table.string('phone', 60);
     table.string('password_hash', 255);
-    table.enu('status', ['ACTIVE', 'DISABLED'], { useNative: true }).notNullable().defaultTo('ACTIVE');
+    table.enu('status', ['ACTIVE', 'DISABLED'], { useNative: true, enumName: 'user_status' }).notNullable().defaultTo('ACTIVE');
     table.dateTime('created_at', { precision: 3 }).notNullable().defaultTo(knex.fn.now(3));
     table
       .dateTime('updated_at', { precision: 3 })
@@ -40,7 +40,7 @@ export async function up(knex: Knex) {
     table.specificType('id', 'BINARY(16)').notNullable().primary();
     table.specificType('organization_id', 'BINARY(16)').notNullable();
     table.specificType('user_id', 'BINARY(16)').notNullable();
-    table.enu('role', ['ADMIN', 'RECEPTION', 'DOCTOR', 'PATIENT'], { useNative: true }).notNullable();
+    table.enu('role', ['ADMIN', 'RECEPTION', 'DOCTOR', 'PATIENT'], { useNative: true, enumName: 'org_user_role' }).notNullable();
     table.boolean('is_active').notNullable().defaultTo(1);
     table.dateTime('created_at', { precision: 3 }).notNullable().defaultTo(knex.fn.now(3));
     table
@@ -204,7 +204,7 @@ export async function up(knex: Knex) {
     table.dateTime('start_at', { precision: 3 }).notNullable();
     table.dateTime('end_at', { precision: 3 }).notNullable();
     table
-      .enu('status', ['SCHEDULED', 'CANCELLED', 'COMPLETED', 'NO_SHOW'], { useNative: true })
+      .enu('status', ['SCHEDULED', 'CANCELLED', 'COMPLETED', 'NO_SHOW'], { useNative: true, enumName: 'appointment_status' })
       .notNullable()
       .defaultTo('SCHEDULED');
     table.specificType('created_by_org_user_id', 'BINARY(16)').notNullable();
@@ -238,10 +238,10 @@ export async function up(knex: Knex) {
     table.specificType('id', 'BINARY(16)').notNullable().primary();
     table.specificType('organization_id', 'BINARY(16)').notNullable();
     table.specificType('appointment_id', 'BINARY(16)').notNullable();
-    table.enu('channel', ['EMAIL', 'SMS'], { useNative: true }).notNullable();
+    table.enu('channel', ['EMAIL', 'SMS'], { useNative: true, enumName: 'reminder_channel' }).notNullable();
     table.dateTime('scheduled_for', { precision: 3 }).notNullable();
     table.dateTime('sent_at', { precision: 3 });
-    table.enu('status', ['PENDING', 'SENT', 'FAILED'], { useNative: true }).notNullable().defaultTo('PENDING');
+    table.enu('status', ['PENDING', 'SENT', 'FAILED'], { useNative: true, enumName: 'reminder_status' }).notNullable().defaultTo('PENDING');
     table.integer('attempt_count').notNullable().defaultTo(0);
     table.text('last_error');
     table.dateTime('created_at', { precision: 3 }).notNullable().defaultTo(knex.fn.now(3));
@@ -265,9 +265,9 @@ export async function up(knex: Knex) {
     table.specificType('organization_id', 'BINARY(16)').notNullable();
     table.specificType('actor_org_user_id', 'BINARY(16)').notNullable();
     table
-      .enu('entity_type', ['APPOINTMENT', 'TYPE', 'DOCTOR', 'ORG_SETTINGS', 'PATIENT'], { useNative: true })
+      .enu('entity_type', ['APPOINTMENT', 'TYPE', 'DOCTOR', 'ORG_SETTINGS', 'PATIENT'], { useNative: true, enumName: 'activity_entity_type' })
       .notNullable();
-    table.enu('action', ['CREATE', 'UPDATE', 'CANCEL', 'STATUS_CHANGE'], { useNative: true }).notNullable();
+    table.enu('action', ['CREATE', 'UPDATE', 'CANCEL', 'STATUS_CHANGE'], { useNative: true, enumName: 'activity_action' }).notNullable();
     table.specificType('entity_id', 'BINARY(16)').notNullable();
     table.json('metadata');
     table.dateTime('created_at', { precision: 3 }).notNullable().defaultTo(knex.fn.now(3));
