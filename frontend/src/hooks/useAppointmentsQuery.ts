@@ -1,7 +1,7 @@
 import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import type {
   AppointmentListQueryDto,
-  AppointmentResponseDto,
+  AppointmentListResponseDto,
 } from "@zdravstvo/contracts";
 
 import { appointmentsService } from "@/services";
@@ -15,7 +15,7 @@ export const appointmentsQueryKeys = {
 
 export const useAppointmentsQuery = (
   query: AppointmentListQueryDto,
-): UseQueryResult<AppointmentResponseDto[], AppApiError> => {
+): UseQueryResult<AppointmentListResponseDto, AppApiError> => {
   return useQuery({
     queryKey: appointmentsQueryKeys.list(query),
     queryFn: () => appointmentsService.list(query),

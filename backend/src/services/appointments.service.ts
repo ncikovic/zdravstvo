@@ -53,6 +53,7 @@ type AppointmentsRepositoryContract = Pick<
   | "lockPatientSchedule"
   | "findById"
   | "findMany"
+  | "countMany"
   | "createAppointment"
   | "updateSchedule"
   | "cancelAppointment"
@@ -98,6 +99,7 @@ interface AvailabilityContext {
 
 const DEFAULT_TIMEZONE = "Europe/Zagreb";
 const DEFAULT_LIST_LIMIT = 100;
+const PAGE_SIZE = 10;
 const DEFAULT_SLOT_LIMIT = 100;
 const MAX_APPOINTMENT_DURATION_MINUTES = 8 * 60;
 const SCHEDULING_ROLES: readonly OrganizationUserRole[] = [
@@ -473,9 +475,15 @@ const buildListFilters = (
   context: AppointmentsRequestContext,
   query: AppointmentListQueryDto,
 ): FindAppointmentsInput => {
+  const isPaginated = query.page !== undefined;
+  const page = query.page ?? 1;
+  const limit = isPaginated ? PAGE_SIZE : (query.limit ?? DEFAULT_LIST_LIMIT);
+  const offset = isPaginated ? (page - 1) * PAGE_SIZE : 0;
+
   const filters: FindAppointmentsInput = {
     organizationId: context.organizationId,
-    limit: query.limit ?? DEFAULT_LIST_LIMIT,
+    limit,
+    offset,
   };
 
   if (query.startAt) {
@@ -817,10 +825,33 @@ export class AppointmentsService {
     ensureSchedulingRole(context.role);
 
     const filters = buildListFilters(context, query);
+    const isPaginated = query.page !== undefined;
+    const page = query.page ?? 1;
+
+    if (isPaginated) {
+      const { limit, offset, ...countFilters } = filters;
+      const [appointments, totalItems] = await Promise.all([
+        this.appointmentsRepository.findMany(filters),
+        this.appointmentsRepository.countMany(countFilters),
+      ]);
+
+      return {
+        appointments: appointments.map(mapAppointmentResponse),
+        page,
+        pageSize: PAGE_SIZE,
+        totalPages: Math.ceil(totalItems / PAGE_SIZE),
+        totalItems,
+      };
+    }
+
     const appointments = await this.appointmentsRepository.findMany(filters);
 
     return {
       appointments: appointments.map(mapAppointmentResponse),
+      page: 1,
+      pageSize: filters.limit,
+      totalPages: 1,
+      totalItems: appointments.length,
     };
   }
 

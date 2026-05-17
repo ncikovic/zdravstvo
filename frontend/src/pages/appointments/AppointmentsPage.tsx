@@ -330,10 +330,11 @@ function AppointmentsPage(): ReactElement {
   }, [dayRange, searchTerm, selectedAppointmentTypeId, selectedDoctorId]);
 
   const {
-    data: appointmentsData = [],
+    data: appointmentsResponse,
     error: appointmentsError,
     isLoading: areAppointmentsLoading,
   } = useAppointmentsQuery(appointmentsQuery);
+  const appointmentsData = appointmentsResponse?.appointments ?? [];
   const {
     data: doctorsData,
     error: doctorsError,

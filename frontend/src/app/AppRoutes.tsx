@@ -17,6 +17,7 @@ import {
   CreateDoctorPage,
   DashboardPage,
   DoctorDetailsPage,
+  MyAppointmentsPage,
   DoctorExceptionsPage,
   DoctorSchedulePage,
   DoctorsPage,
@@ -49,12 +50,6 @@ const INTERNAL_PLACEHOLDER_ROUTES: readonly InternalRouteDefinition[] = [
     title: 'Moj raspored',
     description: 'Raspored liječnika bit će izdvojen iz dnevnog pregleda na nadzornoj ploči.',
     icon: 'calendarCheck',
-  },
-  {
-    path: APP_ROUTES.myAppointments,
-    title: 'Moji termini',
-    description: 'Pacijentov popis termina bit će prikazan na zasebnoj stranici.',
-    icon: 'calendar',
   },
   {
     path: APP_ROUTES.accessibility,
@@ -102,6 +97,7 @@ export function AppRoutes(): ReactElement {
             <Route path={APP_ROUTES.editAppointmentType} element={<EditAppointmentTypePage />} />
             <Route path={APP_ROUTES.audit} element={<AuditPage />} />
             <Route path={APP_ROUTES.settings} element={<SettingsPage />} />
+            <Route path={APP_ROUTES.myAppointments} element={<MyAppointmentsPage />} />
             {INTERNAL_PLACEHOLDER_ROUTES.map((route) => (
               <Route
                 key={route.path}

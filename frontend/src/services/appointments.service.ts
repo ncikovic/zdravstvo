@@ -15,7 +15,7 @@ import { apiClient } from "@/services/api";
 export const appointmentsService = {
   async list(
     query: AppointmentListQueryDto = {},
-  ): Promise<AppointmentResponseDto[]> {
+  ): Promise<AppointmentListResponseDto> {
     const response = await apiClient.get<
       ApiResponse<AppointmentListResponseDto>
     >("/appointments", {
@@ -25,7 +25,7 @@ export const appointmentsService = {
       params: query,
     });
 
-    return response.data.data.appointments;
+    return response.data.data;
   },
 
   async getById(appointmentId: string): Promise<AppointmentResponseDto> {

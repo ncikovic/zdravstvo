@@ -27,6 +27,7 @@ export interface FindAppointmentsInput {
   status?: AppointmentStatusDto;
   search?: string;
   limit: number;
+  offset?: number;
 }
 
 export interface FindConflictingAppointmentsInput {
@@ -602,6 +603,27 @@ export class AppointmentsRepository {
     return row ? mapAppointmentRecord(row) : null;
   }
 
+  public async countMany(
+    input: Omit<FindAppointmentsInput, "limit" | "offset">,
+  ): Promise<number> {
+    const query = this.executor("appointments as appointment")
+      .innerJoin("doctor_profiles as doctor", "doctor.user_id", "appointment.doctor_user_id")
+      .innerJoin("organization_doctors as organizationDoctor", function joinOrg(this: Knex.JoinClause) {
+        this.on("organizationDoctor.organization_id", "=", "appointment.organization_id")
+          .andOn("organizationDoctor.doctor_user_id", "=", "appointment.doctor_user_id");
+      })
+      .innerJoin("patient_profiles as patient", "patient.user_id", "appointment.patient_user_id")
+      .innerJoin("appointment_types as appointmentType", "appointmentType.id", "appointment.appointment_type_id")
+      .where("appointment.organization_id", uuidToBuffer(input.organizationId))
+      .count("appointment.id as count");
+
+    this.applyFilters(query, input);
+
+    const result = (await query.first()) as { count: number | string };
+
+    return Number(result.count);
+  }
+
   public async findMany(
     input: FindAppointmentsInput,
   ): Promise<AppointmentRecord[]> {
@@ -610,6 +632,21 @@ export class AppointmentsRepository {
       uuidToBuffer(input.organizationId),
     );
 
+    this.applyFilters(query, input);
+
+    const rows = await query
+      .orderBy("appointment.start_at", "asc")
+      .orderBy("appointment.id", "asc")
+      .limit(input.limit)
+      .offset(input.offset ?? 0);
+
+    return rows.map(mapAppointmentRecord);
+  }
+
+  private applyFilters(
+    query: Knex.QueryBuilder,
+    input: Omit<FindAppointmentsInput, "limit" | "offset">,
+  ): void {
     if (input.startAt) {
       query.andWhere("appointment.start_at", ">=", input.startAt);
     }
@@ -619,24 +656,15 @@ export class AppointmentsRepository {
     }
 
     if (input.doctorUserId) {
-      query.andWhere(
-        "appointment.doctor_user_id",
-        uuidToBuffer(input.doctorUserId),
-      );
+      query.andWhere("appointment.doctor_user_id", uuidToBuffer(input.doctorUserId));
     }
 
     if (input.patientUserId) {
-      query.andWhere(
-        "appointment.patient_user_id",
-        uuidToBuffer(input.patientUserId),
-      );
+      query.andWhere("appointment.patient_user_id", uuidToBuffer(input.patientUserId));
     }
 
     if (input.appointmentTypeId) {
-      query.andWhere(
-        "appointment.appointment_type_id",
-        uuidToBuffer(input.appointmentTypeId),
-      );
+      query.andWhere("appointment.appointment_type_id", uuidToBuffer(input.appointmentTypeId));
     }
 
     if (input.status) {
@@ -650,28 +678,15 @@ export class AppointmentsRepository {
         builder
           .where("patient.first_name", "like", searchPattern)
           .orWhere("patient.last_name", "like", searchPattern)
-          .orWhereRaw(
-            "concat(patient.first_name, ' ', patient.last_name) like ?",
-            [searchPattern],
-          )
+          .orWhereRaw("concat(patient.first_name, ' ', patient.last_name) like ?", [searchPattern])
           .orWhere("doctor.first_name", "like", searchPattern)
           .orWhere("doctor.last_name", "like", searchPattern)
-          .orWhereRaw(
-            "concat(doctor.first_name, ' ', doctor.last_name) like ?",
-            [searchPattern],
-          )
+          .orWhereRaw("concat(doctor.first_name, ' ', doctor.last_name) like ?", [searchPattern])
           .orWhere("appointmentType.name", "like", searchPattern)
           .orWhere("appointment.notes", "like", searchPattern)
           .orWhere("appointment.status", "like", searchPattern);
       });
     }
-
-    const rows = await query
-      .orderBy("appointment.start_at", "asc")
-      .orderBy("appointment.id", "asc")
-      .limit(input.limit);
-
-    return rows.map(mapAppointmentRecord);
   }
 
   public async createAppointment(

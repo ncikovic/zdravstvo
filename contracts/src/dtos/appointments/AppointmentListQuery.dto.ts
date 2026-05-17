@@ -12,6 +12,7 @@ export const appointmentListQuerySchema = z
     status: appointmentStatusSchema.optional(),
     search: z.string().trim().max(120).optional(),
     limit: z.coerce.number().int().min(1).max(200).optional(),
+    page: z.coerce.number().int().positive().optional(),
   })
   .refine(
     (payload) =>
