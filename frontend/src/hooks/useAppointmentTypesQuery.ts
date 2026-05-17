@@ -15,7 +15,7 @@ export const useAppointmentTypesQuery = (): UseQueryResult<
 > => {
   return useQuery({
     queryKey: appointmentTypesQueryKeys.list(),
-    queryFn: () => appointmentTypesService.list(),
+    queryFn: () => appointmentTypesService.list().then((r) => r.appointmentTypes),
     throwOnError: false,
   });
 };

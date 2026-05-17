@@ -199,9 +199,9 @@ function ChangeAppointmentPage(): ReactElement {
         const appointmentDay = startOfLocalDay(startAt);
 
         setAppointment(appointmentData);
-        setDoctors(doctorData.filter((doctor) => doctor.isActive));
+        setDoctors(doctorData.doctors.filter((doctor) => doctor.isActive));
         setAppointmentTypes(
-          appointmentTypeData.filter(
+          appointmentTypeData.appointmentTypes.filter(
             (appointmentType) => appointmentType.isActive,
           ),
         );

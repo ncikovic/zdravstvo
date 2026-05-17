@@ -15,7 +15,7 @@ export const useDoctorsQuery = (): UseQueryResult<
 > => {
   return useQuery({
     queryKey: doctorsQueryKeys.list(),
-    queryFn: () => doctorsService.list(),
+    queryFn: () => doctorsService.list().then((r) => r.doctors),
     throwOnError: false,
   });
 };

@@ -187,11 +187,11 @@ function CreateAppointmentPage(): ReactElement {
           return;
         }
 
-        const activeAppointmentTypes = appointmentTypeData.filter(
+        const activeAppointmentTypes = appointmentTypeData.appointmentTypes.filter(
           (appointmentType) => appointmentType.isActive,
         );
-        const activeDoctors = doctorData.filter((doctor) => doctor.isActive);
-        const activePatients = patientData.filter(
+        const activeDoctors = doctorData.doctors.filter((doctor) => doctor.isActive);
+        const activePatients = patientData.patients.filter(
           (patient) => patient.status === ACTIVE_USER_STATUS,
         );
 
