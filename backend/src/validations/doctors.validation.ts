@@ -6,6 +6,7 @@ import {
   doctorTimeOffIdParamsSchema,
   replaceDoctorWorkingHoursRequestSchema,
   updateDoctorRequestSchema,
+  updateDoctorSelfRequestSchema,
 } from "@zdravstvo/contracts";
 
 export const createDoctorValidationSchemas = {
@@ -37,4 +38,8 @@ export const createDoctorTimeOffValidationSchemas = {
 
 export const deleteDoctorTimeOffValidationSchemas = {
   params: doctorTimeOffIdParamsSchema,
+};
+
+export const updateDoctorSelfValidationSchemas = {
+  body: updateDoctorSelfRequestSchema,
 };

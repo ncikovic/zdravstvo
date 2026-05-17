@@ -7,6 +7,7 @@ import type {
   DoctorTimeOffListResponseDto,
   DoctorWorkingHoursResponseDto,
   ReplaceDoctorWorkingHoursRequestDto,
+  UpdateDoctorSelfRequestDto,
 } from '@zdravstvo/contracts'
 
 import { apiClient } from '@/services/api'
@@ -85,5 +86,15 @@ export const doctorsService = {
 
   async deleteTimeOff(doctorId: string, timeOffId: string): Promise<void> {
     await apiClient.delete(`/doctors/${doctorId}/time-off/${timeOffId}`)
+  },
+
+  async getSelf(): Promise<DoctorResponseDto> {
+    const response = await apiClient.get<ApiResponse<DoctorResponseDto>>('/doctors/me')
+    return response.data.data
+  },
+
+  async updateSelf(data: UpdateDoctorSelfRequestDto): Promise<DoctorResponseDto> {
+    const response = await apiClient.patch<ApiResponse<DoctorResponseDto>>('/doctors/me', data)
+    return response.data.data
   },
 }

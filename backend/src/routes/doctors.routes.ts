@@ -15,8 +15,11 @@ import {
   doctorIdValidationSchemas,
   listDoctorsValidationSchemas,
   replaceDoctorWorkingHoursValidationSchemas,
+  updateDoctorSelfValidationSchemas,
   updateDoctorValidationSchemas,
 } from "../validations/index.js";
+import { requireAuthenticatedUser } from "../shared/context/index.js";
+import { doctorsService } from "../services/index.js";
 
 const canManageDoctors = requireRoles(
   OrganizationUserRole.ADMIN,
@@ -50,6 +53,29 @@ doctorsRouter.get(
   validateRequest(listDoctorsValidationSchemas),
   asyncHandler(async (request, response) => {
     await doctorsController.list(request, response);
+  }),
+);
+
+doctorsRouter.get(
+  "/doctors/me",
+  authenticateRequest,
+  requireRoles(OrganizationUserRole.DOCTOR),
+  asyncHandler(async (request, response) => {
+    const context = requireAuthenticatedUser(request);
+    const doctor = await doctorsService.getById(context, context.userId);
+    response.status(200).json({ data: doctor });
+  }),
+);
+
+doctorsRouter.patch(
+  "/doctors/me",
+  authenticateRequest,
+  requireRoles(OrganizationUserRole.DOCTOR),
+  validateRequest(updateDoctorSelfValidationSchemas),
+  asyncHandler(async (request, response) => {
+    const context = requireAuthenticatedUser(request);
+    const doctor = await doctorsService.update(context, context.userId, request.body);
+    response.status(200).json({ data: doctor });
   }),
 );
 

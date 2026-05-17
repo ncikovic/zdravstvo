@@ -20,3 +20,19 @@ export const updateDoctorRequestSchema = z
   );
 
 export type UpdateDoctorRequestDto = z.infer<typeof updateDoctorRequestSchema>;
+
+export const updateDoctorSelfRequestSchema = z
+  .object({
+    firstName: z.string().trim().min(1).max(120).optional(),
+    lastName: z.string().trim().min(1).max(120).optional(),
+    title: optionalNullableString(120),
+    bio: optionalNullableString(5000),
+  })
+  .refine(
+    (payload) => Object.values(payload).some((value) => value !== undefined),
+    {
+      message: "At least one field must be provided.",
+    },
+  );
+
+export type UpdateDoctorSelfRequestDto = z.infer<typeof updateDoctorSelfRequestSchema>;

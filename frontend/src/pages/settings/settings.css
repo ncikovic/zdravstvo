@@ -358,3 +358,35 @@
   width: 14px;
   height: 14px;
 }
+
+.settings-field__textarea {
+  padding: 10px 14px;
+  border: 1px solid #d9e6f2;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #46567a;
+  font-size: 0.95rem;
+  font-weight: 500;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 100px;
+  line-height: 1.5;
+}
+
+.settings-field__textarea:focus {
+  outline: none;
+  border-color: #0ca4a0;
+  box-shadow: inset 0 0 0 1px #0ca4a0;
+}
+
+.settings-field__textarea:disabled {
+  background: #f8fafc;
+  color: #667590;
+}
+
+.settings-field__hint {
+  margin: 0;
+  color: #8a97af;
+  font-size: 0.82rem;
+  font-weight: 500;
+}
