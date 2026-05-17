@@ -11,13 +11,13 @@ import {
 export const appointmentTypesRouter = Router();
 
 const canReadAppointmentTypes = requireRoles(
-  OrganizationUserRole.ADMIN,
+  OrganizationUserRole.MANAGER,
   OrganizationUserRole.RECEPTION,
   OrganizationUserRole.DOCTOR,
   OrganizationUserRole.PATIENT,
 );
 const canManageAppointmentTypes = requireRoles(
-  OrganizationUserRole.ADMIN,
+  OrganizationUserRole.MANAGER,
   OrganizationUserRole.RECEPTION,
 );
 

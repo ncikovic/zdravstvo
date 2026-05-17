@@ -13,6 +13,7 @@ export interface AuthUserDto {
   address: string | null;
   emergencyContactName: string | null;
   emergencyContactPhone: string | null;
+  isSystemAdmin: boolean;
 }
 
 export const registerRequestSchema = z.object({
@@ -78,9 +79,10 @@ export interface AuthenticatedAuthResponseDto {
   requiresOrganizationSelection: false;
   accessToken: string;
   user: AuthUserDto;
-  organizationId: string;
-  orgUserId: string;
-  role: OrganizationUserRole;
+  isSystemAdmin: boolean;
+  organizationId: string | null;
+  orgUserId: string | null;
+  role: OrganizationUserRole | null;
 }
 
 export interface LoginOrganizationSelectionRequiredResponseDto {

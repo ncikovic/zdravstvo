@@ -11,7 +11,7 @@ import {
 import { dashboardValidationSchemas } from "../validations/index.js";
 
 const canReadDashboard = requireRoles(
-  OrganizationUserRole.ADMIN,
+  OrganizationUserRole.MANAGER,
   OrganizationUserRole.RECEPTION,
   OrganizationUserRole.DOCTOR,
   OrganizationUserRole.PATIENT,

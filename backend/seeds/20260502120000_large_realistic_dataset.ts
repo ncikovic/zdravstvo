@@ -434,7 +434,7 @@ export async function seed(knex: Knex): Promise<void> {
 
     const staffMembers = [
       {
-        role: 'ADMIN',
+        role: 'MANAGER',
         email: `admin.${orgIndex + 1}@zdravstvo-large.test`,
         phone: `+385 91 ${pad(8100 + orgIndex, 4)} 001`,
       },

@@ -12,7 +12,14 @@ export const requireRoles =
   (...allowedRoles: readonly OrganizationUserRole[]): RequestHandler =>
   (request, _response, next): void => {
     try {
-      const { role } = (request as RequestWithAuth).auth ?? {};
+      const auth = (request as RequestWithAuth).auth ?? {};
+
+      if (auth.isSystemAdmin) {
+        next();
+        return;
+      }
+
+      const { role } = auth;
 
       if (!role || !allowedRoles.includes(role)) {
         throw AppError.forbidden();

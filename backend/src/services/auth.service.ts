@@ -148,6 +148,7 @@ const mapAuthUser = (
     address: profile?.address ?? null,
     emergencyContactName: profile?.emergencyContactName ?? null,
     emergencyContactPhone: profile?.emergencyContactPhone ?? null,
+    isSystemAdmin: user.isSystemAdmin,
   };
 };
 
@@ -210,6 +211,7 @@ const mapAuthenticatedResponse = (
 ): AuthenticatedAuthResponseDto => {
   const accessToken = createToken({
     sub: user.id,
+    isSystemAdmin: false,
     organizationId: membership.organizationId,
     orgUserId: membership.id,
     role: membership.role,
@@ -220,9 +222,32 @@ const mapAuthenticatedResponse = (
     requiresOrganizationSelection: false,
     accessToken,
     user: mapAuthUser(user, profile),
+    isSystemAdmin: false,
     organizationId: membership.organizationId,
     orgUserId: membership.id,
     role: membership.role,
+  };
+};
+
+const mapSystemAdminAuthResponse = (
+  user: UserRecord,
+  profile: PatientProfileRecord | null,
+  createToken: typeof signAccessToken = signAccessToken,
+): AuthenticatedAuthResponseDto => {
+  const accessToken = createToken({
+    sub: user.id,
+    isSystemAdmin: true,
+  });
+
+  return {
+    authenticated: true,
+    requiresOrganizationSelection: false,
+    accessToken,
+    user: mapAuthUser(user, profile),
+    isSystemAdmin: true,
+    organizationId: null,
+    orgUserId: null,
+    role: null,
   };
 };
 
@@ -319,6 +344,14 @@ export class AuthService {
       throw invalidCredentialsError;
     }
 
+    const patientProfile = await this.authRepository.findPatientProfileByUserId(
+      user.id,
+    );
+
+    if (user.isSystemAdmin) {
+      return mapSystemAdminAuthResponse(user, patientProfile, this.createAccessToken);
+    }
+
     const memberships =
       await this.organizationUsersRepository.findActiveMembershipsByUserId(
         user.id,
@@ -327,10 +360,6 @@ export class AuthService {
     if (memberships.length === 0) {
       throw AppError.unauthorized("Account is not allowed to sign in.");
     }
-
-    const patientProfile = await this.authRepository.findPatientProfileByUserId(
-      user.id,
-    );
 
     if (memberships.length === 1) {
       return mapAuthenticatedResponse(

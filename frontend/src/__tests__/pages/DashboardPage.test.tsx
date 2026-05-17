@@ -42,7 +42,7 @@ const baseTimestamps = {
 
 const adminDashboard: DashboardData = {
   ...baseTimestamps,
-  role: OrganizationUserRole.ADMIN,
+  role: OrganizationUserRole.MANAGER,
   stats: {
     todayAppointmentCount: 5,
     activeDoctorCount: 3,
@@ -74,9 +74,10 @@ const doctorDashboard: DashboardData = {
   recentActivity: [],
 };
 
-const mockRole = (role: OrganizationUserRole | null) => {
+const mockRole = (role: OrganizationUserRole | null, isSystemAdmin = false) => {
   vi.mocked(useAuthStore).mockImplementation(
-    (selector: (state: AuthStore) => unknown) => selector({ role } as unknown as AuthStore),
+    (selector: (state: AuthStore) => unknown) =>
+      selector({ role, isSystemAdmin } as unknown as AuthStore),
   );
 };
 
@@ -105,14 +106,14 @@ describe("DashboardPage", () => {
   });
 
   it("shows loading state while data is pending", () => {
-    mockRole(OrganizationUserRole.ADMIN);
+    mockRole(OrganizationUserRole.MANAGER);
     mockQueryResult(true, false);
     renderPage();
     expect(screen.getByText("Učitavanje nadzorne ploče")).toBeInTheDocument();
   });
 
   it("shows error state when data fails to load", () => {
-    mockRole(OrganizationUserRole.ADMIN);
+    mockRole(OrganizationUserRole.MANAGER);
     mockQueryResult(false, true);
     renderPage();
     expect(screen.getByText("Nadzorna ploča nije dostupna")).toBeInTheDocument();
@@ -126,7 +127,7 @@ describe("DashboardPage", () => {
   });
 
   it("renders admin dashboard for admin role with matching data", () => {
-    mockRole(OrganizationUserRole.ADMIN);
+    mockRole(OrganizationUserRole.MANAGER);
     mockQueryResult(false, false, adminDashboard);
     renderPage();
     expect(document.querySelector(".dashboard-page")).toBeInTheDocument();
@@ -140,7 +141,7 @@ describe("DashboardPage", () => {
   });
 
   it("shows mismatch error when role and dashboard data role do not match", () => {
-    mockRole(OrganizationUserRole.ADMIN);
+    mockRole(OrganizationUserRole.MANAGER);
     mockQueryResult(false, false, doctorDashboard);
     renderPage();
     expect(screen.getByText("Nadzorna ploča nije dostupna")).toBeInTheDocument();

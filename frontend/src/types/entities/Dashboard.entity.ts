@@ -111,7 +111,7 @@ export interface DashboardBase {
 }
 
 export interface AdminReceptionDashboard extends DashboardBase {
-  role: OrganizationUserRole.ADMIN | OrganizationUserRole.RECEPTION
+  role: OrganizationUserRole.MANAGER | OrganizationUserRole.RECEPTION
   stats: AdminReceptionDashboardStats
   reminderSummary: DashboardReminderSummary
   todaySchedule: DashboardAppointment[]

@@ -3,7 +3,7 @@ import type { RequestHandler } from 'express';
 import jwt from 'jsonwebtoken';
 
 import { AppError } from '../../errors/AppError.js';
-import { AuthRepository } from '../../repositories/index.js';
+import { UsersRepository } from '../../repositories/index.js';
 import { db } from '../db/index.js';
 import type { AuthenticatedRequestContext } from '../context/index.js';
 import { verifyAccessToken } from '../utils/index.js';
@@ -25,35 +25,6 @@ const extractBearerToken = (authorizationHeader: string | undefined): string => 
   return token;
 };
 
-const mapAuthContext = (
-  context: {
-    userId: string;
-    organizationUserId: string;
-    organizationId: string;
-    role: AuthenticatedRequestContext['role'];
-    email: string | null;
-    phone: string | null;
-  },
-  token: {
-    iat?: number;
-    exp?: number;
-  },
-): AuthenticatedRequestContext => {
-  return {
-    userId: context.userId,
-    orgUserId: context.organizationUserId,
-    organizationUserId: context.organizationUserId,
-    organizationId: context.organizationId,
-    role: context.role,
-    email: context.email,
-    phone: context.phone,
-    token: {
-      issuedAt: token.iat,
-      expiresAt: token.exp,
-    },
-  };
-};
-
 type RequestWithAuth = Parameters<RequestHandler>[0] & {
   auth?: AuthenticatedRequestContext;
 };
@@ -66,6 +37,37 @@ export const authenticateRequest: RequestHandler = async (
   try {
     const token = extractBearerToken(request.header('authorization'));
     const claims = verifyAccessToken(token);
+
+    if (claims.isSystemAdmin) {
+      const usersRepository = new UsersRepository(db);
+      const user = await usersRepository.findById(claims.sub);
+
+      if (!user || user.status !== UserStatus.ACTIVE || !user.isSystemAdmin) {
+        throw AppError.unauthorized('Authentication is invalid or no longer active.');
+      }
+
+      const authenticatedRequest = request as RequestWithAuth;
+      authenticatedRequest.auth = {
+        userId: claims.sub,
+        isSystemAdmin: true,
+        orgUserId: '',
+        organizationUserId: '',
+        organizationId: '',
+        role: null,
+        email: user.email,
+        phone: user.phone,
+        token: {
+          issuedAt: claims.iat,
+          expiresAt: claims.exp,
+        },
+      };
+
+      next();
+      return;
+    }
+
+    // Org-scoped path — look up the organization_users row
+    const { AuthRepository } = await import('../../repositories/index.js');
     const repository = new AuthRepository(db);
     const authContext = await repository.findAuthenticatedContext(
       claims.sub,
@@ -89,11 +91,20 @@ export const authenticateRequest: RequestHandler = async (
     }
 
     const authenticatedRequest = request as RequestWithAuth;
-
-    authenticatedRequest.auth = mapAuthContext(authContext, {
-      iat: claims.iat,
-      exp: claims.exp,
-    });
+    authenticatedRequest.auth = {
+      userId: authContext.userId,
+      isSystemAdmin: false,
+      orgUserId: authContext.organizationUserId,
+      organizationUserId: authContext.organizationUserId,
+      organizationId: authContext.organizationId,
+      role: authContext.role,
+      email: authContext.email,
+      phone: authContext.phone,
+      token: {
+        issuedAt: claims.iat,
+        expiresAt: claims.exp,
+      },
+    };
 
     next();
   } catch (error: unknown) {

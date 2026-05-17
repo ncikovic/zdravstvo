@@ -5,7 +5,7 @@ export enum AppEnvironment {
 }
 
 export enum OrganizationUserRole {
-  ADMIN = 'ADMIN',
+  MANAGER = 'MANAGER',
   RECEPTION = 'RECEPTION',
   DOCTOR = 'DOCTOR',
   PATIENT = 'PATIENT',

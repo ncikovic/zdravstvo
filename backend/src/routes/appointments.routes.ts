@@ -18,7 +18,7 @@ import {
 } from "../validations/index.js";
 
 const canUseAppointments = requireRoles(
-  OrganizationUserRole.ADMIN,
+  OrganizationUserRole.MANAGER,
   OrganizationUserRole.RECEPTION,
   OrganizationUserRole.DOCTOR,
   OrganizationUserRole.PATIENT,

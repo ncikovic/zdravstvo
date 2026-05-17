@@ -148,7 +148,7 @@ export async function seed(knex: Knex): Promise<void> {
       id: toBinaryUuid(adminOrgUserId),
       organization_id: toBinaryUuid(organizationId),
       user_id: toBinaryUuid(adminUserId),
-      role: "ADMIN",
+      role: "MANAGER",
       is_active: true,
     },
     {

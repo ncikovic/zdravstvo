@@ -47,6 +47,7 @@ function DashboardStatus({
 
 export function DashboardPage(): ReactElement {
   const role = useAuthStore((state) => state.role)
+  const isSystemAdmin = useAuthStore((state) => state.isSystemAdmin)
   const [searchParams, setSearchParams] = useSearchParams()
   const selectedDate = resolveSelectedDate(searchParams.get('date'))
   const dashboardQuery = useDashboardQuery(role, selectedDate)
@@ -59,6 +60,16 @@ export function DashboardPage(): ReactElement {
 
       return nextParams
     })
+  }
+
+  if (isSystemAdmin) {
+    return (
+      <DashboardStatus
+        title="System Administrator"
+        message="Prijavljeni ste kao administrator sustava. Koristite administratorsko sučelje za upravljanje organizacijama i korisnicima."
+        icon="shieldCheck"
+      />
+    )
   }
 
   if (!role) {
@@ -93,9 +104,9 @@ export function DashboardPage(): ReactElement {
   const dashboard = dashboardQuery.data
 
   if (
-    (role === OrganizationUserRole.ADMIN ||
+    (role === OrganizationUserRole.MANAGER ||
       role === OrganizationUserRole.RECEPTION) &&
-    (dashboard.role === OrganizationUserRole.ADMIN ||
+    (dashboard.role === OrganizationUserRole.MANAGER ||
       dashboard.role === OrganizationUserRole.RECEPTION)
   ) {
     return (

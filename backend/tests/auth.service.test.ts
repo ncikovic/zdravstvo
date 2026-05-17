@@ -285,7 +285,7 @@ const seedMembership = (
     id: ORG_USER_ID,
     organizationId: ORGANIZATION_ID,
     userId: USER_ID,
-    role: OrganizationUserRole.ADMIN,
+    role: OrganizationUserRole.MANAGER,
     isActive: true,
     ...overrides,
   };

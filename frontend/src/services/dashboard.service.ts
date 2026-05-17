@@ -104,7 +104,7 @@ const mapFreeSlot = (slot: DashboardFreeSlotDto): DashboardFreeSlot => ({
 const isAdminReceptionDashboard = (
   dashboard: DashboardResponseDto,
 ): dashboard is AdminReceptionDashboardDto =>
-  dashboard.role === OrganizationUserRole.ADMIN ||
+  dashboard.role === OrganizationUserRole.MANAGER ||
   dashboard.role === OrganizationUserRole.RECEPTION
 
 const isDoctorDashboard = (

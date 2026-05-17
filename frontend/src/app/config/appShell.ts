@@ -40,8 +40,8 @@ const DEFAULT_SHELL_CONFIG: RoleShellConfig = {
 }
 
 const ROLE_SHELL_CONFIG: Record<OrganizationUserRole, RoleShellConfig> = {
-  [OrganizationUserRole.ADMIN]: {
-    roleLabel: 'Administrator',
+  [OrganizationUserRole.MANAGER]: {
+    roleLabel: 'Upravitelj',
     headerVariant: 'workspace',
     searchPlaceholder: 'Pretražite pacijente, termine, liječnike...',
     notificationCount: 8,

@@ -6,12 +6,20 @@ import { env } from '../../config/env.js';
 
 const { JsonWebTokenError, TokenExpiredError } = jwt;
 
-export interface AccessTokenClaims {
+export interface SystemAdminAccessTokenClaims {
   sub: string;
+  isSystemAdmin: true;
+}
+
+export interface OrgScopedAccessTokenClaims {
+  sub: string;
+  isSystemAdmin: false;
   organizationId: string;
   orgUserId: string;
   role: OrganizationUserRole;
 }
+
+export type AccessTokenClaims = SystemAdminAccessTokenClaims | OrgScopedAccessTokenClaims;
 
 export interface VerifiedAccessTokenClaims extends AccessTokenClaims {
   iat?: number;
@@ -72,10 +80,22 @@ export const verifyAccessToken = (token: string): VerifiedAccessTokenClaims => {
       throw new JsonWebTokenError('Invalid token payload.');
     }
 
-    const { sub, organizationId, orgUserId, role, iat, exp } = payload;
+    const { sub, isSystemAdmin, organizationId, orgUserId, role, iat, exp } = payload;
+
+    if (typeof sub !== 'string') {
+      throw new JsonWebTokenError('Invalid token payload.');
+    }
+
+    if (isSystemAdmin === true) {
+      return {
+        sub,
+        isSystemAdmin: true,
+        iat: typeof iat === 'number' ? iat : undefined,
+        exp: typeof exp === 'number' ? exp : undefined,
+      };
+    }
 
     if (
-      typeof sub !== 'string' ||
       typeof organizationId !== 'string' ||
       typeof orgUserId !== 'string' ||
       !isOrganizationUserRole(role)
@@ -85,6 +105,7 @@ export const verifyAccessToken = (token: string): VerifiedAccessTokenClaims => {
 
     return {
       sub,
+      isSystemAdmin: false,
       organizationId,
       orgUserId,
       role,

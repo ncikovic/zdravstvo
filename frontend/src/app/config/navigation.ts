@@ -5,7 +5,7 @@ import type { AppNavigationItem } from '@/types'
 import { APP_ROUTES } from '../routes'
 
 const ADMIN_RECEPTION_ROLES: readonly OrganizationUserRole[] = [
-  OrganizationUserRole.ADMIN,
+  OrganizationUserRole.MANAGER,
   OrganizationUserRole.RECEPTION,
 ]
 
@@ -16,7 +16,7 @@ export const APP_NAVIGATION_ITEMS: readonly AppNavigationItem[] = [
     path: APP_ROUTES.dashboard,
     icon: 'dashboard',
     allowedRoles: [
-      OrganizationUserRole.ADMIN,
+      OrganizationUserRole.MANAGER,
       OrganizationUserRole.RECEPTION,
       OrganizationUserRole.DOCTOR,
       OrganizationUserRole.PATIENT,
@@ -45,7 +45,7 @@ export const APP_NAVIGATION_ITEMS: readonly AppNavigationItem[] = [
     path: APP_ROUTES.patients,
     icon: 'patients',
     allowedRoles: [
-      OrganizationUserRole.ADMIN,
+      OrganizationUserRole.MANAGER,
       OrganizationUserRole.RECEPTION,
       OrganizationUserRole.DOCTOR,
     ],
@@ -97,7 +97,7 @@ export const APP_NAVIGATION_ITEMS: readonly AppNavigationItem[] = [
     path: APP_ROUTES.settings,
     icon: 'settings',
     allowedRoles: [
-      OrganizationUserRole.ADMIN,
+      OrganizationUserRole.MANAGER,
       OrganizationUserRole.RECEPTION,
       OrganizationUserRole.DOCTOR,
       OrganizationUserRole.PATIENT,

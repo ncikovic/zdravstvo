@@ -135,7 +135,7 @@ export interface DashboardBaseDto {
 }
 
 export interface AdminReceptionDashboardDto extends DashboardBaseDto {
-  role: OrganizationUserRole.ADMIN | OrganizationUserRole.RECEPTION;
+  role: OrganizationUserRole.MANAGER | OrganizationUserRole.RECEPTION;
   stats: AdminReceptionDashboardStatsDto;
   reminderSummary: DashboardReminderSummaryDto;
   todaySchedule: DashboardAppointmentDto[];

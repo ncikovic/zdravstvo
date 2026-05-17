@@ -16,7 +16,7 @@ import {
   updateOrganizationValidationSchemas,
 } from '../validations/index.js';
 
-const canManageOrganizations = requireRoles(OrganizationUserRole.ADMIN);
+const canManageOrganizations = requireRoles(OrganizationUserRole.MANAGER);
 
 export const organizationsRouter = Router();
 

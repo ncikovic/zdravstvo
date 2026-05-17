@@ -22,15 +22,15 @@ import { requireAuthenticatedUser } from "../shared/context/index.js";
 import { doctorsService } from "../services/index.js";
 
 const canManageDoctors = requireRoles(
-  OrganizationUserRole.ADMIN,
+  OrganizationUserRole.MANAGER,
   OrganizationUserRole.RECEPTION,
 );
 const canReadDoctors = requireRoles(
-  OrganizationUserRole.ADMIN,
+  OrganizationUserRole.MANAGER,
   OrganizationUserRole.RECEPTION,
 );
 const canManageDoctorSchedules = requireRoles(
-  OrganizationUserRole.ADMIN,
+  OrganizationUserRole.MANAGER,
   OrganizationUserRole.RECEPTION,
 );
 

@@ -32,7 +32,7 @@ const UPDATED_AFTER_MUTATION_AT = new Date("2026-04-21T20:00:00.000Z");
 const createContext = (organizationId = ORGANIZATION_ID) => ({
   organizationId,
   organizationUserId: ADMIN_ORG_USER_ID,
-  role: OrganizationUserRole.ADMIN,
+  role: OrganizationUserRole.MANAGER,
 });
 
 const createId = (() => {

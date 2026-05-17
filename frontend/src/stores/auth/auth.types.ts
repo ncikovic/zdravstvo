@@ -9,6 +9,7 @@ export type AuthUser = NonNullable<LoginResponseDto['user']>
 export interface AuthStateSnapshot {
   accessToken: string | null
   user: AuthUser | null
+  isSystemAdmin: boolean | null
   role: OrganizationUserRole | null
   organizationId: string | null
   orgUserId: string | null

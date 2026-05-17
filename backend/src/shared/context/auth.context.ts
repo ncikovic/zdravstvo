@@ -10,10 +10,11 @@ export interface AuthTokenMetadata {
 
 export interface AuthenticatedRequestContext {
   userId: string;
+  isSystemAdmin: boolean;
   orgUserId: string;
   organizationUserId: string;
   organizationId: string;
-  role: OrganizationUserRole;
+  role: OrganizationUserRole | null;
   email: string | null;
   phone: string | null;
   token: AuthTokenMetadata;

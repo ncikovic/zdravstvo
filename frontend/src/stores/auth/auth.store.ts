@@ -9,6 +9,7 @@ const AUTH_STORAGE_KEY = 'zdravstvo-auth-store'
 const createUnauthenticatedState = (): AuthStateSnapshot => ({
   accessToken: null,
   user: null,
+  isSystemAdmin: null,
   role: null,
   organizationId: null,
   orgUserId: null,
@@ -19,10 +20,21 @@ const mapAuthResponseToState = (
 ): AuthStateSnapshot => ({
   accessToken: auth.accessToken,
   user: auth.user,
+  isSystemAdmin: auth.isSystemAdmin,
   role: auth.role,
   organizationId: auth.organizationId,
   orgUserId: auth.orgUserId,
 })
+
+const isAuthenticatedState = (state: Partial<AuthStateSnapshot>): boolean => {
+  if (!state.accessToken || !state.user) {
+    return false
+  }
+  if (state.isSystemAdmin) {
+    return true
+  }
+  return Boolean(state.role && state.organizationId && state.orgUserId)
+}
 
 export const useAuthStore = create<AuthStore>()(
   persist(
@@ -51,6 +63,7 @@ export const useAuthStore = create<AuthStore>()(
       partialize: (state) => ({
         accessToken: state.accessToken,
         user: state.user,
+        isSystemAdmin: state.isSystemAdmin,
         role: state.role,
         organizationId: state.organizationId,
         orgUserId: state.orgUserId,
@@ -63,13 +76,7 @@ export const useAuthStore = create<AuthStore>()(
 
         return {
           ...mergedState,
-          isAuthenticated: Boolean(
-            mergedState.accessToken &&
-              mergedState.user &&
-              mergedState.role &&
-              mergedState.organizationId &&
-              mergedState.orgUserId,
-          ),
+          isAuthenticated: isAuthenticatedState(mergedState),
         }
       },
     },

@@ -48,9 +48,9 @@ const runMiddleware = (
 };
 
 test("allows access for permitted role", () => {
-  const request = createAuthenticatedRequest(OrganizationUserRole.ADMIN);
+  const request = createAuthenticatedRequest(OrganizationUserRole.MANAGER);
   const error = runMiddleware(
-    requireRoles(OrganizationUserRole.ADMIN),
+    requireRoles(OrganizationUserRole.MANAGER),
     request,
   );
 
@@ -60,7 +60,7 @@ test("allows access for permitted role", () => {
 test("denies access for non-permitted role", () => {
   const request = createAuthenticatedRequest(OrganizationUserRole.PATIENT);
   const error = runMiddleware(
-    requireRoles(OrganizationUserRole.ADMIN),
+    requireRoles(OrganizationUserRole.MANAGER),
     request,
   );
 
@@ -72,7 +72,7 @@ test("denies access for non-permitted role", () => {
 test("denies access when role is missing", () => {
   const request = createAuthenticatedRequest(undefined);
   const error = runMiddleware(
-    requireRoles(OrganizationUserRole.ADMIN),
+    requireRoles(OrganizationUserRole.MANAGER),
     request,
   );
 
@@ -84,7 +84,7 @@ test("denies access when role is missing", () => {
 test("supports multiple allowed roles", () => {
   const request = createAuthenticatedRequest(OrganizationUserRole.RECEPTION);
   const error = runMiddleware(
-    requireRoles(OrganizationUserRole.ADMIN, OrganizationUserRole.RECEPTION),
+    requireRoles(OrganizationUserRole.MANAGER, OrganizationUserRole.RECEPTION),
     request,
   );
 
@@ -106,4 +106,27 @@ test("does not break authenticated route flow when role is valid", () => {
 
   assert.equal(nextWasCalled, true);
   assert.equal(request.auth?.role, OrganizationUserRole.DOCTOR);
+});
+
+test("allows system admin regardless of required roles", () => {
+  const request = {
+    auth: {
+      userId: "user-id",
+      isSystemAdmin: true,
+      orgUserId: "",
+      organizationUserId: "",
+      organizationId: "",
+      role: null,
+      email: null,
+      phone: null,
+      token: {},
+    } as AuthenticatedRequestContext,
+  } as unknown as AuthenticatedTestRequest;
+
+  const error = runMiddleware(
+    requireRoles(OrganizationUserRole.MANAGER),
+    request,
+  );
+
+  assert.equal(error, undefined);
 });

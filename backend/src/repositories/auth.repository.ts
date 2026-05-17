@@ -17,6 +17,7 @@ interface UserRow {
   phone: string | null;
   password_hash: string | null;
   status: UserStatus;
+  is_system_admin: number | boolean;
 }
 
 interface PatientProfileRow {
@@ -92,6 +93,7 @@ const mapUserRecord = (row: UserRow): UserRecord => {
     phone: row.phone,
     passwordHash: row.password_hash,
     status: row.status,
+    isSystemAdmin: Boolean(row.is_system_admin),
   };
 };
 
@@ -152,7 +154,7 @@ export class AuthRepository {
 
   public async findUserByEmail(email: string): Promise<UserRecord | null> {
     const row = await this.executor<UserRow>('users')
-      .select('id', 'email', 'phone', 'password_hash', 'status')
+      .select('id', 'email', 'phone', 'password_hash', 'status', 'is_system_admin')
       .where({ email })
       .first();
 
@@ -161,7 +163,7 @@ export class AuthRepository {
 
   public async findUserByPhone(phone: string): Promise<UserRecord | null> {
     const row = await this.executor<UserRow>('users')
-      .select('id', 'email', 'phone', 'password_hash', 'status')
+      .select('id', 'email', 'phone', 'password_hash', 'status', 'is_system_admin')
       .where({ phone })
       .first();
 
@@ -172,7 +174,7 @@ export class AuthRepository {
     emailOrPhone: string
   ): Promise<UserRecord | null> {
     const row = await this.executor<UserRow>('users')
-      .select('id', 'email', 'phone', 'password_hash', 'status')
+      .select('id', 'email', 'phone', 'password_hash', 'status', 'is_system_admin')
       .where({ email: emailOrPhone })
       .orWhere({ phone: emailOrPhone })
       .first();
@@ -197,6 +199,7 @@ export class AuthRepository {
       phone: input.phone,
       passwordHash: input.passwordHash,
       status: input.status,
+      isSystemAdmin: false,
     };
   }
 

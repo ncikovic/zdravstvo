@@ -103,13 +103,13 @@ const PAGE_SIZE = 10;
 const DEFAULT_SLOT_LIMIT = 100;
 const MAX_APPOINTMENT_DURATION_MINUTES = 8 * 60;
 const SCHEDULING_ROLES: readonly OrganizationUserRole[] = [
-  OrganizationUserRole.ADMIN,
+  OrganizationUserRole.MANAGER,
   OrganizationUserRole.RECEPTION,
   OrganizationUserRole.DOCTOR,
   OrganizationUserRole.PATIENT,
 ];
 const MANAGER_ROLES: readonly OrganizationUserRole[] = [
-  OrganizationUserRole.ADMIN,
+  OrganizationUserRole.MANAGER,
   OrganizationUserRole.RECEPTION,
 ];
 

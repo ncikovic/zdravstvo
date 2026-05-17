@@ -10,6 +10,7 @@ interface UserRow {
   phone: string | null;
   password_hash: string | null;
   status: UserStatus;
+  is_system_admin: number | boolean;
 }
 
 const mapUserRecord = (row: UserRow): UserRecord => {
@@ -19,6 +20,7 @@ const mapUserRecord = (row: UserRow): UserRecord => {
     phone: row.phone,
     passwordHash: row.password_hash,
     status: row.status,
+    isSystemAdmin: Boolean(row.is_system_admin),
   };
 };
 
@@ -27,7 +29,7 @@ export class UsersRepository {
 
   public async findById(userId: string): Promise<UserRecord | null> {
     const row = await this.executor<UserRow>('users')
-      .select('id', 'email', 'phone', 'password_hash', 'status')
+      .select('id', 'email', 'phone', 'password_hash', 'status', 'is_system_admin')
       .where({ id: uuidToBuffer(userId) })
       .first();
 
@@ -36,7 +38,7 @@ export class UsersRepository {
 
   public async findByEmailOrPhone(identifier: string): Promise<UserRecord | null> {
     const row = await this.executor<UserRow>('users')
-      .select('id', 'email', 'phone', 'password_hash', 'status')
+      .select('id', 'email', 'phone', 'password_hash', 'status', 'is_system_admin')
       .where({ email: identifier })
       .orWhere({ phone: identifier })
       .first();

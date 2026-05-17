@@ -6,6 +6,7 @@ export interface UserRecord {
   phone: string | null;
   passwordHash: string | null;
   status: UserStatus;
+  isSystemAdmin: boolean;
 }
 
 export interface PatientProfileRecord {

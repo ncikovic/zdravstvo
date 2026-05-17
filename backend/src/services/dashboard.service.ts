@@ -459,7 +459,7 @@ export class DashboardService {
     };
 
     if (
-      context.role === OrganizationUserRole.ADMIN ||
+      context.role === OrganizationUserRole.MANAGER ||
       context.role === OrganizationUserRole.RECEPTION
     ) {
       return this.getAdminReceptionDashboard(
@@ -541,7 +541,7 @@ export class DashboardService {
     return {
       ...base,
       role: context.role as
-        | OrganizationUserRole.ADMIN
+        | OrganizationUserRole.MANAGER
         | OrganizationUserRole.RECEPTION,
       stats: {
         todayAppointmentCount: sumAppointmentCounts(appointmentCounts),
