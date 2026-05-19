@@ -76,6 +76,7 @@ appointmentsRouter.post(
 
 appointmentsRouter.patch(
   "/:id/schedule",
+  canBookOrCancel,
   validateRequest(updateAppointmentScheduleValidationSchemas),
   asyncHandler(async (request, response) => {
     await appointmentsController.reschedule(request, response);

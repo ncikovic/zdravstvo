@@ -969,6 +969,10 @@ export class AppointmentsService {
   ): Promise<AppointmentResponseDto> {
     ensureSchedulingRole(context.role);
 
+    if (context.role === OrganizationUserRole.DOCTOR) {
+      throw AppError.forbidden();
+    }
+
     return this.runInTransaction(async (repository) => {
       const appointment = await repository.findById(
         context.organizationId,
