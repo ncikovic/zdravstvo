@@ -33,7 +33,7 @@ export function Sidebar({ items, support, onCollapse, isOpen, onClose }: Sidebar
           <AppIcon name="xCircle" />
         </button>
 
-        <div className="app-sidebar__brand" aria-label="Zdravstvo">
+        <div className="app-sidebar__brand" aria-hidden="true">
           {support.brandIcon ? (
             <span className="app-sidebar__brand-mark app-sidebar__brand-mark--shield">
               <AppIcon name={support.brandIcon} />
@@ -42,7 +42,7 @@ export function Sidebar({ items, support, onCollapse, isOpen, onClose }: Sidebar
           <img
             className="app-sidebar__brand-logo"
             src="/assets/branding/logo.png"
-            alt="Zdravstvo"
+            alt=""
             decoding="async"
           />
         </div>

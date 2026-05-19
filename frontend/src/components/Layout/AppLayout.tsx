@@ -1,7 +1,8 @@
 import { useEffect, useState, type ReactElement } from 'react'
-import { Outlet, useLocation, useSearchParams } from 'react-router-dom'
+import { matchPath, Outlet, useLocation, useSearchParams } from 'react-router-dom'
 
 import { getRoleShellConfig } from '@/app/config'
+import { APP_ROUTES } from '@/app/routes'
 import { useAccessibility } from '@/contexts/AccessibilityContext'
 import { useRoleNavigation } from '@/hooks'
 import { useAuthStore, type AuthUser } from '@/stores'
@@ -89,6 +90,47 @@ const PAGE_TITLES: Record<string, string> = {
   '/schedule': 'Moj raspored',
 }
 
+const PAGE_TITLE_PATTERNS: readonly { pattern: string; title: string }[] = [
+  { pattern: APP_ROUTES.dashboard, title: 'Nadzorna ploča' },
+  { pattern: APP_ROUTES.schedule, title: 'Raspored' },
+  { pattern: APP_ROUTES.appointments, title: 'Termini' },
+  { pattern: APP_ROUTES.createAppointment, title: 'Novi termin' },
+  { pattern: APP_ROUTES.appointmentDetails, title: 'Detalji termina' },
+  { pattern: APP_ROUTES.changeAppointment, title: 'Promjena termina' },
+  { pattern: APP_ROUTES.cancelAppointment, title: 'Otkazivanje termina' },
+  { pattern: APP_ROUTES.doctors, title: 'Liječnici' },
+  { pattern: APP_ROUTES.doctorsCreate, title: 'Novi liječnik' },
+  { pattern: APP_ROUTES.doctorDetails, title: 'Detalji liječnika' },
+  { pattern: APP_ROUTES.doctorSchedule, title: 'Raspored liječnika' },
+  { pattern: APP_ROUTES.doctorExceptions, title: 'Iznimke liječnika' },
+  { pattern: APP_ROUTES.doctorOwnSchedule, title: 'Moj raspored' },
+  { pattern: APP_ROUTES.patients, title: 'Pacijenti' },
+  { pattern: APP_ROUTES.patientsNew, title: 'Novi pacijent' },
+  { pattern: APP_ROUTES.patientDetails, title: 'Detalji pacijenta' },
+  { pattern: APP_ROUTES.patientEdit, title: 'Uredi pacijenta' },
+  { pattern: APP_ROUTES.appointmentTypes, title: 'Vrste termina' },
+  { pattern: APP_ROUTES.createAppointmentType, title: 'Nova vrsta termina' },
+  { pattern: APP_ROUTES.editAppointmentType, title: 'Uredi vrstu termina' },
+  { pattern: APP_ROUTES.audit, title: 'Audit' },
+  { pattern: APP_ROUTES.settings, title: 'Postavke' },
+  { pattern: APP_ROUTES.myAppointments, title: 'Moji termini' },
+  { pattern: APP_ROUTES.book, title: 'Zakaži termin' },
+  { pattern: APP_ROUTES.profile, title: 'Profil' },
+  { pattern: APP_ROUTES.users, title: 'Korisnici' },
+  { pattern: APP_ROUTES.adminOrganizations, title: 'Organizacije' },
+  { pattern: APP_ROUTES.adminUsers, title: 'Korisnici' },
+  { pattern: APP_ROUTES.adminAudit, title: 'Audit sustava' },
+  { pattern: APP_ROUTES.accessibility, title: 'Postavke pristupačnosti' },
+]
+
+const resolvePageTitle = (pathname: string): string => {
+  const route = PAGE_TITLE_PATTERNS.find(({ pattern }) =>
+    matchPath({ path: pattern, end: true }, pathname),
+  )
+
+  return route?.title ?? PAGE_TITLES[pathname] ?? 'Stranica'
+}
+
 export function AppLayout(): ReactElement {
   const role = useAuthStore((state) => state.role)
   const isSystemAdmin = useAuthStore((state) => state.isSystemAdmin)
@@ -103,12 +145,12 @@ export function AppLayout(): ReactElement {
   const shellConfig = getRoleShellConfig(role, isSystemAdmin)
   const location = useLocation()
   const { announce } = useAccessibility()
+  const pageTitle = resolvePageTitle(location.pathname)
 
   useEffect(() => {
-    const title = PAGE_TITLES[location.pathname] ?? 'Zdravstvo'
-    announce(title)
+    announce(pageTitle)
     setMobileMenuOpen(false)
-  }, [location.pathname, announce])
+  }, [pageTitle, announce])
   const userName = formatUserName(user)
   const initials = getUserInitials(userName)
   const selectedDate = resolveSelectedDate(searchParams.get('date'))
@@ -161,7 +203,7 @@ export function AppLayout(): ReactElement {
 
             {shellConfig.headerVariant === 'clinical' ? (
               <div className="app-topbar__title-group">
-                <h1>Nadzorna ploča</h1>
+                <h1>{pageTitle}</h1>
                 <span className="app-topbar__divider" aria-hidden="true" />
                 <div className="topbar-dropdown topbar-dropdown--date">
                   <button
