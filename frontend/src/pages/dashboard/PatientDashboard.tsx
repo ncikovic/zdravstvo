@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 import { AppIcon } from '@/components'
 import type { PatientDashboard as PatientDashboardData } from '@/types'
@@ -18,6 +18,7 @@ interface PatientDashboardProps {
 }
 
 export function PatientDashboard({ dashboard }: PatientDashboardProps): ReactElement {
+  const navigate = useNavigate()
   const view = mapPatientDashboard(dashboard)
 
   return (
@@ -141,6 +142,7 @@ export function PatientDashboard({ dashboard }: PatientDashboardProps): ReactEle
             title="Podsjetnici i obavijesti"
             icon="bell"
             footerLabel="Pogledaj sve obavijesti"
+            onFooter={() => navigate('/my-appointments')}
           >
             <div className="dashboard-compact-list">
               {view.reminders.map((reminder) => (
@@ -151,7 +153,7 @@ export function PatientDashboard({ dashboard }: PatientDashboardProps): ReactEle
                     <small>{reminder.meta}</small>
                   </span>
                   <StatusBadge tone={reminder.tone}>{reminder.status}</StatusBadge>
-                  <button className="dashboard-row-action" type="button" aria-label="Otvori podsjetnik">
+                  <button className="dashboard-row-action" type="button" aria-label="Otvori podsjetnik" onClick={() => navigate('/my-appointments')}>
                     <AppIcon name="chevronRight" />
                   </button>
                 </div>
@@ -167,7 +169,7 @@ export function PatientDashboard({ dashboard }: PatientDashboardProps): ReactEle
           <strong>Vaše zdravlje na prvom mjestu</strong>
           <small>Redovitim pregledima i preventivnim mjerama čuvajte svoje zdravlje.</small>
         </span>
-        <button type="button">
+        <button type="button" onClick={() => navigate('/appointments/create')}>
           Saznajte više o preventivi
           <AppIcon name="chevronRight" />
         </button>

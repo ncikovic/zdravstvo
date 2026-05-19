@@ -21,6 +21,7 @@ export interface DashboardStat {
 }
 
 export interface AdminScheduleRow {
+  id: string
   time: string
   patientName: string
   patientMeta: string
@@ -60,6 +61,7 @@ export interface DoctorScheduleRow {
 }
 
 export interface DoctorNextPatient {
+  id: string
   initials: string
   name: string
   meta: string

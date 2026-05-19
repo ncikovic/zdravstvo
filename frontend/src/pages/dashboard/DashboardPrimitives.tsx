@@ -14,8 +14,10 @@ interface DashboardSectionProps {
   icon: AppIconName
   children: ReactNode
   actionLabel?: string
+  onAction?: () => void
   className?: string
   footerLabel?: string
+  onFooter?: () => void
 }
 
 interface StatusBadgeProps {
@@ -91,8 +93,10 @@ export function DashboardSection({
   icon,
   children,
   actionLabel,
+  onAction,
   className,
   footerLabel,
+  onFooter,
 }: DashboardSectionProps): ReactElement {
   return (
     <section className={className ? `dashboard-section ${className}` : 'dashboard-section'}>
@@ -102,7 +106,7 @@ export function DashboardSection({
           {title}
         </h2>
         {actionLabel ? (
-          <button className="dashboard-section__action" type="button">
+          <button className="dashboard-section__action" type="button" onClick={onAction}>
             {actionLabel}
             <AppIcon name="chevronRight" />
           </button>
@@ -110,7 +114,7 @@ export function DashboardSection({
       </div>
       {children}
       {footerLabel ? (
-        <button className="dashboard-section__footer" type="button">
+        <button className="dashboard-section__footer" type="button" onClick={onFooter}>
           {footerLabel}
           <AppIcon name="chevronRight" />
         </button>

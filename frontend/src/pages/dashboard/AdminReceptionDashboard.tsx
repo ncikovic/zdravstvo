@@ -1,4 +1,5 @@
 import type { ReactElement } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import { AppIcon } from '@/components'
 import type { AdminReceptionDashboard as AdminReceptionDashboardData } from '@/types'
@@ -24,6 +25,7 @@ export function AdminReceptionDashboard({
   selectedDate,
   onSelectedDateChange,
 }: AdminReceptionDashboardProps): ReactElement {
+  const navigate = useNavigate()
   const view = mapAdminReceptionDashboard(dashboard)
 
   return (
@@ -51,7 +53,9 @@ export function AdminReceptionDashboard({
           title="Današnji raspored"
           icon="calendar"
           actionLabel="Pogledaj sve termine"
+          onAction={() => navigate('/appointments')}
           footerLabel="Pogledaj cijeli raspored"
+          onFooter={() => navigate('/appointments')}
           className="dashboard-section--schedule"
         >
           <div className="dashboard-table dashboard-table--admin" role="table">
@@ -79,7 +83,7 @@ export function AdminReceptionDashboard({
                 </span>
                 <StatusBadge tone={row.typeTone}>{row.type}</StatusBadge>
                 <StatusBadge tone={row.statusTone}>{row.status}</StatusBadge>
-                <button className="dashboard-row-action" type="button" aria-label="Otvori termin">
+                <button className="dashboard-row-action" type="button" aria-label="Otvori termin" onClick={() => navigate(`/appointments/${row.id}`)}>
                   <AppIcon name="chevronRight" />
                 </button>
               </div>
@@ -110,6 +114,7 @@ export function AdminReceptionDashboard({
             title="Najbliži slobodni termini"
             icon="calendar"
             footerLabel="Pogledaj sve dostupne termine"
+            onFooter={() => navigate('/appointments/create')}
           >
             <div className="dashboard-compact-list">
               {view.availableSlots.map((slot) => (
@@ -133,6 +138,7 @@ export function AdminReceptionDashboard({
             title="Obavijesti i podsjetnici"
             icon="bell"
             footerLabel="Pogledaj sve obavijesti"
+            onFooter={() => navigate('/appointments')}
           >
             <div className="dashboard-compact-list">
               {view.notifications.map((notification) => (
@@ -156,6 +162,7 @@ export function AdminReceptionDashboard({
         title="Brzi pregled aktivnosti"
         icon="activity"
         actionLabel="Pogledaj izvješća"
+        onAction={() => navigate('/audit')}
         className="dashboard-section--activity"
       >
         <div className="dashboard-metric-strip">

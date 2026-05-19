@@ -1,4 +1,5 @@
 import type { ReactElement } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import { AppIcon } from '@/components'
 import type { DoctorDashboard as DoctorDashboardData } from '@/types'
@@ -18,6 +19,7 @@ interface DoctorDashboardProps {
 }
 
 export function DoctorDashboard({ dashboard }: DoctorDashboardProps): ReactElement {
+  const navigate = useNavigate()
   const view = mapDoctorDashboard(dashboard)
 
   return (
@@ -34,7 +36,9 @@ export function DoctorDashboard({ dashboard }: DoctorDashboardProps): ReactEleme
             title="Današnji raspored"
             icon="calendar"
             actionLabel="Pogledaj cijeli raspored"
+            onAction={() => navigate('/appointments')}
             footerLabel="Prikaži još termina"
+            onFooter={() => navigate('/appointments')}
           >
             <div className="dashboard-table dashboard-table--doctor" role="table">
               {view.scheduleRows.length > 0 ? view.scheduleRows.map((row) => (
@@ -78,6 +82,7 @@ export function DoctorDashboard({ dashboard }: DoctorDashboardProps): ReactEleme
             title="Nedavne aktivnosti"
             icon="activity"
             footerLabel="Pogledaj sve aktivnosti"
+            onFooter={() => navigate('/audit')}
           >
             <div className="dashboard-activity-list">
               {view.activities.map((activity) => (
@@ -117,7 +122,7 @@ export function DoctorDashboard({ dashboard }: DoctorDashboardProps): ReactEleme
                     {view.nextPatient.note}
                   </span>
                 </div>
-                <button className="dashboard-gradient-action" type="button">
+                <button className="dashboard-gradient-action" type="button" onClick={() => navigate(`/appointments/${view.nextPatient?.id ?? ''}`)}>
                   Otvori detalje
                   <AppIcon name="chevronRight" />
                 </button>
@@ -147,7 +152,7 @@ export function DoctorDashboard({ dashboard }: DoctorDashboardProps): ReactEleme
             )}
           </DashboardSection>
 
-          <DashboardSection title="Brze bilješke" icon="note" footerLabel="Pogledaj sve bilješke">
+          <DashboardSection title="Brze bilješke" icon="note" footerLabel="Pogledaj sve bilješke" onFooter={() => navigate('/doctor/schedule')}>
             <div className="quick-note-input">
               <span>Zabilježi brzu bilješku...</span>
               <button type="button" aria-label="Dodaj bilješku">

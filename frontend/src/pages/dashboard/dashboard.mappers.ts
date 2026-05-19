@@ -283,6 +283,7 @@ const mapAvailableSlots = (
 const mapAdminScheduleRow = (
   appointment: DashboardAppointment,
 ): AdminScheduleRow => ({
+  id: appointment.id,
   time: formatTime(appointment.startAt),
   patientName: formatPersonName(appointment.patient),
   patientMeta: getPatientMeta(appointment),
@@ -442,6 +443,7 @@ const mapDoctorNextPatient = (
   }
 
   return {
+    id: appointment.id,
     initials: getInitials(formatPersonName(appointment.patient)),
     name: formatPersonName(appointment.patient),
     meta: getPatientMeta(appointment),
