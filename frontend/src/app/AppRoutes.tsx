@@ -10,6 +10,7 @@ import {
   AppointmentTypesPage,
   AppointmentsPage,
   AuditPage,
+  NotificationsPage,
   CancelAppointmentPage,
   ChangeAppointmentPage,
   ConfirmEmailPage,
@@ -125,6 +126,7 @@ export function AppRoutes(): ReactElement {
         {/* Manager + Reception routes */}
         <Route element={<ManagerReceptionRoute />}>
           <Route element={<AppLayout />}>
+            <Route path={APP_ROUTES.notifications} element={<NotificationsPage />} />
             <Route path={APP_ROUTES.schedule} element={<AppointmentsPage />} />
             <Route path={APP_ROUTES.appointments} element={<AppointmentsPage />} />
             <Route path={APP_ROUTES.createAppointment} element={<CreateAppointmentPage />} />

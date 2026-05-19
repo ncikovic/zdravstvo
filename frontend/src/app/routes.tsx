@@ -19,6 +19,7 @@ export const APP_ROUTES = {
   createAppointmentType: '/appointment-types/create',
   editAppointmentType: '/appointment-types/:appointmentTypeId/edit',
   audit: '/audit',
+  notifications: '/notifications',
   settings: '/settings',
   schedule: '/schedule',
   myAppointments: '/my-appointments',

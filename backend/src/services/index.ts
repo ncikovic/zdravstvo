@@ -1,4 +1,5 @@
 export * from "./adminAudit.service.js";
+export * from "./notifications.service.js";
 export * from "./adminUsers.service.js";
 export * from "./appointments.service.js";
 export * from "./appointmentTypes.service.js";

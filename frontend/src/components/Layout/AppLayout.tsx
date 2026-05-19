@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactElement } from 'react'
-import { matchPath, Outlet, useLocation, useSearchParams } from 'react-router-dom'
+import { matchPath, NavLink, Outlet, useLocation, useSearchParams } from 'react-router-dom'
 
 import { getRoleShellConfig } from '@/app/config'
 import { APP_ROUTES } from '@/app/routes'
@@ -112,6 +112,7 @@ const PAGE_TITLE_PATTERNS: readonly { pattern: string; title: string }[] = [
   { pattern: APP_ROUTES.createAppointmentType, title: 'Nova vrsta termina' },
   { pattern: APP_ROUTES.editAppointmentType, title: 'Uredi vrstu termina' },
   { pattern: APP_ROUTES.audit, title: 'Audit' },
+  { pattern: APP_ROUTES.notifications, title: 'Obavijesti' },
   { pattern: APP_ROUTES.settings, title: 'Postavke' },
   { pattern: APP_ROUTES.myAppointments, title: 'Moji termini' },
   { pattern: APP_ROUTES.book, title: 'Zakaži termin' },
@@ -278,6 +279,9 @@ export function AppLayout(): ReactElement {
                 <div className="topbar-dropdown__menu topbar-dropdown__menu--right">
                   <strong>Obavijesti</strong>
                   <span>{shellConfig.notificationCount} aktivno</span>
+                  <NavLink to={APP_ROUTES.notifications} onClick={() => setOpenMenu(null)}>
+                    Pogledaj sve obavijesti
+                  </NavLink>
                 </div>
               ) : null}
             </div>

@@ -100,6 +100,14 @@ export const APP_NAVIGATION_ITEMS: readonly AppNavigationItem[] = [
     allowedRoles: [OrganizationUserRole.MANAGER],
     section: 'administration',
   },
+  {
+    id: 'notifications',
+    label: 'Obavijesti',
+    path: APP_ROUTES.notifications,
+    icon: 'bell',
+    allowedRoles: [OrganizationUserRole.MANAGER, OrganizationUserRole.RECEPTION],
+    section: 'administration',
+  },
 
   // DOCTOR navigation
   {
