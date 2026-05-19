@@ -4,7 +4,24 @@ import type { AppNavigationItem } from '@/types'
 
 import { APP_ROUTES } from '../routes'
 
+const ORGANIZATION_ROLES = [
+  OrganizationUserRole.MANAGER,
+  OrganizationUserRole.RECEPTION,
+  OrganizationUserRole.DOCTOR,
+  OrganizationUserRole.PATIENT,
+] as const
+
 export const APP_NAVIGATION_ITEMS: readonly AppNavigationItem[] = [
+  // Shared organization navigation
+  {
+    id: 'dashboard',
+    label: 'Dashboard',
+    path: APP_ROUTES.dashboard,
+    icon: 'dashboard',
+    allowedRoles: ORGANIZATION_ROLES,
+    section: 'primary',
+  },
+
   // SYSTEM_ADMIN navigation
   {
     id: 'admin-organizations',

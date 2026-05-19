@@ -47,6 +47,7 @@ import {
   ManagerOrSystemAdminRoute,
   ManagerReceptionRoute,
   ManagerRoute,
+  OrganizationDashboardRoute,
   PatientRoute,
   PublicOnlyRoute,
   ScheduleActionRoute,
@@ -88,10 +89,16 @@ export function AppRoutes(): ReactElement {
           </Route>
         </Route>
 
+        {/* Dashboard: all organization roles */}
+        <Route element={<OrganizationDashboardRoute />}>
+          <Route element={<AppLayout />}>
+            <Route path={APP_ROUTES.dashboard} element={<DashboardPage />} />
+          </Route>
+        </Route>
+
         {/* Manager-only routes */}
         <Route element={<ManagerRoute />}>
           <Route element={<AppLayout />}>
-            <Route path={APP_ROUTES.dashboard} element={<DashboardPage />} />
             <Route path={APP_ROUTES.audit} element={<AuditPage />} />
             <Route path={APP_ROUTES.doctors} element={<DoctorsPage />} />
             <Route path={APP_ROUTES.doctorsCreate} element={<CreateDoctorPage />} />

@@ -117,6 +117,28 @@ export function ManagerRoute(): ReactElement {
   return <Outlet />
 }
 
+export function OrganizationDashboardRoute(): ReactElement {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const role = useAuthStore((state) => state.role)
+
+  if (!isAuthenticated) {
+    return <Navigate to={APP_ROUTES.login} replace />
+  }
+
+  const dashboardRoles: readonly OrganizationUserRole[] = [
+    OrganizationUserRole.MANAGER,
+    OrganizationUserRole.RECEPTION,
+    OrganizationUserRole.DOCTOR,
+    OrganizationUserRole.PATIENT,
+  ]
+
+  if (!role || !dashboardRoles.includes(role)) {
+    return <Navigate to={APP_ROUTES.forbidden} replace />
+  }
+
+  return <Outlet />
+}
+
 export function ManagerReceptionRoute(): ReactElement {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const role = useAuthStore((state) => state.role)
