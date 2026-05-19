@@ -65,13 +65,16 @@ const toAuditLogDto = (row: AuditLogRow): AuditLogDto => ({
   createdAt: toDate(row.created_at).toISOString(),
 });
 
-const buildBaseQuery = (organizationId: string, query: AuditListQueryDto) => {
+const buildBaseQuery = (organizationId: string | null, query: AuditListQueryDto) => {
   let q = db<AuditLogRow>('activity_log as log')
     .innerJoin('organization_users as orgUser', 'orgUser.id', 'log.actor_org_user_id')
     .innerJoin('users as user', 'user.id', 'orgUser.user_id')
     .leftJoin('doctor_profiles as doctor', 'doctor.user_id', 'orgUser.user_id')
-    .leftJoin('patient_profiles as patient', 'patient.user_id', 'orgUser.user_id')
-    .where('log.organization_id', uuidToBuffer(organizationId));
+    .leftJoin('patient_profiles as patient', 'patient.user_id', 'orgUser.user_id');
+
+  if (organizationId !== null) {
+    q = q.where('log.organization_id', uuidToBuffer(organizationId));
+  }
 
   if (query.entityType) {
     q = q.andWhere('log.entity_type', query.entityType);
@@ -107,6 +110,70 @@ const buildBaseQuery = (organizationId: string, query: AuditListQueryDto) => {
 };
 
 export const auditRepository = {
+  async findAll(query: AuditListQueryDto): Promise<AuditLogDto[]> {
+    const page = query.page ?? 1;
+    const offset = (page - 1) * PAGE_SIZE;
+
+    const rows = await buildBaseQuery(null, query)
+      .select(
+        'log.id',
+        'log.actor_org_user_id',
+        'orgUser.role as actor_role',
+        'log.entity_type',
+        'log.action',
+        'log.entity_id',
+        'log.metadata',
+        'log.created_at',
+        'doctor.first_name as doctor_first_name',
+        'doctor.last_name as doctor_last_name',
+        'patient.first_name as patient_first_name',
+        'patient.last_name as patient_last_name',
+        'user.email as user_email',
+      )
+      .orderBy('log.created_at', 'desc')
+      .orderBy('log.id', 'desc')
+      .limit(PAGE_SIZE)
+      .offset(offset);
+
+    return rows.map(toAuditLogDto);
+  },
+
+  async countAll(query: AuditListQueryDto): Promise<number> {
+    const row = await buildBaseQuery(null, query)
+      .count<CountRow[]>({ total: 'log.id' })
+      .first();
+
+    if (!row) return 0;
+    return Number(row.total);
+  },
+
+  async findByIdGlobal(id: string): Promise<AuditLogDto | null> {
+    const row = await db<AuditLogRow>('activity_log as log')
+      .innerJoin('organization_users as orgUser', 'orgUser.id', 'log.actor_org_user_id')
+      .innerJoin('users as user', 'user.id', 'orgUser.user_id')
+      .leftJoin('doctor_profiles as doctor', 'doctor.user_id', 'orgUser.user_id')
+      .leftJoin('patient_profiles as patient', 'patient.user_id', 'orgUser.user_id')
+      .select(
+        'log.id',
+        'log.actor_org_user_id',
+        'orgUser.role as actor_role',
+        'log.entity_type',
+        'log.action',
+        'log.entity_id',
+        'log.metadata',
+        'log.created_at',
+        'doctor.first_name as doctor_first_name',
+        'doctor.last_name as doctor_last_name',
+        'patient.first_name as patient_first_name',
+        'patient.last_name as patient_last_name',
+        'user.email as user_email',
+      )
+      .andWhere('log.id', uuidToBuffer(id))
+      .first();
+
+    return row ? toAuditLogDto(row) : null;
+  },
+
   async findByOrganization(
     organizationId: string,
     query: AuditListQueryDto,

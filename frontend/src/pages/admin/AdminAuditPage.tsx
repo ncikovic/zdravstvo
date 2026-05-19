@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import type { ReactElement } from 'react'
 import type { AuditLogDto } from '@zdravstvo/contracts'
 
-import { auditService } from '@/services'
+import { adminAuditService } from '@/services'
 
 function AdminAuditPage(): ReactElement {
   const [logs, setLogs] = useState<AuditLogDto[]>([])
@@ -15,7 +15,7 @@ function AdminAuditPage(): ReactElement {
     const fetchLogs = async (): Promise<void> => {
       try {
         setIsLoading(true)
-        const result = await auditService.list({ page })
+        const result = await adminAuditService.list({ page })
         setLogs(result.logs ?? [])
         setTotalPages(result.totalPages ?? 1)
         setError(null)
