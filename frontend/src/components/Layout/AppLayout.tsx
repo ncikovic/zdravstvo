@@ -95,6 +95,7 @@ export function AppLayout(): ReactElement {
   const user = useAuthStore((state) => state.user)
   const clearAuth = useAuthStore((state) => state.clearAuth)
   const [openMenu, setOpenMenu] = useState<TopbarMenu | null>(null)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [searchParams, setSearchParams] = useSearchParams()
   const navigationItems = useRoleNavigation(role, isSystemAdmin)
   const shellConfig = getRoleShellConfig(role, isSystemAdmin)
@@ -125,8 +126,8 @@ export function AppLayout(): ReactElement {
   }
 
   return (
-    <div className={`authenticated-shell authenticated-shell--${shellConfig.headerVariant}`}>
-      <Sidebar items={navigationItems} support={shellConfig.sidebar} />
+    <div className={`authenticated-shell authenticated-shell--${shellConfig.headerVariant}${sidebarCollapsed ? ' authenticated-shell--sidebar-collapsed' : ''}`}>
+      <Sidebar items={navigationItems} support={shellConfig.sidebar} onCollapse={() => setSidebarCollapsed((v) => !v)} />
 
       <div className="authenticated-shell__workspace">
         <header className="app-topbar">

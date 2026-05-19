@@ -9,12 +9,13 @@ import { AppIcon } from './icons'
 interface SidebarProps {
   items: readonly AppNavigationItem[]
   support: SidebarSupportConfig
+  onCollapse?: () => void
 }
 
 const getNavLinkClassName = ({ isActive }: { isActive: boolean }): string =>
   isActive ? 'app-sidebar__link app-sidebar__link--active' : 'app-sidebar__link'
 
-export function Sidebar({ items, support }: SidebarProps): ReactElement {
+export function Sidebar({ items, support, onCollapse }: SidebarProps): ReactElement {
   return (
     <aside className="app-sidebar">
       <div className="app-sidebar__brand" aria-label="Zdravstvo">
@@ -52,7 +53,7 @@ export function Sidebar({ items, support }: SidebarProps): ReactElement {
           <span>{support.text}</span>
         </div>
         {support.collapseLabel ? (
-          <button className="app-sidebar__support-action" type="button">
+          <button className="app-sidebar__support-action" type="button" onClick={onCollapse}>
             <AppIcon name="chevronLeft" />
             {support.collapseLabel}
           </button>
