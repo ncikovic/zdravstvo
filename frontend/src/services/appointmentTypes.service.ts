@@ -1,5 +1,6 @@
 import type {
   AppointmentTypeDto,
+  AppointmentTypeListQueryDto,
   AppointmentTypeListResponseDto,
   CreateAppointmentTypeRequestDto,
   UpdateAppointmentTypeRequestDto,
@@ -8,9 +9,21 @@ import type {
 import { apiClient } from "@/services/api";
 
 export const appointmentTypesService = {
-  async list(page = 1): Promise<AppointmentTypeListResponseDto> {
+  async list(
+    pageOrQuery: number | AppointmentTypeListQueryDto = 1,
+  ): Promise<AppointmentTypeListResponseDto> {
+    const query =
+      typeof pageOrQuery === "number" ? { page: pageOrQuery } : pageOrQuery;
     const response = await apiClient.get<AppointmentTypeListResponseDto>(
-      `/appointment-types?page=${page}`,
+      "/appointment-types",
+      {
+        params: {
+          page: query.page,
+          search: query.search || undefined,
+          isActive: query.isActive,
+          durationMinutes: query.durationMinutes,
+        },
+      },
     );
     return response.data;
   },

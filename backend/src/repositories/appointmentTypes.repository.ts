@@ -2,6 +2,7 @@ import type {
   CreateAppointmentTypeRequestDto,
   UpdateAppointmentTypeRequestDto,
 } from "@zdravstvo/contracts";
+import type { Knex } from "knex";
 import type { Buffer } from "node:buffer";
 
 import { db } from "../shared/db/index.js";
@@ -20,6 +21,17 @@ interface AppointmentTypeRow {
 interface CreateAppointmentTypeRecord extends CreateAppointmentTypeRequestDto {
   id: string;
   organizationId: string;
+}
+
+interface AppointmentTypeFilters {
+  search?: string;
+  isActive?: boolean;
+  durationMinutes?: number;
+}
+
+interface AppointmentTypeListOptions extends AppointmentTypeFilters {
+  limit?: number;
+  offset?: number;
 }
 
 const TABLE_NAME = "appointment_types";
@@ -66,27 +78,51 @@ const buildUpdatePayload = (
   return payload;
 };
 
+const applyAppointmentTypeFilters = (
+  query: Knex.QueryBuilder<AppointmentTypeRow, AppointmentTypeRow[]>,
+  organizationId: string,
+  filters: AppointmentTypeFilters = {},
+): void => {
+  query.where({ organization_id: uuidToBuffer(organizationId) });
+
+  if (filters.search) {
+    query.andWhere("name", "like", `%${filters.search}%`);
+  }
+
+  if (filters.isActive !== undefined) {
+    query.andWhere("is_active", filters.isActive ? 1 : 0);
+  }
+
+  if (filters.durationMinutes !== undefined) {
+    query.andWhere("default_duration_minutes", filters.durationMinutes);
+  }
+};
+
 export const appointmentTypesRepository = {
-  async countAllByOrganization(organizationId: string): Promise<number> {
-    const result = (await db(TABLE_NAME)
-      .where({ organization_id: uuidToBuffer(organizationId) })
+  async countAllByOrganization(
+    organizationId: string,
+    filters: AppointmentTypeFilters = {},
+  ): Promise<number> {
+    const query = db<AppointmentTypeRow>(TABLE_NAME);
+    applyAppointmentTypeFilters(query, organizationId, filters);
+
+    const result = (await query
       .count("* as count")
-      .first()) as { count: number | string };
+      .first()) as unknown as { count: number | string };
 
     return Number(result.count);
   },
 
   async findAllByOrganization(
     organizationId: string,
-    pagination?: { limit: number; offset: number },
+    options: AppointmentTypeListOptions = {},
   ): Promise<AppointmentType[]> {
-    const query = db<AppointmentTypeRow>(TABLE_NAME)
-      .select("*")
-      .where({ organization_id: uuidToBuffer(organizationId) })
-      .orderBy("name", "asc");
+    const query = db<AppointmentTypeRow>(TABLE_NAME).select("*");
+    applyAppointmentTypeFilters(query, organizationId, options);
+    query.orderBy("name", "asc");
 
-    if (pagination) {
-      query.limit(pagination.limit).offset(pagination.offset);
+    if (options.limit !== undefined && options.offset !== undefined) {
+      query.limit(options.limit).offset(options.offset);
     }
 
     const rows = await query;

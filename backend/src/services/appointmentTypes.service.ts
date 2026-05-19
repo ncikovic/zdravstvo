@@ -31,13 +31,19 @@ export const appointmentTypesService = {
     const pageSize = 10;
     const page = query.page ?? 1;
     const offset = (page - 1) * pageSize;
+    const filters = {
+      search: query.search?.trim() || undefined,
+      isActive: query.isActive,
+      durationMinutes: query.durationMinutes,
+    };
 
     const [appointmentTypes, totalItems] = await Promise.all([
       appointmentTypesRepository.findAllByOrganization(context.organizationId, {
+        ...filters,
         limit: pageSize,
         offset,
       }),
-      appointmentTypesRepository.countAllByOrganization(context.organizationId),
+      appointmentTypesRepository.countAllByOrganization(context.organizationId, filters),
     ]);
 
     return {

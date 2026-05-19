@@ -126,6 +126,7 @@
 }
 
 .appointment-types-filter-panel label > div,
+.appointment-types-filter-panel select,
 .appointment-types-clear-button,
 .appointment-types-page-size {
   display: inline-flex;
@@ -140,6 +141,19 @@
   color: #44577d;
   font-size: 0.9rem;
   font-weight: 850;
+}
+
+.appointment-types-filter-panel select {
+  width: 100%;
+  outline: 0;
+  cursor: pointer;
+}
+
+.appointment-types-filter-panel select:disabled,
+.appointment-types-clear-button:disabled {
+  cursor: default;
+  color: #8a97af;
+  background: #f6f9fc;
 }
 
 .appointment-types-filter-panel .app-icon,

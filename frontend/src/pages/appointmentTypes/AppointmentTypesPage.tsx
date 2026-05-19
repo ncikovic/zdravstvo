@@ -11,6 +11,9 @@ import type { AppIconName } from '@/types'
 import './appointmentTypes.css'
 
 type AppointmentTypeTone = 'blue' | 'teal' | 'orange' | 'purple' | 'green' | 'red' | 'amber'
+type StatusFilter = 'all' | 'active' | 'inactive'
+
+const DURATION_FILTERS = [15, 30, 45, 60, 90] as const
 
 const tones: AppointmentTypeTone[] = ['blue', 'teal', 'orange', 'purple', 'green', 'red', 'amber']
 
@@ -43,6 +46,8 @@ function AppointmentTypesPage(): ReactElement {
   const [appointmentTypes, setAppointmentTypes] = useState<AppointmentTypeDto[]>([])
   const [selectedAppointmentTypeId, setSelectedAppointmentTypeId] = useState<string | null>(null)
   const [search, setSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
+  const [durationFilter, setDurationFilter] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [page, setPage] = useState(1)
@@ -53,11 +58,21 @@ function AppointmentTypesPage(): ReactElement {
     const fetchAppointmentTypes = async () => {
       try {
         setIsLoading(true)
-        const data = await appointmentTypesService.list(page)
+        const data = await appointmentTypesService.list({
+          page,
+          search: search.trim() || undefined,
+          isActive:
+            statusFilter === 'all' ? undefined : statusFilter === 'active',
+          durationMinutes: durationFilter ? Number(durationFilter) : undefined,
+        })
         setAppointmentTypes(data.appointmentTypes)
         setTotalPages(data.totalPages)
         setTotalItems(data.totalItems)
-        setSelectedAppointmentTypeId((current) => current ?? data.appointmentTypes[0]?.id ?? null)
+        setSelectedAppointmentTypeId((current) =>
+          data.appointmentTypes.some((type) => type.id === current)
+            ? current
+            : data.appointmentTypes[0]?.id ?? null
+        )
         setError(null)
       } catch (err) {
         setError(getErrorMessage(err, 'Greska pri ucitavanju vrsta termina.'))
@@ -68,27 +83,41 @@ function AppointmentTypesPage(): ReactElement {
     }
 
     fetchAppointmentTypes()
-  }, [page])
+  }, [durationFilter, page, search, statusFilter])
 
-  const filteredAppointmentTypes = useMemo(() => {
-    const value = search.trim().toLowerCase()
-
-    if (!value) {
-      return appointmentTypes
-    }
-
-    return appointmentTypes.filter((type) => type.name.toLowerCase().includes(value))
-  }, [appointmentTypes, search])
+  const displayedAppointmentTypes = useMemo(() => appointmentTypes, [appointmentTypes])
 
   const selectedType =
-    filteredAppointmentTypes.find((type) => type.id === selectedAppointmentTypeId) ??
-    filteredAppointmentTypes[0] ??
-    appointmentTypes.find((type) => type.id === selectedAppointmentTypeId) ??
-    appointmentTypes[0] ??
+    displayedAppointmentTypes.find((type) => type.id === selectedAppointmentTypeId) ??
+    displayedAppointmentTypes[0] ??
     null
   const selectedTypeIndex = selectedType
     ? appointmentTypes.findIndex((type) => type.id === selectedType.id)
     : 0
+  const hasActiveFilters =
+    search.trim().length > 0 || statusFilter !== 'all' || durationFilter.length > 0
+
+  const updateSearch = (value: string): void => {
+    setSearch(value)
+    setPage(1)
+  }
+
+  const updateStatusFilter = (value: StatusFilter): void => {
+    setStatusFilter(value)
+    setPage(1)
+  }
+
+  const updateDurationFilter = (value: string): void => {
+    setDurationFilter(value)
+    setPage(1)
+  }
+
+  const clearFilters = (): void => {
+    setSearch('')
+    setStatusFilter('all')
+    setDurationFilter('')
+    setPage(1)
+  }
 
   return (
     <div className="appointment-types-page">
@@ -117,34 +146,45 @@ function AppointmentTypesPage(): ReactElement {
                 type="search"
                 placeholder="Pretrazite vrste termina po nazivu..."
                 value={search}
-                onChange={(event) => setSearch(event.target.value)}
+                onChange={(event) => updateSearch(event.target.value)}
               />
             </label>
             <label>
               <span>Status</span>
-              <div>
-                Svi statusi
-                <AppIcon name="chevronDown" />
-              </div>
+              <select
+                value={statusFilter}
+                onChange={(event) => updateStatusFilter(event.target.value as StatusFilter)}
+              >
+                <option value="all">Svi statusi</option>
+                <option value="active">Aktivni</option>
+                <option value="inactive">Neaktivni</option>
+              </select>
             </label>
             <label>
               <span>Trajanje</span>
-              <div>
-                Sva trajanja
-                <AppIcon name="chevronDown" />
-              </div>
+              <select
+                value={durationFilter}
+                onChange={(event) => updateDurationFilter(event.target.value)}
+              >
+                <option value="">Sva trajanja</option>
+                {DURATION_FILTERS.map((duration) => (
+                  <option key={duration} value={duration}>
+                    {duration} min
+                  </option>
+                ))}
+              </select>
             </label>
             <label>
               <span>Online rezervacija</span>
-              <div>
-                Nije u API-ju
-                <AppIcon name="chevronDown" />
-              </div>
+              <select value="" disabled aria-label="Online rezervacija nije dostupna">
+                <option value="">Nije u API-ju</option>
+              </select>
             </label>
             <button
               className="appointment-types-clear-button"
               type="button"
-              onClick={() => setSearch('')}
+              onClick={clearFilters}
+              disabled={!hasActiveFilters}
             >
               <AppIcon name="tag" />
               Obrisi filtre
@@ -176,7 +216,7 @@ function AppointmentTypesPage(): ReactElement {
                   <span aria-hidden="true" />
                 </div>
 
-                {filteredAppointmentTypes.map((type, index) => {
+                {displayedAppointmentTypes.map((type, index) => {
                   const status = getStatusLabel(type)
 
                   return (
@@ -228,9 +268,9 @@ function AppointmentTypesPage(): ReactElement {
                   )
                 })}
 
-                {filteredAppointmentTypes.length === 0 ? (
+                {displayedAppointmentTypes.length === 0 ? (
                   <div style={{ padding: '2rem', textAlign: 'center' }}>
-                    Nema vrsta termina za zadanu pretragu.
+                    Nema vrsta termina za zadane filtre.
                   </div>
                 ) : null}
               </>
