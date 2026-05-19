@@ -1,6 +1,14 @@
-import { QueryClient } from '@tanstack/react-query';
+import { MutationCache, QueryClient } from '@tanstack/react-query'
+
+import { toast } from '@/utils/toast'
 
 export const queryClient = new QueryClient({
+  mutationCache: new MutationCache({
+    onError: (error, _variables, _context, mutation) => {
+      if (mutation.options.meta?.suppressToast) return
+      toast.error(error)
+    },
+  }),
   defaultOptions: {
     queries: {
       retry: 1,
@@ -9,7 +17,7 @@ export const queryClient = new QueryClient({
       throwOnError: true,
     },
     mutations: {
-      throwOnError: true,
+      throwOnError: false,
     },
   },
-});
+})

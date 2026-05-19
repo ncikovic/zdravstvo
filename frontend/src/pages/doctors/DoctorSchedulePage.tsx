@@ -6,6 +6,7 @@ import { AppIcon } from '@/components'
 import { APP_ROUTES } from '@/app/routes'
 import { doctorsService } from '@/services/doctors.service'
 import type { DoctorResponseDto, DoctorWorkingHourResponseDto } from '@zdravstvo/contracts'
+import { getApiErrorMessage, toast } from '@/utils'
 
 import './doctors.css'
 
@@ -46,7 +47,7 @@ function DoctorSchedulePage(): ReactElement {
         setWorkingHours(hoursData.workingHours)
         setError(null)
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch schedule')
+        setError(getApiErrorMessage(err))
         setDoctor(null)
         setWorkingHours([])
       } finally {
@@ -79,9 +80,11 @@ function DoctorSchedulePage(): ReactElement {
     try {
       setIsSaving(true)
       await doctorsService.replaceWorkingHours(doctorId, { workingHours })
+      toast.success('Radno vrijeme je uspješno ažurirano.')
       navigate(APP_ROUTES.doctors)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save schedule')
+      toast.error(err)
+      setError(getApiErrorMessage(err))
     } finally {
       setIsSaving(false)
     }

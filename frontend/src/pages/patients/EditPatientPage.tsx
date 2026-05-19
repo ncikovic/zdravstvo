@@ -6,6 +6,7 @@ import { UserStatus, type PatientDto } from "@zdravstvo/contracts";
 import { AppIcon } from "@/components";
 import { APP_ROUTES } from "@/app/routes";
 import { patientsService } from "@/services";
+import { getApiErrorMessage, toast } from "@/utils";
 
 import "./patients.css";
 
@@ -51,13 +52,6 @@ const mapPatientToFormData = (patient: PatientDto): PatientFormData => ({
   status: patient.status === UserStatus.ACTIVE ? "Aktivan" : "Neaktivan",
 });
 
-const getErrorMessage = (error: unknown, fallback: string): string =>
-  error instanceof Error
-    ? error.message
-    : typeof error === "object" && error !== null && "message" in error
-      ? String(error.message)
-      : fallback;
-
 function EditPatientPage(): ReactElement {
   const navigate = useNavigate();
   const { patientId } = useParams<{ patientId: string }>();
@@ -80,7 +74,7 @@ function EditPatientPage(): ReactElement {
         setFormData(mapPatientToFormData(patient));
         setError(null);
       } catch (err) {
-        setError(getErrorMessage(err, "Greska pri ucitavanju pacijenta."));
+        setError(getApiErrorMessage(err));
       } finally {
         setIsLoading(false);
       }
@@ -133,9 +127,11 @@ function EditPatientPage(): ReactElement {
         emergencyContactName: formData.emergencyContactName.trim() || null,
         emergencyContactPhone: formData.emergencyContactPhone.trim() || null,
       });
+      toast.success("Podaci pacijenta su uspješno ažurirani.");
       navigate(APP_ROUTES.patientDetails.replace(":patientId", patientId));
     } catch (err) {
-      setError(getErrorMessage(err, "Greska pri spremanju pacijenta."));
+      toast.error(err);
+      setError("Greška pri spremanju pacijenta. Pokušajte ponovo.");
     } finally {
       setIsSaving(false);
     }

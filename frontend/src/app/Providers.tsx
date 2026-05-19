@@ -1,5 +1,6 @@
 import { QueryClientProvider, QueryErrorResetBoundary } from '@tanstack/react-query';
 import type { PropsWithChildren, ReactElement } from 'react';
+import { Toaster } from 'sonner';
 
 import { AccessibilityProvider } from '@/contexts/AccessibilityContext';
 
@@ -35,6 +36,7 @@ export function Providers({ children }: PropsWithChildren): ReactElement {
         )}
       </QueryErrorResetBoundary>
     </QueryClientProvider>
+    <Toaster position="top-right" richColors closeButton />
     </AccessibilityProvider>
   );
 }

@@ -6,6 +6,7 @@ import { UserStatus } from "@zdravstvo/contracts";
 import { AppIcon } from "@/components";
 import { APP_ROUTES } from "@/app/routes";
 import { patientsService } from "@/services";
+import { toast } from "@/utils";
 
 import "./patients.css";
 
@@ -82,15 +83,11 @@ function NewPatientPage(): ReactElement {
           ? `${formData.emergencyContactPhoneCode} ${formData.emergencyContactPhone.trim()}`
           : null,
       });
+      toast.success("Pacijent je uspješno kreiran.");
       navigate(APP_ROUTES.patientDetails.replace(":patientId", patient.id));
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : typeof err === "object" && err !== null && "message" in err
-            ? String(err.message)
-            : "Greska pri spremanju pacijenta.",
-      );
+      toast.error(err);
+      setError("Greška pri kreiranju pacijenta. Pokušajte ponovo.");
     } finally {
       setIsLoading(false);
     }

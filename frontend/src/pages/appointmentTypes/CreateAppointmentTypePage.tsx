@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { APP_ROUTES } from "@/app/routes";
 import { AppIcon } from "@/components";
 import { appointmentTypesService } from "@/services";
+import { toast } from "@/utils";
 
 import "./createAppointmentType.css";
 
@@ -21,13 +22,6 @@ const initialFormData: FormData = {
 };
 
 const durationOptions = [15, 20, 30, 45, 60, 90, 120];
-
-const getErrorMessage = (error: unknown, fallback: string): string =>
-  error instanceof Error
-    ? error.message
-    : typeof error === "object" && error !== null && "message" in error
-      ? String(error.message)
-      : fallback;
 
 function Toggle({
   label,
@@ -98,6 +92,7 @@ function CreateAppointmentTypePage(): ReactElement {
         isActive: formData.isActive,
       });
 
+      toast.success("Vrsta termina je uspješno kreirana.");
       navigate(
         APP_ROUTES.editAppointmentType.replace(
           ":appointmentTypeId",
@@ -105,7 +100,8 @@ function CreateAppointmentTypePage(): ReactElement {
         ),
       );
     } catch (err) {
-      setError(getErrorMessage(err, "Greska pri spremanju vrste termina."));
+      toast.error(err)
+      setError("Greška pri kreiranju vrste termina. Pokušajte ponovo.");
     } finally {
       setIsSaving(false);
     }

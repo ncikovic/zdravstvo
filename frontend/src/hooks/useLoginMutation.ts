@@ -21,7 +21,7 @@ export const useLoginMutation = (): UseMutationResult<
 
   return useMutation({
     mutationFn: (payload: LoginRequestDto) => authService.login(payload),
-    throwOnError: false,
+    meta: { suppressToast: true },
     onSuccess: (auth: LoginResponseDto) => {
       if (auth.authenticated) {
         setAuth(auth)
@@ -40,7 +40,7 @@ export const useSelectOrganizationMutation = (): UseMutationResult<
   return useMutation({
     mutationFn: (payload: SelectOrganizationRequestDto) =>
       authService.selectOrganization(payload),
-    throwOnError: false,
+    meta: { suppressToast: true },
     onSuccess: (auth: SelectOrganizationResponseDto) => {
       setAuth(auth)
     },
@@ -55,6 +55,6 @@ export const useForgotPasswordMutation = (): UseMutationResult<
   return useMutation({
     mutationFn: (payload: ForgotPasswordRequestDto) =>
       authService.requestPasswordReset(payload),
-    throwOnError: false,
+    meta: { suppressToast: true },
   })
 }

@@ -6,6 +6,7 @@ import { AppIcon } from '@/components'
 import { APP_ROUTES } from '@/app/routes'
 import { doctorsService } from '@/services/doctors.service'
 import type { DoctorResponseDto, DoctorTimeOffResponseDto } from '@zdravstvo/contracts'
+import { getApiErrorMessage, toast } from '@/utils'
 
 import './doctors.css'
 
@@ -51,7 +52,7 @@ function DoctorExceptionsPage(): ReactElement {
         setTimeOffList(timeOffData.timeOff)
         setError(null)
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch data')
+        setError(getApiErrorMessage(err))
         setDoctor(null)
         setTimeOffList([])
       } finally {
@@ -70,7 +71,7 @@ function DoctorExceptionsPage(): ReactElement {
       await doctorsService.deleteTimeOff(doctorId, timeOffId)
       setTimeOffList((prev) => prev.filter((item) => item.id !== timeOffId))
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete time-off')
+      toast.error(err)
     } finally {
       setIsDeleting(null)
     }
@@ -95,7 +96,7 @@ function DoctorExceptionsPage(): ReactElement {
       setNewException(initialException)
       setError(null)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save time-off')
+      toast.error(err)
     } finally {
       setIsSaving(false)
     }

@@ -5,6 +5,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { APP_ROUTES } from "@/app/routes";
 import { AppIcon } from "@/components";
 import { appointmentTypesService } from "@/services";
+import { getApiErrorMessage, toast } from "@/utils";
 
 import "./editAppointmentType.css";
 
@@ -21,13 +22,6 @@ const initialFormData: FormData = {
 };
 
 const durationOptions = [15, 20, 30, 45, 60, 90, 120];
-
-const getErrorMessage = (error: unknown, fallback: string): string =>
-  error instanceof Error
-    ? error.message
-    : typeof error === "object" && error !== null && "message" in error
-      ? String(error.message)
-      : fallback;
 
 function Toggle({
   label,
@@ -91,7 +85,7 @@ function EditAppointmentTypePage(): ReactElement {
         });
         setError(null);
       } catch (err) {
-        setError(getErrorMessage(err, "Greska pri ucitavanju vrste termina."));
+        setError(getApiErrorMessage(err));
       } finally {
         setIsLoading(false);
       }
@@ -134,9 +128,11 @@ function EditAppointmentTypePage(): ReactElement {
         defaultDurationMinutes: duration,
         isActive: formData.isActive,
       });
+      toast.success("Vrsta termina je uspješno ažurirana.");
       navigate(APP_ROUTES.appointmentTypes);
     } catch (err) {
-      setError(getErrorMessage(err, "Greska pri spremanju vrste termina."));
+      toast.error(err)
+      setError("Greška pri spremanju vrste termina. Pokušajte ponovo.");
     } finally {
       setIsSaving(false);
     }
@@ -153,9 +149,9 @@ function EditAppointmentTypePage(): ReactElement {
         isActive: false,
       });
       setFormData((prev) => ({ ...prev, isActive: false }));
-      setError(null);
+      toast.success("Vrsta termina je deaktivirana.");
     } catch (err) {
-      setError(getErrorMessage(err, "Greska pri deaktivaciji vrste termina."));
+      toast.error(err);
     } finally {
       setIsSaving(false);
     }
@@ -169,9 +165,10 @@ function EditAppointmentTypePage(): ReactElement {
     try {
       setIsSaving(true);
       await appointmentTypesService.delete(appointmentTypeId);
+      toast.success("Vrsta termina je obrisana.");
       navigate(APP_ROUTES.appointmentTypes);
     } catch (err) {
-      setError(getErrorMessage(err, "Greska pri brisanju vrste termina."));
+      toast.error(err);
     } finally {
       setIsSaving(false);
     }

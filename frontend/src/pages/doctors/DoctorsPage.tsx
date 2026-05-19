@@ -6,6 +6,7 @@ import { AppIcon } from "@/components";
 import { APP_ROUTES } from "@/app/routes";
 import { doctorsService } from "@/services/doctors.service";
 import type { DoctorResponseDto } from "@zdravstvo/contracts";
+import { getApiErrorMessage } from "@/utils";
 
 import "./doctors.css";
 
@@ -58,9 +59,7 @@ function DoctorsPage(): ReactElement {
         setSelectedDoctorId((current) => current ?? data.doctors[0]?.id ?? null);
         setError(null);
       } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Failed to fetch doctors",
-        );
+        setError(getApiErrorMessage(err));
         setDoctors([]);
       } finally {
         setIsLoading(false);

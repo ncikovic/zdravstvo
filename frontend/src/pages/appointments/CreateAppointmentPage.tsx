@@ -17,6 +17,7 @@ import {
   patientsService,
 } from "@/services";
 import type { AppIconName } from "@/types";
+import { getApiErrorMessage, toast } from "@/utils";
 
 import "./createAppointment.css";
 
@@ -206,11 +207,7 @@ function CreateAppointmentPage(): ReactElement {
           return;
         }
 
-        setError(
-          loadError instanceof Error
-            ? loadError.message
-            : "Podaci za rezervaciju trenutno se ne mogu ucitati.",
-        );
+        setError(getApiErrorMessage(loadError));
       } finally {
         if (isMounted) {
           setIsLoadingFormData(false);
@@ -262,11 +259,7 @@ function CreateAppointmentPage(): ReactElement {
 
         setAvailableSlots([]);
         setSelectedSlotStartAt("");
-        setSlotError(
-          loadError instanceof Error
-            ? loadError.message
-            : "Dostupni termini trenutno se ne mogu ucitati.",
-        );
+        setSlotError(getApiErrorMessage(loadError));
       } finally {
         if (isMounted) {
           setIsLoadingSlots(false);
@@ -373,15 +366,13 @@ function CreateAppointmentPage(): ReactElement {
         notes: `Rezervirano kroz obrazac: ${selectedAppointmentType.name}`,
       });
 
+      toast.success("Termin je uspješno rezerviran.");
       navigate(
         `/appointments?date=${formatDateKey(new Date(selectedSlot.startAt))}`,
       );
     } catch (submitError) {
-      setError(
-        submitError instanceof Error
-          ? submitError.message
-          : "Termin se trenutno ne moze spremiti.",
-      );
+      toast.error(submitError);
+      setError("Termin se trenutno ne može spremiti. Pokušajte ponovo.");
     } finally {
       setIsSubmitting(false);
     }

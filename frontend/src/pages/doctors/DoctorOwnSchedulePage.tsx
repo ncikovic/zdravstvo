@@ -4,6 +4,7 @@ import type { AppointmentResponseDto } from '@zdravstvo/contracts'
 
 import { appointmentsService } from '@/services/appointments.service'
 import { useAuthStore } from '@/stores/auth/auth.store'
+import { getApiErrorMessage, toast } from '@/utils'
 
 import './doctorOwnSchedule.css'
 
@@ -99,7 +100,7 @@ function DoctorOwnSchedulePage(): ReactElement {
       })
       setAppointments(result.appointments ?? [])
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Greška pri učitavanju termina.')
+      setError(getApiErrorMessage(err))
     } finally {
       setIsLoading(false)
     }
@@ -122,7 +123,7 @@ function DoctorOwnSchedulePage(): ReactElement {
         ),
       )
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Greška pri ažuriranju statusa.')
+      toast.error(err)
     } finally {
       setUpdatingId(null)
     }

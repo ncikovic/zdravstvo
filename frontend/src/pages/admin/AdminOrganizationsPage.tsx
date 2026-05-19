@@ -4,6 +4,7 @@ import type { ReactElement } from 'react'
 import { AppIcon } from '@/components'
 import { organizationsService } from '@/services'
 import type { Organization } from '@/types'
+import { getApiErrorMessage, toast } from '@/utils'
 
 function AdminOrganizationsPage(): ReactElement {
   const [organizations, setOrganizations] = useState<Organization[]>([])
@@ -21,7 +22,7 @@ function AdminOrganizationsPage(): ReactElement {
       setOrganizations(orgs)
       setError(null)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Greška pri učitavanju organizacija.')
+      setError(getApiErrorMessage(err))
     } finally {
       setIsLoading(false)
     }
@@ -41,8 +42,9 @@ function AdminOrganizationsPage(): ReactElement {
       setNewOrgName('')
       setIsCreating(false)
       await fetchOrganizations()
+      toast.success(`Organizacija "${name}" je uspješno kreirana.`)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Greška pri kreiranju organizacije.')
+      toast.error(err)
     } finally {
       setIsSaving(false)
     }
@@ -54,8 +56,9 @@ function AdminOrganizationsPage(): ReactElement {
     try {
       await organizationsService.deactivate(id)
       await fetchOrganizations()
+      toast.success(`Organizacija "${name}" je uspješno deaktivirana.`)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Greška pri deaktivaciji organizacije.')
+      toast.error(err)
     }
   }
 

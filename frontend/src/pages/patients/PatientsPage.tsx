@@ -6,6 +6,7 @@ import type { PatientDto } from "@zdravstvo/contracts";
 import { AppIcon } from "@/components";
 import { APP_ROUTES } from "@/app/routes";
 import { patientsService } from "@/services";
+import { getApiErrorMessage } from "@/utils";
 
 import "./patients.css";
 
@@ -43,13 +44,6 @@ const getFullName = (patient: PatientDto): string =>
 const getPatientStatus = (patient: PatientDto): "Aktivan" | "Neaktivan" =>
   patient.status === "ACTIVE" ? "Aktivan" : "Neaktivan";
 
-const getErrorMessage = (error: unknown, fallback: string): string =>
-  error instanceof Error
-    ? error.message
-    : typeof error === "object" && error !== null && "message" in error
-      ? String(error.message)
-      : fallback;
-
 function PatientsPage(): ReactElement {
   const navigate = useNavigate();
   const [patients, setPatients] = useState<PatientDto[]>([]);
@@ -74,7 +68,7 @@ function PatientsPage(): ReactElement {
         setSelectedPatientId((current) => current ?? data.patients[0]?.id ?? null);
         setError(null);
       } catch (err) {
-        setError(getErrorMessage(err, "Greska pri ucitavanju pacijenata."));
+        setError(getApiErrorMessage(err));
         setPatients([]);
       } finally {
         setIsLoading(false);

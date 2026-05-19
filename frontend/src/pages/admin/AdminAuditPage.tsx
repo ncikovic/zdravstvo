@@ -3,6 +3,7 @@ import type { ReactElement } from 'react'
 import type { AuditLogDto } from '@zdravstvo/contracts'
 
 import { adminAuditService } from '@/services'
+import { getApiErrorMessage } from '@/utils'
 
 function AdminAuditPage(): ReactElement {
   const [logs, setLogs] = useState<AuditLogDto[]>([])
@@ -20,7 +21,7 @@ function AdminAuditPage(): ReactElement {
         setTotalPages(result.totalPages ?? 1)
         setError(null)
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Greška pri učitavanju audit zapisa.')
+        setError(getApiErrorMessage(err))
       } finally {
         setIsLoading(false)
       }

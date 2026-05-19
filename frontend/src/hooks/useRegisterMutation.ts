@@ -11,6 +11,6 @@ export const useRegisterMutation = (): UseMutationResult<
 > => {
   return useMutation({
     mutationFn: (payload: RegisterRequestDto) => authService.register(payload),
-    throwOnError: false,
+    meta: { suppressToast: true },
   })
 }

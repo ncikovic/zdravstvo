@@ -6,6 +6,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { AppIcon } from "@/components";
 import { appointmentsService } from "@/services";
 import type { AppIconName } from "@/types";
+import { getApiErrorMessage, toast } from "@/utils";
 
 import "./cancelAppointment.css";
 
@@ -223,11 +224,7 @@ function CancelAppointmentPage(): ReactElement {
           return;
         }
 
-        setError(
-          loadError instanceof Error
-            ? loadError.message
-            : "Termin se trenutno ne moze ucitati.",
-        );
+        setError(getApiErrorMessage(loadError));
       } finally {
         if (isMounted) {
           setIsLoading(false);
@@ -306,15 +303,13 @@ function CancelAppointmentPage(): ReactElement {
         cancellationReason,
         notifyPatient,
       });
+      toast.success("Termin je uspješno otkazan.");
       navigate(
         `/appointments?date=${formatDateKey(new Date(appointment.startAt))}`,
       );
     } catch (submitError) {
-      setError(
-        submitError instanceof Error
-          ? submitError.message
-          : "Termin se trenutno ne moze otkazati.",
-      );
+      toast.error(submitError);
+      setError("Termin se trenutno ne može otkazati. Pokušajte ponovo.");
     } finally {
       setIsSubmitting(false);
     }

@@ -15,6 +15,7 @@ import {
   doctorsService,
 } from "@/services";
 import type { AppIconName } from "@/types";
+import { getApiErrorMessage, toast } from "@/utils";
 
 import "./changeAppointment.css";
 
@@ -217,11 +218,7 @@ function ChangeAppointmentPage(): ReactElement {
           return;
         }
 
-        setError(
-          loadError instanceof Error
-            ? loadError.message
-            : "Termin se trenutno ne moze ucitati.",
-        );
+        setError(getApiErrorMessage(loadError));
       } finally {
         if (isMounted) {
           setIsLoading(false);
@@ -306,11 +303,7 @@ function ChangeAppointmentPage(): ReactElement {
 
         setAvailableSlots([]);
         setSelectedSlotStartAt("");
-        setSlotError(
-          loadError instanceof Error
-            ? loadError.message
-            : "Dostupni termini trenutno se ne mogu ucitati.",
-        );
+        setSlotError(getApiErrorMessage(loadError));
       } finally {
         if (isMounted) {
           setIsLoadingSlots(false);
@@ -423,15 +416,13 @@ function ChangeAppointmentPage(): ReactElement {
         notes: appointment.notes,
       });
 
+      toast.success("Termin je uspješno premješten.");
       navigate(
         `/appointments?date=${formatDateKey(new Date(selectedSlot.startAt))}`,
       );
     } catch (submitError) {
-      setError(
-        submitError instanceof Error
-          ? submitError.message
-          : "Promjena termina trenutno se ne moze spremiti.",
-      );
+      toast.error(submitError);
+      setError("Promjena termina trenutno se ne može spremiti. Pokušajte ponovo.");
     } finally {
       setIsSubmitting(false);
     }

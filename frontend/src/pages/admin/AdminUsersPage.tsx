@@ -4,6 +4,7 @@ import type { ChangeEvent, ReactElement } from 'react'
 import { OrganizationUserRole } from '@zdravstvo/contracts'
 import { adminUsersService } from '@/services'
 import type { AdminUserResponseDto } from '@/services'
+import { getApiErrorMessage, toast } from '@/utils'
 
 const ROLE_LABELS: Record<OrganizationUserRole, string> = {
   [OrganizationUserRole.MANAGER]: 'Upravitelj',
@@ -39,8 +40,8 @@ function AdminUsersPage(): ReactElement {
       setTotalPages(result.pagination.totalPages)
       setTotalItems(result.pagination.totalItems)
       setError(null)
-    } catch {
-      setError('Greška pri učitavanju korisnika.')
+    } catch (err) {
+      setError(getApiErrorMessage(err))
     } finally {
       setIsLoading(false)
     }
@@ -68,8 +69,9 @@ function AdminUsersPage(): ReactElement {
       setDeactivatingId(user.orgUserId)
       await adminUsersService.deactivate(user.orgUserId)
       await fetchUsers(page, search, roleFilter)
-    } catch {
-      setError('Greška pri deaktiviranju korisnika.')
+      toast.success(`Korisnik "${name}" je uspješno deaktiviran.`)
+    } catch (err) {
+      toast.error(err)
     } finally {
       setDeactivatingId(null)
     }

@@ -8,6 +8,7 @@ import { doctorsService } from '@/services/doctors.service'
 import { appointmentsService } from '@/services/appointments.service'
 import { useAuthStore } from '@/stores/auth/auth.store'
 import { APP_ROUTES } from '@/app/routes'
+import { getApiErrorMessage, toast } from '@/utils'
 
 type Step = 1 | 2 | 3 | 4
 
@@ -102,7 +103,7 @@ function BookAppointmentPage(): ReactElement {
         const result = await appointmentTypesService.list(1)
         setAppointmentTypes(result.appointmentTypes.filter((t) => t.isActive))
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Greška pri učitavanju vrsta pregleda.')
+        setError(getApiErrorMessage(err))
       } finally {
         setLoadingTypes(false)
       }
@@ -118,7 +119,7 @@ function BookAppointmentPage(): ReactElement {
         const result = await doctorsService.list(1)
         setDoctors(result.doctors.filter((d) => d.isActive))
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Greška pri učitavanju liječnika.')
+        setError(getApiErrorMessage(err))
       } finally {
         setLoadingDoctors(false)
       }
@@ -141,7 +142,7 @@ function BookAppointmentPage(): ReactElement {
         })
         setSlots(result.slots)
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Greška pri učitavanju dostupnih termina.')
+        setError(getApiErrorMessage(err))
       } finally {
         setLoadingSlots(false)
       }
@@ -161,10 +162,12 @@ function BookAppointmentPage(): ReactElement {
         startAt: selectedSlot.startAt,
         notes: notes.trim() || undefined,
       })
+      toast.success('Termin je uspješno rezerviran.')
       setSuccess(true)
       setTimeout(() => navigate(APP_ROUTES.myAppointments), 2000)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Greška pri rezervaciji termina.')
+      toast.error(err)
+      setError('Termin se trenutno ne može rezervirati. Pokušajte ponovo.')
     } finally {
       setIsBooking(false)
     }

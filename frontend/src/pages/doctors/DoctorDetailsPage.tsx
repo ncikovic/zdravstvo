@@ -6,6 +6,7 @@ import { AppIcon } from '@/components'
 import { APP_ROUTES } from '@/app/routes'
 import { doctorsService } from '@/services/doctors.service'
 import type { DoctorResponseDto } from '@zdravstvo/contracts'
+import { getApiErrorMessage } from '@/utils'
 
 import './doctors.css'
 
@@ -100,7 +101,7 @@ function DoctorDetailsPage(): ReactElement {
         setDoctor(data)
         setError(null)
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch doctor')
+        setError(getApiErrorMessage(err))
         setDoctor(null)
       } finally {
         setIsLoading(false)

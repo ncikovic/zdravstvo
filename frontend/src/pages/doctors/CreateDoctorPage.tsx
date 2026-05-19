@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import { AppIcon } from '@/components'
 import { APP_ROUTES } from '@/app/routes'
 import { doctorsService } from '@/services/doctors.service'
+import { toast } from '@/utils'
 
 import './doctors.css'
 
@@ -47,9 +48,11 @@ function CreateDoctorPage(): ReactElement {
         phone: formData.phone || null,
         bio: formData.bio || null,
       })
+      toast.success('Liječnik je uspješno kreiran.')
       navigate(APP_ROUTES.doctors)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Greška pri kreiranju liječnika')
+      toast.error(err)
+      setError('Greška pri kreiranju liječnika. Pokušajte ponovo.')
     } finally {
       setIsLoading(false)
     }
