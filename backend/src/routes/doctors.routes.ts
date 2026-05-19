@@ -25,8 +25,6 @@ const canManageDoctors = requireRoles(OrganizationUserRole.MANAGER);
 const canReadDoctors = requireRoles(
   OrganizationUserRole.MANAGER,
   OrganizationUserRole.RECEPTION,
-  OrganizationUserRole.DOCTOR,
-  OrganizationUserRole.PATIENT,
 );
 const canManageDoctorSchedules = requireRoles(OrganizationUserRole.MANAGER);
 
