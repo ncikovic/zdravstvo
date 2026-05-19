@@ -6,7 +6,7 @@ import { useAuthStore } from '@/stores'
 
 import { APP_ROUTES } from './routes'
 
-const getRoleHome = (
+export const getRoleHome = (
   isSystemAdmin: boolean | null,
   role: OrganizationUserRole | null,
 ): string => {

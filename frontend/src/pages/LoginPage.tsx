@@ -11,6 +11,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import type { z } from 'zod'
 
 import { APP_ROUTES } from '@/app/routes'
+import { getRoleHome } from '@/app/AuthRoutes'
 import { AuthBrandLogo, PatientRegistrationForm } from '@/components'
 import {
   useLoginMutation,
@@ -35,10 +36,10 @@ interface LoginPageProps {
   initialStep?: AuthStep
 }
 
-const resolveRedirectPath = (state: LocationState | null | undefined): string => {
+const resolveRedirectPath = (state: LocationState | null | undefined): string | null => {
   const redirectPath = state?.from?.pathname
 
-  return redirectPath && redirectPath !== '/login' ? redirectPath : '/'
+  return redirectPath && redirectPath !== '/login' ? redirectPath : null
 }
 
 const OrganizationCardIcon = (): ReactElement => (
@@ -107,7 +108,8 @@ export function LoginPage({ initialStep = 'login' }: LoginPageProps): ReactEleme
       return
     }
 
-    navigate(resolveRedirectPath(locationState), {
+    const { isSystemAdmin: currentIsSystemAdmin, role: currentRole } = useAuthStore.getState()
+    navigate(resolveRedirectPath(locationState) ?? getRoleHome(currentIsSystemAdmin, currentRole), {
       replace: true,
     })
   }, [isAuthenticated, locationState, navigate])
@@ -121,7 +123,8 @@ export function LoginPage({ initialStep = 'login' }: LoginPageProps): ReactEleme
       return
     }
 
-    navigate(resolveRedirectPath(locationState), {
+    const { isSystemAdmin: currentIsSystemAdmin, role: currentRole } = useAuthStore.getState()
+    navigate(resolveRedirectPath(locationState) ?? getRoleHome(currentIsSystemAdmin, currentRole), {
       replace: true,
     })
   }
@@ -138,7 +141,8 @@ export function LoginPage({ initialStep = 'login' }: LoginPageProps): ReactEleme
       organizationId,
     })
 
-    navigate(resolveRedirectPath(locationState), {
+    const { isSystemAdmin: currentIsSystemAdmin, role: currentRole } = useAuthStore.getState()
+    navigate(resolveRedirectPath(locationState) ?? getRoleHome(currentIsSystemAdmin, currentRole), {
       replace: true,
     })
   }

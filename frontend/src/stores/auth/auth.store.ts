@@ -1,4 +1,5 @@
 import type { AuthenticatedAuthResponseDto } from '@zdravstvo/contracts'
+import { OrganizationUserRole } from '@zdravstvo/contracts'
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 
@@ -26,6 +27,11 @@ const mapAuthResponseToState = (
   orgUserId: auth.orgUserId,
 })
 
+const KNOWN_ROLES = new Set<string>(Object.values(OrganizationUserRole))
+
+const isValidRole = (role: unknown): role is OrganizationUserRole =>
+  typeof role === 'string' && KNOWN_ROLES.has(role)
+
 const isAuthenticatedState = (state: Partial<AuthStateSnapshot>): boolean => {
   if (!state.accessToken || !state.user) {
     return false
@@ -33,7 +39,7 @@ const isAuthenticatedState = (state: Partial<AuthStateSnapshot>): boolean => {
   if (state.isSystemAdmin) {
     return true
   }
-  return Boolean(state.role && state.organizationId && state.orgUserId)
+  return Boolean(state.role && isValidRole(state.role) && state.organizationId && state.orgUserId)
 }
 
 export const useAuthStore = create<AuthStore>()(
