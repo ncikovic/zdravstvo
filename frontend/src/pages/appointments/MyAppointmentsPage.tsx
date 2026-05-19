@@ -210,13 +210,6 @@ function MyAppointmentsPage(): ReactElement {
           <h1>Moji termini</h1>
           <p>Pregled svih vaših termina i upravljanje zakazanim pregledima.</p>
         </div>
-        <Link
-          className="my-appointments-primary-button"
-          to="/appointments/create"
-        >
-          <AppIcon name="plus" />
-          Zakaži termin
-        </Link>
       </div>
 
       <div className="my-appointments-tabs">
