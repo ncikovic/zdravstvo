@@ -89,6 +89,18 @@ function DoctorSchedulePage(): ReactElement {
 
   const activeDays = workingHours.filter((h) => !h.isOff).length
 
+  const handleApplyToWeekdays = (): void => {
+    const firstActive = workingHours.find((h) => !h.isOff && h.dayOfWeek >= 0 && h.dayOfWeek <= 4)
+    if (!firstActive) return
+    setWorkingHours((prev) =>
+      prev.map((h) =>
+        h.dayOfWeek >= 0 && h.dayOfWeek <= 4
+          ? { ...h, startTime: firstActive.startTime, endTime: firstActive.endTime, isOff: false }
+          : h,
+      ),
+    )
+  }
+
   if (isLoading) {
     return <div style={{ padding: '2rem', textAlign: 'center' }}>Učitavanje...</div>
   }
@@ -250,7 +262,7 @@ function DoctorSchedulePage(): ReactElement {
           <div className="doctor-schedule-actions-card">
             <h3 className="doctor-schedule-actions-card__title">Brze akcije</h3>
             <div className="doctor-schedule-actions-list">
-              <button className="doctor-schedule-action-item" type="button">
+              <button className="doctor-schedule-action-item" type="button" onClick={handleApplyToWeekdays}>
                 <AppIcon name="calendar" />
                 <div>
                   <strong>Primijeni na sve radne dane</strong>
@@ -258,7 +270,7 @@ function DoctorSchedulePage(): ReactElement {
                 </div>
                 <AppIcon name="chevronRight" />
               </button>
-              <button className="doctor-schedule-action-item" type="button">
+              <button className="doctor-schedule-action-item" type="button" onClick={() => navigate(APP_ROUTES.doctorExceptions.replace(':doctorId', doctorId ?? ''))}>
                 <AppIcon name="clock" />
                 <div>
                   <strong>Dodaj pauzu</strong>

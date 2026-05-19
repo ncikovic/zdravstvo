@@ -228,7 +228,7 @@ function DoctorDetailsPage(): ReactElement {
           <div className="doctor-details-section">
             <div className="doctor-details-section-header">
               <h3 className="doctor-details-section-title">Nadolazeci termini</h3>
-              <button type="button" className="doctor-details-show-all">Prikaži sve</button>
+              <button type="button" className="doctor-details-show-all" onClick={() => navigate(APP_ROUTES.appointments)}>Prikaži sve</button>
             </div>
             <div className="doctor-details-appointments">
               {upcomingAppointments.map((apt, idx) => (
@@ -243,7 +243,7 @@ function DoctorDetailsPage(): ReactElement {
                   </div>
                   <div className="doctor-details-appointment-time">
                     <span>{apt.time}</span>
-                    <button type="button">
+                    <button type="button" onClick={() => navigate(APP_ROUTES.appointments)}>
                       <AppIcon name="chevronRight" />
                     </button>
                   </div>
@@ -256,7 +256,7 @@ function DoctorDetailsPage(): ReactElement {
           <div className="doctor-details-section">
             <div className="doctor-details-section-header">
               <h3 className="doctor-details-section-title">povijest termina</h3>
-              <button type="button" className="doctor-details-show-all">Prikaži sve</button>
+              <button type="button" className="doctor-details-show-all" onClick={() => navigate(APP_ROUTES.appointments)}>Prikaži sve</button>
             </div>
             <div className="doctor-details-history-table">
               <div className="doctor-details-history-header">
@@ -298,7 +298,7 @@ function DoctorDetailsPage(): ReactElement {
           <div className="doctor-details-card">
             <h3 className="doctor-details-card-title">Brze akcije</h3>
             <div className="doctor-details-actions">
-              <button type="button" className="doctor-details-action-link">
+              <button type="button" className="doctor-details-action-link" onClick={() => navigate(APP_ROUTES.doctorDetails.replace(':doctorId', doctor.id))}>
                 <AppIcon name="note" />
                 Uredi podatke
                 <AppIcon name="chevronRight" />

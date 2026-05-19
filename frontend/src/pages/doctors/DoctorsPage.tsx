@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ReactElement } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -40,6 +40,7 @@ function DoctorsPage(): ReactElement {
   const navigate = useNavigate();
   const [doctors, setDoctors] = useState<DoctorResponseDto[]>([]);
   const [selectedDoctorId, setSelectedDoctorId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
@@ -69,7 +70,25 @@ function DoctorsPage(): ReactElement {
     fetchDoctors();
   }, [page]);
 
+  const filteredDoctors = useMemo(() => {
+    const value = search.trim().toLowerCase();
+    if (!value) return doctors;
+    return doctors.filter((doctor) =>
+      [
+        `${doctor.firstName} ${doctor.lastName}`,
+        doctor.title,
+        doctor.email,
+        doctor.phone,
+        doctor.licenseNumber,
+      ]
+        .filter(Boolean)
+        .some((field) => field?.toLowerCase().includes(value)),
+    );
+  }, [doctors, search]);
+
   const selectedDoctor =
+    filteredDoctors.find((doctor) => doctor.id === selectedDoctorId) ??
+    filteredDoctors[0] ??
     doctors.find((doctor) => doctor.id === selectedDoctorId) ??
     doctors[0] ??
     null;
@@ -96,6 +115,8 @@ function DoctorsPage(): ReactElement {
                 <input
                   type="search"
                   placeholder="Pretražite liječnike po imenu, specijalizaciji ili e-mailu..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
                 />
               </label>
               <button
@@ -137,7 +158,7 @@ function DoctorsPage(): ReactElement {
                   <AppIcon name="chevronDown" />
                 </div>
               </label>
-              <button className="doctors-clear-button" type="button">
+              <button className="doctors-clear-button" type="button" onClick={() => setSearch("")}>
                 <AppIcon name="tag" />
                 Obriši filtre
               </button>
@@ -169,7 +190,7 @@ function DoctorsPage(): ReactElement {
                   <span aria-hidden="true" />
                 </div>
 
-                {doctors.map((doctor, index) => {
+                {filteredDoctors.map((doctor, index) => {
                   const fullName = `${doctor.firstName} ${doctor.lastName}`;
                   const initials = getInitials(
                     doctor.firstName,
@@ -275,6 +296,7 @@ function DoctorsPage(): ReactElement {
             className="doctors-detail-close"
             type="button"
             aria-label="Zatvori detalje"
+            onClick={() => setSelectedDoctorId(null)}
           >
             ×
           </button>

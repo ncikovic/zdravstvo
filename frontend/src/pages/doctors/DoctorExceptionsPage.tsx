@@ -9,11 +9,14 @@ import type { DoctorResponseDto, DoctorTimeOffResponseDto } from '@zdravstvo/con
 
 import './doctors.css'
 
+const ITEMS_PER_PAGE = 10
+
 const initialException = {
-  type: 'GodiÅ¡nji odmor',
+  type: 'Godišnji odmor',
   dateFrom: '',
   dateTo: '',
   reason: '',
+  napomena: '',
 }
 
 function DoctorExceptionsPage(): ReactElement {
@@ -26,6 +29,10 @@ function DoctorExceptionsPage(): ReactElement {
   const [isDeleting, setIsDeleting] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [newException, setNewException] = useState(initialException)
+  const [filterDateFrom, setFilterDateFrom] = useState('')
+  const [filterDateTo, setFilterDateTo] = useState('')
+  const [filterType, setFilterType] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
   useEffect(() => {
     if (!doctorId) {
       setError('Doctor ID not found')
@@ -98,6 +105,24 @@ function DoctorExceptionsPage(): ReactElement {
     navigate(APP_ROUTES.doctorSchedule.replace(':doctorId', doctorId || ''))
   }
 
+  const handleClearFilters = () => {
+    setFilterDateFrom('')
+    setFilterDateTo('')
+    setFilterType('')
+    setCurrentPage(1)
+  }
+
+  const filteredTimeOff = timeOffList.filter((item) => {
+    const start = new Date(item.startAt)
+    const end = new Date(item.endAt)
+    if (filterDateFrom && start < new Date(filterDateFrom)) return false
+    if (filterDateTo && end > new Date(`${filterDateTo}T23:59:59`)) return false
+    if (filterType && filterType !== 'Sve vrste' && item.reason && !item.reason.toLowerCase().includes(filterType.toLowerCase())) return false
+    return true
+  })
+
+  const totalPages = Math.max(1, Math.ceil(filteredTimeOff.length / ITEMS_PER_PAGE))
+  const pagedTimeOff = filteredTimeOff.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
 
   if (isLoading) {
     return <div style={{ padding: '2rem', textAlign: 'center' }}>Učitavanje...</div>
@@ -150,31 +175,37 @@ function DoctorExceptionsPage(): ReactElement {
             <div className="doctor-exceptions-filters">
               <div className="doctor-exceptions-filter-group">
                 <span>Datum od</span>
-                <input type="date" className="doctor-exceptions-date-input" placeholder="Odaberite datum" />
+                <input
+                  type="date"
+                  className="doctor-exceptions-date-input"
+                  value={filterDateFrom}
+                  onChange={(e) => { setFilterDateFrom(e.target.value); setCurrentPage(1) }}
+                />
               </div>
               <div className="doctor-exceptions-filter-group">
                 <span>Datum do</span>
-                <input type="date" className="doctor-exceptions-date-input" placeholder="Odaberite datum" />
+                <input
+                  type="date"
+                  className="doctor-exceptions-date-input"
+                  value={filterDateTo}
+                  onChange={(e) => { setFilterDateTo(e.target.value); setCurrentPage(1) }}
+                />
               </div>
               <div className="doctor-exceptions-filter-group">
                 <span>Vrsta iznimke</span>
-                <select className="doctor-exceptions-select">
-                  <option>Sve vrste</option>
-                  <option>Godišnji odmor</option>
-                  <option>Edukacija</option>
-                  <option>Bolovanje</option>
-                  <option>Kongres</option>
+                <select
+                  className="doctor-exceptions-select"
+                  value={filterType}
+                  onChange={(e) => { setFilterType(e.target.value); setCurrentPage(1) }}
+                >
+                  <option value="">Sve vrste</option>
+                  <option value="Godišnji odmor">Godišnji odmor</option>
+                  <option value="Edukacija">Edukacija</option>
+                  <option value="Bolovanje">Bolovanje</option>
+                  <option value="Kongres">Kongres</option>
                 </select>
               </div>
-              <div className="doctor-exceptions-filter-group">
-                <span>Status</span>
-                <select className="doctor-exceptions-select">
-                  <option>Svi statusi</option>
-                  <option>Odobreno</option>
-                  <option>Na čekanju</option>
-                </select>
-              </div>
-              <button className="doctor-exceptions-filter-btn" type="button">
+              <button className="doctor-exceptions-filter-btn" type="button" onClick={handleClearFilters}>
                 <AppIcon name="search" />
                 Obriši filtre
               </button>
@@ -192,14 +223,14 @@ function DoctorExceptionsPage(): ReactElement {
                 </tr>
               </thead>
               <tbody>
-                {timeOffList.length === 0 ? (
+                {pagedTimeOff.length === 0 ? (
                   <tr>
                     <td colSpan={6} style={{ padding: '2rem', textAlign: 'center', color: '#999' }}>
                       Nema planiranih iznimki
                     </td>
                   </tr>
                 ) : (
-                  timeOffList.map((item) => {
+                  pagedTimeOff.map((item) => {
                     const startDate = new Date(item.startAt)
                     const endDate = new Date(item.endAt)
                     const startFormatted = startDate.toLocaleDateString('hr-HR')
@@ -240,17 +271,23 @@ function DoctorExceptionsPage(): ReactElement {
             </table>
 
             <div className="doctor-exceptions-pagination">
-              <button type="button">
+              <button type="button" disabled={currentPage <= 1} onClick={() => setCurrentPage((p) => p - 1)}>
                 <AppIcon name="chevronLeft" />
               </button>
-              <button type="button" className="doctor-exceptions-page-active">
-                1
-              </button>
-              <button type="button">2</button>
-              <button type="button">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  className={p === currentPage ? 'doctor-exceptions-page-active' : undefined}
+                  onClick={() => setCurrentPage(p)}
+                >
+                  {p}
+                </button>
+              ))}
+              <button type="button" disabled={currentPage >= totalPages} onClick={() => setCurrentPage((p) => p + 1)}>
                 <AppIcon name="chevronRight" />
               </button>
-              <span>10 po stranici</span>
+              <span>{ITEMS_PER_PAGE} po stranici</span>
             </div>
           </div>
         </section>
@@ -314,8 +351,10 @@ function DoctorExceptionsPage(): ReactElement {
                 placeholder="Unesite dodatne informacije..."
                 rows={4}
                 maxLength={500}
+                value={newException.napomena}
+                onChange={(e) => setNewException({ ...newException, napomena: e.target.value })}
               />
-              <span className="doctor-exceptions-char-count">0 / 500</span>
+              <span className="doctor-exceptions-char-count">{newException.napomena.length} / 500</span>
             </div>
 
             <p className="doctor-exceptions-info-text">
@@ -343,7 +382,7 @@ function DoctorExceptionsPage(): ReactElement {
             </div>
           </div>
 
-          <button className="doctor-exceptions-change-doctor-btn" type="button">
+          <button className="doctor-exceptions-change-doctor-btn" type="button" onClick={() => navigate(APP_ROUTES.doctors)}>
             <AppIcon name="user" />
             Promijeni liječnika
           </button>

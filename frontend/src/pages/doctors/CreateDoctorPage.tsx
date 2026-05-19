@@ -129,7 +129,7 @@ function CreateDoctorPage(): ReactElement {
                   id="specialization"
                   className="create-doctor-field__select"
                   value={formData.title}
-                  onChange={(e) => handleInputChange('specialization', e.target.value)}
+                  onChange={(e) => handleInputChange('title', e.target.value)}
                 >
                   <option value="">Odaberite specijalizaciju</option>
                   <option value="Ginekologija">Ginekologija</option>
@@ -151,7 +151,7 @@ function CreateDoctorPage(): ReactElement {
                   type="text"
                   placeholder="Upisite broj licence"
                   value={formData.licenseNumber}
-                  onChange={(e) => handleInputChange('numberLicenses', e.target.value)}
+                  onChange={(e) => handleInputChange('licenseNumber', e.target.value)}
                 />
               </div>
             </div>
@@ -204,7 +204,7 @@ function CreateDoctorPage(): ReactElement {
                 className="create-doctor-field__textarea"
                 placeholder="Napišite kratki opis liječnika..."
                 value={formData.bio}
-                onChange={(e) => handleInputChange('shortBio', e.target.value)}
+                onChange={(e) => handleInputChange('bio', e.target.value)}
                 rows={3}
                 maxLength={200}
               />
@@ -274,7 +274,7 @@ function CreateDoctorPage(): ReactElement {
           <div className="create-doctor-quick-links">
             <h3 className="create-doctor-quick-links__title">Slijedeći koraci</h3>
             <div className="create-doctor-quick-links__list">
-              <button className="create-doctor-quick-link" type="button">
+              <button className="create-doctor-quick-link" type="button" onClick={() => navigate(APP_ROUTES.doctors)}>
                 <AppIcon name="user" />
                 <div>
                   <strong>Detalji liječnika</strong>
@@ -285,7 +285,7 @@ function CreateDoctorPage(): ReactElement {
               <button
                 className="create-doctor-quick-link"
                 type="button"
-                onClick={() => navigate(APP_ROUTES.doctorSchedule)}
+                onClick={() => navigate(APP_ROUTES.doctors)}
               >
                 <AppIcon name="calendar" />
                 <div>
@@ -297,7 +297,7 @@ function CreateDoctorPage(): ReactElement {
               <button
                 className="create-doctor-quick-link"
                 type="button"
-                onClick={() => navigate(APP_ROUTES.doctorExceptions)}
+                onClick={() => navigate(APP_ROUTES.doctors)}
               >
                 <AppIcon name="calendar" />
                 <div>
