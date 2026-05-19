@@ -1,3 +1,4 @@
+export * from "./adminUsers.service";
 export * from "./api";
 export * from "./appointments.service";
 export * from "./appointmentTypes.service";

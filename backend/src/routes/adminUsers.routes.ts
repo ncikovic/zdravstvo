@@ -1,0 +1,30 @@
+import { Router } from 'express';
+
+import { adminUsersController } from '../controllers/index.js';
+import { asyncHandler } from '../middleware/asyncHandler.js';
+import { validateRequest } from '../middleware/validateRequest.js';
+import { authenticateRequest, requireRoles } from '../shared/middleware/index.js';
+import {
+  adminOrgUserIdValidationSchemas,
+  listAdminUsersValidationSchemas,
+} from '../validations/index.js';
+
+export const adminUsersRouter = Router();
+
+adminUsersRouter.use(authenticateRequest, requireRoles());
+
+adminUsersRouter.get(
+  '/',
+  validateRequest(listAdminUsersValidationSchemas),
+  asyncHandler(async (request, response) => {
+    await adminUsersController.list(request, response);
+  }),
+);
+
+adminUsersRouter.patch(
+  '/:orgUserId/deactivate',
+  validateRequest(adminOrgUserIdValidationSchemas),
+  asyncHandler(async (request, response) => {
+    await adminUsersController.deactivate(request, response);
+  }),
+);

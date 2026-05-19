@@ -1,3 +1,4 @@
+export * from "./admin-users/index.js";
 export * from "./appointments/index.js";
 export * from "./appointment-types/index.js";
 export * from "./audit/index.js";

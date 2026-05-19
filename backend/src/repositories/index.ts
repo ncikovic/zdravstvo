@@ -1,3 +1,4 @@
+export * from "./adminUsers.repository.js";
 export * from "./appointments.repository.js";
 export * from "./appointmentTypes.repository.js";
 export * from "./audit.repository.js";
