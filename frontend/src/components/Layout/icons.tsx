@@ -166,6 +166,12 @@ const renderIconContent = (name: AppIconName): ReactElement => {
           <path d="M7 13l1 5h3" />
         </>
       )
+    case 'menu':
+      return (
+        <>
+          <path d="M4 6h16M4 12h16M4 18h16" />
+        </>
+      )
     case 'note':
       return (
         <>

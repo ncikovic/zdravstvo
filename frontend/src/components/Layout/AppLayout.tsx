@@ -96,6 +96,7 @@ export function AppLayout(): ReactElement {
   const clearAuth = useAuthStore((state) => state.clearAuth)
   const [openMenu, setOpenMenu] = useState<TopbarMenu | null>(null)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [searchParams, setSearchParams] = useSearchParams()
   const navigationItems = useRoleNavigation(role, isSystemAdmin)
   const shellConfig = getRoleShellConfig(role, isSystemAdmin)
@@ -105,6 +106,7 @@ export function AppLayout(): ReactElement {
   useEffect(() => {
     const title = PAGE_TITLES[location.pathname] ?? 'Zdravstvo'
     announce(title)
+    setMobileMenuOpen(false)
   }, [location.pathname, announce])
   const userName = formatUserName(user)
   const initials = getUserInitials(userName)
@@ -127,11 +129,26 @@ export function AppLayout(): ReactElement {
 
   return (
     <div className={`authenticated-shell authenticated-shell--${shellConfig.headerVariant}${sidebarCollapsed ? ' authenticated-shell--sidebar-collapsed' : ''}`}>
-      <Sidebar items={navigationItems} support={shellConfig.sidebar} onCollapse={() => setSidebarCollapsed((v) => !v)} />
+      <Sidebar
+        items={navigationItems}
+        support={shellConfig.sidebar}
+        onCollapse={() => setSidebarCollapsed((v) => !v)}
+        isOpen={mobileMenuOpen}
+        onClose={() => setMobileMenuOpen(false)}
+      />
 
       <div className="authenticated-shell__workspace">
         <header className="app-topbar">
           <div className="app-topbar__lead">
+            <button
+              className="app-topbar__menu-toggle"
+              type="button"
+              aria-label="Otvori izbornik"
+              aria-expanded={mobileMenuOpen}
+              onClick={() => setMobileMenuOpen(true)}
+            >
+              <AppIcon name="menu" />
+            </button>
             {shellConfig.headerVariant === 'workspace' ? (
               <div className="clinic-switcher" aria-label="Ustanova korisnika">
                 <span className="clinic-switcher__icon" aria-hidden="true">

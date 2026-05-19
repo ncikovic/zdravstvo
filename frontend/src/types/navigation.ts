@@ -25,6 +25,7 @@ export type AppIconName =
   | 'mail'
   | 'mapPin'
   | 'megaphone'
+  | 'menu'
   | 'note'
   | 'patients'
   | 'phone'

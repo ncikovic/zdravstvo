@@ -4394,6 +4394,47 @@ button {
   cursor: pointer;
 }
 
+.app-sidebar__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 199;
+  background: rgba(7, 24, 58, 0.45);
+  backdrop-filter: blur(2px);
+}
+
+.app-sidebar__close {
+  display: none;
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid #dbe8f3;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.8);
+  color: #5f6d8a;
+  cursor: pointer;
+}
+
+.app-topbar__menu-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid #dbe8f3;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #17254b;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(26, 77, 124, 0.06);
+}
+
 .authenticated-shell__workspace {
   min-width: 0;
 }
@@ -4422,6 +4463,9 @@ button {
 }
 
 .app-topbar__lead {
+  display: flex;
+  align-items: center;
+  gap: 14px;
   min-width: 0;
 }
 
@@ -5706,18 +5750,33 @@ button {
   }
 
   .app-sidebar {
-    position: relative;
-    height: auto;
-    padding: 24px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 200;
+    width: 300px;
+    height: 100%;
+    padding: 28px;
+    transform: translateX(-100%);
+    transition: transform 260ms cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden auto;
+  }
+
+  .app-sidebar--open {
+    transform: translateX(0);
   }
 
   .app-sidebar__nav {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    margin-top: 22px;
+    grid-template-columns: 1fr;
+    margin-top: 60px;
   }
 
-  .app-sidebar__support {
-    display: none;
+  .app-sidebar__close {
+    display: flex;
+  }
+
+  .app-topbar__menu-toggle {
+    display: flex;
   }
 
   .app-topbar,
@@ -5770,14 +5829,9 @@ button {
 }
 
 @media (max-width: 680px) {
-  .app-sidebar__nav,
   .dashboard-stat-grid--four,
   .dashboard-metric-strip {
     grid-template-columns: 1fr;
-  }
-
-  .app-sidebar__link {
-    min-height: 54px;
   }
 
   .clinic-switcher,
