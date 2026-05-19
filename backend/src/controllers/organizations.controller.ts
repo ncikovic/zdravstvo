@@ -10,6 +10,15 @@ import type {
 import type { Request, Response } from 'express';
 
 import { organizationsService } from '../services/index.js';
+import { AppError } from '../errors/AppError.js';
+import { requireAuthenticatedUser } from '../shared/context/index.js';
+
+const assertOwnOrganization = (request: Request, id: string): void => {
+  const context = requireAuthenticatedUser(request);
+  if (!context.isSystemAdmin && context.organizationId !== id) {
+    throw AppError.forbidden();
+  }
+};
 
 export class OrganizationsController {
   public async create(
@@ -51,6 +60,7 @@ export class OrganizationsController {
     response: Response<ApiResponse<OrganizationResponseDto>>,
   ): Promise<void> {
     const { id } = request.params as OrganizationIdParamsDto;
+    assertOwnOrganization(request, id);
     const organization = await organizationsService.getById(id);
 
     response.status(200).json({
@@ -63,6 +73,7 @@ export class OrganizationsController {
     response: Response<ApiResponse<OrganizationResponseDto>>,
   ): Promise<void> {
     const { id } = request.params as OrganizationIdParamsDto;
+    assertOwnOrganization(request as Request, id);
     const organization = await organizationsService.update(id, request.body);
 
     response.status(200).json({

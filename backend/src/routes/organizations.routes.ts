@@ -16,8 +16,9 @@ import {
   updateOrganizationValidationSchemas,
 } from '../validations/index.js';
 
-// Only SYSTEM_ADMIN can create or delete organizations (requireRoles() with no args
-// allows isSystemAdmin=true and denies all org-scoped roles).
+// Only SYSTEM_ADMIN can create, delete, or list all organizations (requireRoles() with
+// no args allows isSystemAdmin=true and denies all org-scoped roles).
+// Managers read/update only their own organization via GET/PATCH /organizations/:id.
 const systemAdminOnly = requireRoles();
 const canReadOrUpdateOrganization = requireRoles(OrganizationUserRole.MANAGER);
 
@@ -36,7 +37,7 @@ organizationsRouter.post(
 organizationsRouter.get(
   '/organizations',
   authenticateRequest,
-  canReadOrUpdateOrganization,
+  systemAdminOnly,
   asyncHandler(async (request, response) => {
     await organizationsController.list(request, response);
   }),
