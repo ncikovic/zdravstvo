@@ -267,7 +267,15 @@ function PatientDetailsPage(): ReactElement {
                 Uredi podatke
                 <AppIcon name="chevronRight" />
               </button>
-              <button type="button" className="patient-details-action-link">
+              <button
+                type="button"
+                className="patient-details-action-link"
+                onClick={() =>
+                  navigate(
+                    `${APP_ROUTES.createAppointment}?patientId=${patient.id}`,
+                  )
+                }
+              >
                 <AppIcon name="calendar" />
                 Rezerviraj termin
                 <AppIcon name="chevronRight" />

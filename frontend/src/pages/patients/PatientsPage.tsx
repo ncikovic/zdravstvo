@@ -331,6 +331,7 @@ function PatientsPage(): ReactElement {
             className="patients-detail-close"
             type="button"
             aria-label="Zatvori detalje"
+            onClick={() => setSelectedPatientId(null)}
           >
             x
           </button>
@@ -389,7 +390,7 @@ function PatientsPage(): ReactElement {
               <section className="patients-info-card patients-appointments-card">
                 <div className="patients-card-heading">
                   <h3>Nadolazeci termini</h3>
-                  <button type="button">Prikazi sve</button>
+                  <button type="button" onClick={() => navigate(APP_ROUTES.appointments)}>Prikazi sve</button>
                 </div>
                 <div className="patients-appointment-list">
                   {upcomingAppointments.map(
@@ -440,6 +441,11 @@ function PatientsPage(): ReactElement {
                 <button
                   className="patients-detail-actions__primary"
                   type="button"
+                  onClick={() =>
+                    navigate(
+                      `${APP_ROUTES.createAppointment}?patientId=${selectedPatient.id}`,
+                    )
+                  }
                 >
                   <AppIcon name="calendar" />
                   Rezerviraj termin

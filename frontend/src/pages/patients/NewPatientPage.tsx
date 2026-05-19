@@ -546,7 +546,7 @@ function NewPatientPage(): ReactElement {
           <div className="new-patient-next-steps">
             <h3 className="new-patient-next-steps__title">Sljedeći koraci</h3>
             <div className="new-patient-next-steps__list">
-              <button className="new-patient-next-step-link" type="button">
+              <button className="new-patient-next-step-link" type="button" onClick={() => navigate(APP_ROUTES.patients)}>
                 <AppIcon name="user" />
                 <div>
                   <strong>Detalji pacijenta</strong>
@@ -554,7 +554,7 @@ function NewPatientPage(): ReactElement {
                 </div>
                 <AppIcon name="chevronRight" />
               </button>
-              <button className="new-patient-next-step-link" type="button">
+              <button className="new-patient-next-step-link" type="button" onClick={() => navigate(APP_ROUTES.createAppointment)}>
                 <AppIcon name="calendar" />
                 <div>
                   <strong>Rezervacija termina</strong>
@@ -562,7 +562,7 @@ function NewPatientPage(): ReactElement {
                 </div>
                 <AppIcon name="chevronRight" />
               </button>
-              <button className="new-patient-next-step-link" type="button">
+              <button className="new-patient-next-step-link" type="button" onClick={() => navigate(APP_ROUTES.patients)}>
                 <AppIcon name="clipboard" />
                 <div>
                   <strong>Podaci osiguranja</strong>
