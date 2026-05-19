@@ -6,7 +6,7 @@ import type {
 } from "@zdravstvo/contracts";
 import { useEffect, useMemo, useState } from "react";
 import type { ReactElement } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 
 import { AppIcon } from "@/components";
 import {
@@ -379,6 +379,7 @@ const getErrorMessage = (error: unknown): string | null => {
 };
 
 function AppointmentsPage(): ReactElement {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<
     string | null
@@ -660,11 +661,22 @@ function AppointmentsPage(): ReactElement {
               <button
                 className="appointments-view-switcher__active"
                 type="button"
+                aria-pressed="true"
               >
                 Dan
               </button>
-              <button type="button">Tjedan</button>
-              <button type="button">Mjesec</button>
+              <button
+                type="button"
+                onClick={() => changeDate(7)}
+              >
+                Tjedan
+              </button>
+              <button
+                type="button"
+                onClick={() => changeDate(30)}
+              >
+                Mjesec
+              </button>
             </div>
           </div>
 
@@ -816,7 +828,7 @@ function AppointmentsPage(): ReactElement {
                 </div>
               )}
             </div>
-            <button className="appointments-link-button" type="button">
+            <button className="appointments-link-button" type="button" onClick={() => navigate('/appointments/create')}>
               Pogledaj sve slobodne termine
               <AppIcon name="chevronRight" />
             </button>
@@ -842,7 +854,7 @@ function AppointmentsPage(): ReactElement {
                 </div>
               ))}
             </div>
-            <button className="appointments-link-button" type="button">
+            <button className="appointments-link-button" type="button" onClick={() => navigate('/my-appointments')}>
               Pogledaj sve podsjetnike
               <AppIcon name="chevronRight" />
             </button>
@@ -894,15 +906,40 @@ function AppointmentsPage(): ReactElement {
                 <AppIcon name="calendar" />
                 Novi termin
               </Link>
-              <button type="button">
+              <button type="button" onClick={() => navigate('/appointments/create')}>
                 <AppIcon name="shield" />
                 Blokiraj vrijeme
               </button>
-              <button type="button">
+              <button type="button" onClick={() => window.print()}>
                 <AppIcon name="note" />
                 Ispisi raspored
               </button>
-              <button type="button">
+              <button
+                type="button"
+                onClick={() => {
+                  const rows = [
+                    ['Pacijent', 'Lijecnik', 'Pocetek', 'Kraj', 'Vrsta'].join(','),
+                    ...appointmentsData.map((a) =>
+                      [
+                        `${a.patient.firstName} ${a.patient.lastName}`,
+                        `${a.doctor.firstName} ${a.doctor.lastName}`,
+                        a.startAt,
+                        a.endAt,
+                        a.appointmentType.name,
+                      ]
+                        .map((v) => `"${String(v).replace(/"/g, '""')}"`)
+                        .join(','),
+                    ),
+                  ].join('\n');
+                  const blob = new Blob([rows], { type: 'text/csv' });
+                  const url = URL.createObjectURL(blob);
+                  const link = document.createElement('a');
+                  link.href = url;
+                  link.download = `raspored-${formatDateKey(selectedDate)}.csv`;
+                  link.click();
+                  URL.revokeObjectURL(url);
+                }}
+              >
                 <AppIcon name="send" />
                 Izvezi raspored
               </button>

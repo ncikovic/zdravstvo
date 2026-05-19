@@ -1,7 +1,7 @@
 import type { AppointmentResponseDto } from "@zdravstvo/contracts";
 import { useEffect, useMemo, useState } from "react";
 import type { ReactElement } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
 import { AppIcon } from "@/components";
 import { appointmentsService } from "@/services";
@@ -219,6 +219,7 @@ const buildReminders = (
 ];
 
 function AppointmentDetailsPage(): ReactElement {
+  const navigate = useNavigate();
   const { appointmentId } = useParams();
   const [appointment, setAppointment] = useState<AppointmentResponseDto | null>(
     null,
@@ -323,7 +324,7 @@ function AppointmentDetailsPage(): ReactElement {
           <p>Pregled informacija o odabranom terminu i povezanom pacijentu.</p>
         </div>
 
-        <button className="appointment-details-options" type="button">
+        <button className="appointment-details-options" type="button" onClick={() => navigate(`/appointments/${appointment.id}/change`)}>
           <AppIcon name="dots" />
           Opcije
           <AppIcon name="chevronDown" />
@@ -403,7 +404,7 @@ function AppointmentDetailsPage(): ReactElement {
                 </strong>
                 <small>Azurirano {formatDateTime(appointment.updatedAt)}</small>
               </span>
-              <button type="button" aria-label="Opcije biljeske">
+              <button type="button" aria-label="Opcije biljeske" onClick={() => navigate(`/appointments/${appointment.id}/change`)}>
                 <AppIcon name="dots" />
               </button>
             </div>
@@ -481,7 +482,7 @@ function AppointmentDetailsPage(): ReactElement {
               ))}
             </div>
 
-            <button className="appointment-details-history-link" type="button">
+            <button className="appointment-details-history-link" type="button" onClick={() => navigate('/appointments')}>
               Pogledaj cijelu povijest
               <AppIcon name="chevronRight" />
             </button>
