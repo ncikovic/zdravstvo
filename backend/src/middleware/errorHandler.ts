@@ -44,13 +44,27 @@ export const errorHandler = (
     return;
   }
 
-  const logMessage = error instanceof Error ? error.name : "UnknownError";
+  const logPayload =
+    error instanceof Error
+      ? {
+          method: request.method,
+          path: request.originalUrl,
+          error: error.name,
+          message: error.message,
+          code:
+            "code" in error && typeof error.code === "string"
+              ? error.code
+              : undefined,
+          stack: process.env.NODE_ENV === "production" ? undefined : error.stack,
+        }
+      : {
+          method: request.method,
+          path: request.originalUrl,
+          error: "UnknownError",
+          message: String(error),
+        };
 
-  console.error("Unhandled error", {
-    method: request.method,
-    path: request.originalUrl,
-    error: logMessage,
-  });
+  console.error("Unhandled error", logPayload);
 
   response.status(500).json({
     error: {
