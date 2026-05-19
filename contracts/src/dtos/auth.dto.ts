@@ -81,6 +81,7 @@ export interface AuthenticatedAuthResponseDto {
   user: AuthUserDto;
   isSystemAdmin: boolean;
   organizationId: string | null;
+  organizationName: string | null;
   orgUserId: string | null;
   role: OrganizationUserRole | null;
 }

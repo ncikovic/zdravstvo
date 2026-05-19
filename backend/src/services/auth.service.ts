@@ -207,6 +207,7 @@ const mapAuthenticatedResponse = (
   user: UserRecord,
   profile: PatientProfileRecord | null,
   membership: OrganizationUserRecord,
+  organizationName: string | null,
   createToken: typeof signAccessToken = signAccessToken,
 ): AuthenticatedAuthResponseDto => {
   const accessToken = createToken({
@@ -224,6 +225,7 @@ const mapAuthenticatedResponse = (
     user: mapAuthUser(user, profile),
     isSystemAdmin: false,
     organizationId: membership.organizationId,
+    organizationName,
     orgUserId: membership.id,
     role: membership.role,
   };
@@ -246,6 +248,7 @@ const mapSystemAdminAuthResponse = (
     user: mapAuthUser(user, profile),
     isSystemAdmin: true,
     organizationId: null,
+    organizationName: null,
     orgUserId: null,
     role: null,
   };
@@ -362,10 +365,12 @@ export class AuthService {
     }
 
     if (memberships.length === 1) {
+      const orgs = await this.organizationsRepository.findMinimalByIds([memberships[0].organizationId]);
       return mapAuthenticatedResponse(
         user,
         patientProfile,
         memberships[0],
+        orgs[0]?.name ?? null,
         this.createAccessToken,
       );
     }
@@ -407,14 +412,16 @@ export class AuthService {
       throw AppError.forbidden("Organization is not available for this login.");
     }
 
-    const patientProfile = await this.authRepository.findPatientProfileByUserId(
-      user.id,
-    );
+    const [patientProfile, orgs] = await Promise.all([
+      this.authRepository.findPatientProfileByUserId(user.id),
+      this.organizationsRepository.findMinimalByIds([membership.organizationId]),
+    ]);
 
     return mapAuthenticatedResponse(
       user,
       patientProfile,
       membership,
+      orgs[0]?.name ?? null,
       this.createAccessToken,
     );
   }

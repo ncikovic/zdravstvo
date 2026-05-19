@@ -12,6 +12,7 @@ export interface AuthStateSnapshot {
   isSystemAdmin: boolean | null
   role: OrganizationUserRole | null
   organizationId: string | null
+  organizationName: string | null
   orgUserId: string | null
 }
 

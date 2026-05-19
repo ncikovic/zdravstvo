@@ -93,6 +93,7 @@ export function AppLayout(): ReactElement {
   const role = useAuthStore((state) => state.role)
   const isSystemAdmin = useAuthStore((state) => state.isSystemAdmin)
   const user = useAuthStore((state) => state.user)
+  const organizationName = useAuthStore((state) => state.organizationName)
   const clearAuth = useAuthStore((state) => state.clearAuth)
   const [openMenu, setOpenMenu] = useState<TopbarMenu | null>(null)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
@@ -154,7 +155,7 @@ export function AppLayout(): ReactElement {
                 <span className="clinic-switcher__icon" aria-hidden="true">
                   <AppIcon name="building" />
                 </span>
-                <span>{shellConfig.workspaceName}</span>
+                <span>{organizationName ?? shellConfig.workspaceName}</span>
               </div>
             ) : null}
 

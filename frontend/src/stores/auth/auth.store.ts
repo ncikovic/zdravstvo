@@ -13,6 +13,7 @@ const createUnauthenticatedState = (): AuthStateSnapshot => ({
   isSystemAdmin: null,
   role: null,
   organizationId: null,
+  organizationName: null,
   orgUserId: null,
 })
 
@@ -24,6 +25,7 @@ const mapAuthResponseToState = (
   isSystemAdmin: auth.isSystemAdmin,
   role: auth.role,
   organizationId: auth.organizationId,
+  organizationName: auth.organizationName,
   orgUserId: auth.orgUserId,
 })
 
@@ -72,6 +74,7 @@ export const useAuthStore = create<AuthStore>()(
         isSystemAdmin: state.isSystemAdmin,
         role: state.role,
         organizationId: state.organizationId,
+        organizationName: state.organizationName,
         orgUserId: state.orgUserId,
       }),
       merge: (persistedState, currentState) => {
