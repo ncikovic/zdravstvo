@@ -6,6 +6,7 @@ export interface OrganizationRecord {
   phone: string | null;
   email: string | null;
   timezone: string;
+  isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

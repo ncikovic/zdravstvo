@@ -19,6 +19,7 @@ const mapOrganization = (organization: OrganizationResponseDto): Organization =>
   phone: organization.phone,
   email: organization.email,
   timezone: organization.timezone,
+  isActive: organization.isActive,
   createdAt: new Date(organization.createdAt),
   updatedAt: new Date(organization.updatedAt),
 });
@@ -76,7 +77,7 @@ export class OrganizationsService {
     return mapOrganization(response.data.data);
   }
 
-  public async delete(id: string): Promise<void> {
+  public async deactivate(id: string): Promise<void> {
     await apiClient.delete(`/organizations/${id}`);
   }
 }

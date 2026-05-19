@@ -81,10 +81,10 @@ export class OrganizationsController {
     });
   }
 
-  public async delete(request: Request, response: Response): Promise<void> {
+  public async deactivate(request: Request, response: Response): Promise<void> {
     const { id } = request.params as OrganizationIdParamsDto;
 
-    await organizationsService.delete(id);
+    await organizationsService.deactivate(id);
 
     response.status(204).send();
   }

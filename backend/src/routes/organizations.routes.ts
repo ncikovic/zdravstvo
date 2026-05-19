@@ -77,6 +77,6 @@ organizationsRouter.delete(
   systemAdminOnly,
   validateRequest(deleteOrganizationValidationSchemas),
   asyncHandler(async (request, response) => {
-    await organizationsController.delete(request, response);
+    await organizationsController.deactivate(request, response);
   }),
 );

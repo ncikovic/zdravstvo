@@ -17,7 +17,7 @@ import type { OrganizationRecord } from '../types/entities/index.js';
 
 type OrganizationsRepositoryContract = Pick<
   OrganizationsRepository,
-  'create' | 'findAll' | 'findPage' | 'findById' | 'update' | 'delete'
+  'create' | 'findAll' | 'findPage' | 'findById' | 'update' | 'deactivate'
 >;
 
 const DEFAULT_ORGANIZATION_TIMEZONE = 'Europe/Zagreb';
@@ -56,6 +56,7 @@ const mapOrganizationResponse = (organization: OrganizationRecord): Organization
     phone: organization.phone,
     email: organization.email,
     timezone: organization.timezone,
+    isActive: organization.isActive,
     createdAt: organization.createdAt.toISOString(),
     updatedAt: organization.updatedAt.toISOString(),
   };
@@ -165,10 +166,10 @@ export class OrganizationsService {
     return mapOrganizationResponse(organization);
   }
 
-  public async delete(organizationId: string): Promise<void> {
-    const wasDeleted = await this.organizationsRepository.delete(organizationId);
+  public async deactivate(organizationId: string): Promise<void> {
+    const wasDeactivated = await this.organizationsRepository.deactivate(organizationId);
 
-    if (!wasDeleted) {
+    if (!wasDeactivated) {
       throw createOrganizationNotFoundError();
     }
   }

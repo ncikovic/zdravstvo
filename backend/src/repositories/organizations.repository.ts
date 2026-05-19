@@ -55,6 +55,7 @@ interface OrganizationRow {
   phone: string | null;
   email: string | null;
   timezone: string;
+  is_active: number;
   created_at: Date | string;
   updated_at: Date | string;
 }
@@ -67,6 +68,7 @@ const ORGANIZATION_COLUMNS = [
   'phone',
   'email',
   'timezone',
+  'is_active',
   'created_at',
   'updated_at',
 ] as const;
@@ -91,6 +93,7 @@ const mapOrganizationRecord = (row: OrganizationRow): OrganizationRecord => {
     phone: row.phone,
     email: row.email,
     timezone: row.timezone,
+    isActive: Boolean(row.is_active),
     createdAt: mapDate(row.created_at),
     updatedAt: mapDate(row.updated_at),
   };
@@ -134,6 +137,7 @@ export class OrganizationsRepository {
   public async findAll(): Promise<OrganizationRecord[]> {
     const rows = await this.executor<OrganizationRow>('organizations')
       .select(...ORGANIZATION_COLUMNS)
+      .where('is_active', 1)
       .orderBy('name', 'asc')
       .orderBy('created_at', 'asc')
       .orderBy('id', 'asc');
@@ -142,7 +146,7 @@ export class OrganizationsRepository {
   }
 
   public async findPage(input: FindOrganizationsPageInput): Promise<OrganizationPageRecord> {
-    const query = this.executor<OrganizationRow>('organizations');
+    const query = this.executor<OrganizationRow>('organizations').where('is_active', 1);
 
     if (input.search) {
       const searchTerm = `%${escapeLikeSearch(input.search)}%`;
@@ -174,7 +178,7 @@ export class OrganizationsRepository {
   public async findById(organizationId: string): Promise<OrganizationRecord | null> {
     const row = await this.executor<OrganizationRow>('organizations')
       .select(...ORGANIZATION_COLUMNS)
-      .where({ id: uuidToBuffer(organizationId) })
+      .where({ id: uuidToBuffer(organizationId), is_active: 1 })
       .first();
 
     return row ? mapOrganizationRecord(row) : null;
@@ -191,12 +195,12 @@ export class OrganizationsRepository {
     return this.findById(organizationId);
   }
 
-  public async delete(organizationId: string): Promise<boolean> {
-    const deletedCount = await this.executor('organizations')
-      .where({ id: uuidToBuffer(organizationId) })
-      .delete();
+  public async deactivate(organizationId: string): Promise<boolean> {
+    const updatedCount = await this.executor('organizations')
+      .where({ id: uuidToBuffer(organizationId), is_active: 1 })
+      .update({ is_active: 0 });
 
-    return deletedCount > 0;
+    return updatedCount > 0;
   }
 
   public async findMinimalByIds(
@@ -208,6 +212,7 @@ export class OrganizationsRepository {
 
     const rows = await this.executor<MinimalOrganizationRow>('organizations')
       .select('id', 'name')
+      .where('is_active', 1)
       .whereIn(
         'id',
         organizationIds.map((organizationId) => uuidToBuffer(organizationId)),

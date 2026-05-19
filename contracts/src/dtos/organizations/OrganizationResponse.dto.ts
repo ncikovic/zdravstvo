@@ -6,6 +6,7 @@ export interface OrganizationResponseDto {
   phone: string | null;
   email: string | null;
   timezone: string;
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }

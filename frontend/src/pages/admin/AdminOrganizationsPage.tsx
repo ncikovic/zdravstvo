@@ -48,14 +48,14 @@ function AdminOrganizationsPage(): ReactElement {
     }
   }
 
-  const handleDelete = async (id: string, name: string): Promise<void> => {
+  const handleDeactivate = async (id: string, name: string): Promise<void> => {
     if (!confirm(`Jeste li sigurni da želite deaktivirati organizaciju "${name}"?`)) return
 
     try {
-      await organizationsService.delete(id)
+      await organizationsService.deactivate(id)
       await fetchOrganizations()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Greška pri brisanju organizacije.')
+      setError(err instanceof Error ? err.message : 'Greška pri deaktivaciji organizacije.')
     }
   }
 
@@ -151,7 +151,7 @@ function AdminOrganizationsPage(): ReactElement {
                 <td style={{ padding: '0.75rem' }}>
                   <button
                     type="button"
-                    onClick={() => handleDelete(org.id, org.name)}
+                    onClick={() => handleDeactivate(org.id, org.name)}
                     style={{ padding: '0.25rem 0.75rem', background: '#fff', border: '1px solid #fca5a5', color: '#b91c1c', borderRadius: '4px', cursor: 'pointer', fontSize: '0.875rem' }}
                   >
                     Deaktiviraj
