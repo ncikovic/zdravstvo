@@ -40,13 +40,17 @@ import {
 import { DoctorOwnSchedulePage } from '@/pages/doctors/DoctorOwnSchedulePage';
 import { BookAppointmentPage } from '@/pages/appointments/BookAppointmentPage';
 import { ProfilePage } from '@/pages/patients/ProfilePage';
+import { InternalPlaceholderPage } from '@/pages/InternalPlaceholderPage';
 
 import {
-  ProtectedRoute,
-  PublicOnlyRoute,
-  SystemAdminRoute,
   DoctorRoute,
+  ManagerOrSystemAdminRoute,
+  ManagerReceptionRoute,
+  ManagerRoute,
   PatientRoute,
+  PublicOnlyRoute,
+  ScheduleActionRoute,
+  SystemAdminRoute,
 } from './AuthRoutes';
 import { APP_ROUTES } from './routes';
 
@@ -68,13 +72,68 @@ export function AppRoutes(): ReactElement {
           <Route path={APP_ROUTES.forgotPassword} element={<ForgotPasswordPage />} />
         </Route>
 
-        {/* System admin routes */}
+        {/* System-admin-only routes */}
         <Route element={<SystemAdminRoute />}>
           <Route element={<AppLayout />}>
             <Route path={APP_ROUTES.adminOrganizations} element={<AdminOrganizationsPage />} />
             <Route path={APP_ROUTES.adminUsers} element={<AdminUsersPage />} />
             <Route path={APP_ROUTES.adminAudit} element={<AdminAuditPage />} />
+          </Route>
+        </Route>
+
+        {/* Settings: system admin and manager */}
+        <Route element={<ManagerOrSystemAdminRoute />}>
+          <Route element={<AppLayout />}>
             <Route path={APP_ROUTES.settings} element={<SettingsPage />} />
+          </Route>
+        </Route>
+
+        {/* Manager-only routes */}
+        <Route element={<ManagerRoute />}>
+          <Route element={<AppLayout />}>
+            <Route path={APP_ROUTES.dashboard} element={<DashboardPage />} />
+            <Route path={APP_ROUTES.audit} element={<AuditPage />} />
+            <Route path={APP_ROUTES.doctors} element={<DoctorsPage />} />
+            <Route path={APP_ROUTES.doctorsCreate} element={<CreateDoctorPage />} />
+            <Route path={APP_ROUTES.doctorDetails} element={<DoctorDetailsPage />} />
+            <Route path={APP_ROUTES.doctorSchedule} element={<DoctorSchedulePage />} />
+            <Route path={APP_ROUTES.doctorExceptions} element={<DoctorExceptionsPage />} />
+            <Route path={APP_ROUTES.appointmentTypes} element={<AppointmentTypesPage />} />
+            <Route path={APP_ROUTES.createAppointmentType} element={<CreateAppointmentTypePage />} />
+            <Route path={APP_ROUTES.editAppointmentType} element={<EditAppointmentTypePage />} />
+            <Route
+              path={APP_ROUTES.users}
+              element={
+                <InternalPlaceholderPage
+                  title="Korisnici"
+                  description="Upravljanje korisnicima organizacije bit će dostupno ovdje."
+                  icon="users"
+                />
+              }
+            />
+            <Route path={APP_ROUTES.accessibility} element={<AccessibilityPage />} />
+          </Route>
+        </Route>
+
+        {/* Manager + Reception routes */}
+        <Route element={<ManagerReceptionRoute />}>
+          <Route element={<AppLayout />}>
+            <Route path={APP_ROUTES.schedule} element={<AppointmentsPage />} />
+            <Route path={APP_ROUTES.appointments} element={<AppointmentsPage />} />
+            <Route path={APP_ROUTES.createAppointment} element={<CreateAppointmentPage />} />
+            <Route path={APP_ROUTES.patients} element={<PatientsPage />} />
+            <Route path={APP_ROUTES.patientsNew} element={<NewPatientPage />} />
+            <Route path={APP_ROUTES.patientDetails} element={<PatientDetailsPage />} />
+            <Route path={APP_ROUTES.patientEdit} element={<EditPatientPage />} />
+          </Route>
+        </Route>
+
+        {/* Appointment detail actions: manager, reception, and patient */}
+        <Route element={<ScheduleActionRoute />}>
+          <Route element={<AppLayout />}>
+            <Route path={APP_ROUTES.appointmentDetails} element={<AppointmentDetailsPage />} />
+            <Route path={APP_ROUTES.changeAppointment} element={<ChangeAppointmentPage />} />
+            <Route path={APP_ROUTES.cancelAppointment} element={<CancelAppointmentPage />} />
           </Route>
         </Route>
 
@@ -91,37 +150,6 @@ export function AppRoutes(): ReactElement {
             <Route path={APP_ROUTES.myAppointments} element={<MyAppointmentsPage />} />
             <Route path={APP_ROUTES.book} element={<BookAppointmentPage />} />
             <Route path={APP_ROUTES.profile} element={<ProfilePage />} />
-            <Route path={APP_ROUTES.appointmentDetails} element={<AppointmentDetailsPage />} />
-            <Route path={APP_ROUTES.cancelAppointment} element={<CancelAppointmentPage />} />
-            <Route path={APP_ROUTES.changeAppointment} element={<ChangeAppointmentPage />} />
-          </Route>
-        </Route>
-
-        {/* General protected routes (MANAGER, RECEPTION, DOCTOR share these where applicable) */}
-        <Route element={<ProtectedRoute />}>
-          <Route element={<AppLayout />}>
-            <Route path={APP_ROUTES.dashboard} element={<DashboardPage />} />
-            <Route path={APP_ROUTES.schedule} element={<AppointmentsPage />} />
-            <Route path={APP_ROUTES.appointments} element={<AppointmentsPage />} />
-            <Route path={APP_ROUTES.createAppointment} element={<CreateAppointmentPage />} />
-            <Route path={APP_ROUTES.changeAppointment} element={<ChangeAppointmentPage />} />
-            <Route path={APP_ROUTES.cancelAppointment} element={<CancelAppointmentPage />} />
-            <Route path={APP_ROUTES.appointmentDetails} element={<AppointmentDetailsPage />} />
-            <Route path={APP_ROUTES.doctors} element={<DoctorsPage />} />
-            <Route path={APP_ROUTES.doctorsCreate} element={<CreateDoctorPage />} />
-            <Route path={APP_ROUTES.doctorDetails} element={<DoctorDetailsPage />} />
-            <Route path={APP_ROUTES.doctorSchedule} element={<DoctorSchedulePage />} />
-            <Route path={APP_ROUTES.doctorExceptions} element={<DoctorExceptionsPage />} />
-            <Route path={APP_ROUTES.patients} element={<PatientsPage />} />
-            <Route path={APP_ROUTES.patientsNew} element={<NewPatientPage />} />
-            <Route path={APP_ROUTES.patientDetails} element={<PatientDetailsPage />} />
-            <Route path={APP_ROUTES.patientEdit} element={<EditPatientPage />} />
-            <Route path={APP_ROUTES.appointmentTypes} element={<AppointmentTypesPage />} />
-            <Route path={APP_ROUTES.createAppointmentType} element={<CreateAppointmentTypePage />} />
-            <Route path={APP_ROUTES.editAppointmentType} element={<EditAppointmentTypePage />} />
-            <Route path={APP_ROUTES.audit} element={<AuditPage />} />
-            <Route path={APP_ROUTES.settings} element={<SettingsPage />} />
-            <Route path={APP_ROUTES.accessibility} element={<AccessibilityPage />} />
           </Route>
         </Route>
 

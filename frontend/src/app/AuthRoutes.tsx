@@ -86,6 +86,73 @@ export function PatientRoute(): ReactElement {
   return <Outlet />
 }
 
+export function ManagerOrSystemAdminRoute(): ReactElement {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const isSystemAdmin = useAuthStore((state) => state.isSystemAdmin)
+  const role = useAuthStore((state) => state.role)
+
+  if (!isAuthenticated) {
+    return <Navigate to={APP_ROUTES.login} replace />
+  }
+
+  if (isSystemAdmin || role === OrganizationUserRole.MANAGER) {
+    return <Outlet />
+  }
+
+  return <Navigate to={APP_ROUTES.forbidden} replace />
+}
+
+export function ManagerRoute(): ReactElement {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const role = useAuthStore((state) => state.role)
+
+  if (!isAuthenticated) {
+    return <Navigate to={APP_ROUTES.login} replace />
+  }
+
+  if (role !== OrganizationUserRole.MANAGER) {
+    return <Navigate to={APP_ROUTES.forbidden} replace />
+  }
+
+  return <Outlet />
+}
+
+export function ManagerReceptionRoute(): ReactElement {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const role = useAuthStore((state) => state.role)
+
+  if (!isAuthenticated) {
+    return <Navigate to={APP_ROUTES.login} replace />
+  }
+
+  if (role !== OrganizationUserRole.MANAGER && role !== OrganizationUserRole.RECEPTION) {
+    return <Navigate to={APP_ROUTES.forbidden} replace />
+  }
+
+  return <Outlet />
+}
+
+export function ScheduleActionRoute(): ReactElement {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const role = useAuthStore((state) => state.role)
+
+  if (!isAuthenticated) {
+    return <Navigate to={APP_ROUTES.login} replace />
+  }
+
+  const allowed = [
+    OrganizationUserRole.MANAGER,
+    OrganizationUserRole.RECEPTION,
+    OrganizationUserRole.PATIENT,
+  ]
+
+  if (!role || !allowed.includes(role)) {
+    return <Navigate to={APP_ROUTES.forbidden} replace />
+  }
+
+  return <Outlet />
+}
+
 export function StaffRoute(): ReactElement {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const role = useAuthStore((state) => state.role)

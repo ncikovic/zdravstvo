@@ -70,7 +70,7 @@ export const APP_NAVIGATION_ITEMS: readonly AppNavigationItem[] = [
   {
     id: 'users',
     label: 'Korisnici',
-    path: APP_ROUTES.settings,
+    path: APP_ROUTES.users,
     icon: 'users',
     allowedRoles: [OrganizationUserRole.MANAGER],
     section: 'administration',

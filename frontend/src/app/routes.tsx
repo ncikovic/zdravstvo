@@ -25,6 +25,7 @@ export const APP_ROUTES = {
   book: '/book',
   profile: '/profile',
   doctorOwnSchedule: '/doctor/schedule',
+  users: '/users',
   adminOrganizations: '/admin/organizations',
   adminUsers: '/admin/users',
   adminAudit: '/admin/audit',
