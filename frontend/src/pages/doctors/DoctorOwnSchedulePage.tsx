@@ -1,9 +1,11 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { ReactElement } from 'react'
 import type { AppointmentResponseDto } from '@zdravstvo/contracts'
 
 import { appointmentsService } from '@/services/appointments.service'
 import { useAuthStore } from '@/stores/auth/auth.store'
+
+import './doctorOwnSchedule.css'
 
 type ViewMode = 'day' | 'week'
 
@@ -43,15 +45,27 @@ function getDayRange(date: Date): { start: Date; end: Date } {
 }
 
 function formatTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit' })
+  return new Date(iso).toLocaleTimeString('hr-HR', {
+    hour: '2-digit',
+    minute: '2-digit',
+  })
 }
 
 function formatDate(date: Date): string {
-  return date.toLocaleDateString('hr-HR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+  return date.toLocaleDateString('hr-HR', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
 }
 
 function formatDateShort(date: Date): string {
-  return date.toLocaleDateString('hr-HR', { weekday: 'short', day: 'numeric', month: 'numeric' })
+  return date.toLocaleDateString('hr-HR', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'numeric',
+  })
 }
 
 function addDays(date: Date, days: number): Date {
@@ -62,7 +76,6 @@ function addDays(date: Date, days: number): Date {
 
 function DoctorOwnSchedulePage(): ReactElement {
   const user = useAuthStore((s) => s.user)
-  const orgUserId = useAuthStore((s) => s.orgUserId)
 
   const [viewMode, setViewMode] = useState<ViewMode>('week')
   const [currentDate, setCurrentDate] = useState<Date>(new Date())
@@ -72,7 +85,7 @@ function DoctorOwnSchedulePage(): ReactElement {
   const [updatingId, setUpdatingId] = useState<string | null>(null)
 
   const fetchAppointments = useCallback(async (): Promise<void> => {
-    if (!orgUserId) return
+    if (!user) return
 
     const range = viewMode === 'week' ? getWeekRange(currentDate) : getDayRange(currentDate)
 
@@ -80,7 +93,6 @@ function DoctorOwnSchedulePage(): ReactElement {
       setIsLoading(true)
       setError(null)
       const result = await appointmentsService.list({
-        doctorId: orgUserId,
         startAt: range.start.toISOString(),
         endAt: range.end.toISOString(),
         limit: 200,
@@ -91,18 +103,23 @@ function DoctorOwnSchedulePage(): ReactElement {
     } finally {
       setIsLoading(false)
     }
-  }, [orgUserId, viewMode, currentDate])
+  }, [user, viewMode, currentDate])
 
   useEffect(() => {
-    fetchAppointments()
+    void fetchAppointments()
   }, [fetchAppointments])
 
-  const handleUpdateStatus = async (appointmentId: string, status: 'COMPLETED' | 'NO_SHOW'): Promise<void> => {
+  const handleUpdateStatus = async (
+    appointmentId: string,
+    status: 'COMPLETED' | 'NO_SHOW',
+  ): Promise<void> => {
     try {
       setUpdatingId(appointmentId)
       await appointmentsService.updateStatus(appointmentId, { status })
       setAppointments((prev) =>
-        prev.map((a) => (a.id === appointmentId ? { ...a, status } : a))
+        prev.map((appointment) =>
+          appointment.id === appointmentId ? { ...appointment, status } : appointment,
+        ),
       )
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Greška pri ažuriranju statusa.')
@@ -113,108 +130,90 @@ function DoctorOwnSchedulePage(): ReactElement {
 
   const navigate = (direction: 'prev' | 'next'): void => {
     const delta = direction === 'next' ? 1 : -1
-    setCurrentDate((d) => addDays(d, viewMode === 'week' ? delta * 7 : delta))
+    setCurrentDate((date) => addDays(date, viewMode === 'week' ? delta * 7 : delta))
   }
 
   const weekRange = getWeekRange(currentDate)
-  const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekRange.start, i))
+  const weekDays = Array.from({ length: 7 }, (_, index) => addDays(weekRange.start, index))
 
   const appointmentsForDay = (day: Date): AppointmentResponseDto[] => {
-    const start = new Date(day); start.setHours(0, 0, 0, 0)
-    const end = new Date(day); end.setHours(23, 59, 59, 999)
-    return appointments.filter((a) => {
-      const t = new Date(a.startAt).getTime()
-      return t >= start.getTime() && t <= end.getTime()
-    }).sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime())
+    const start = new Date(day)
+    start.setHours(0, 0, 0, 0)
+    const end = new Date(day)
+    end.setHours(23, 59, 59, 999)
+
+    return appointments
+      .filter((appointment) => {
+        const appointmentTime = new Date(appointment.startAt).getTime()
+        return appointmentTime >= start.getTime() && appointmentTime <= end.getTime()
+      })
+      .sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime())
   }
 
-  const rangeLabel = viewMode === 'week'
-    ? `${weekRange.start.toLocaleDateString('hr-HR', { day: 'numeric', month: 'short' })} – ${weekRange.end.toLocaleDateString('hr-HR', { day: 'numeric', month: 'short', year: 'numeric' })}`
-    : formatDate(currentDate)
+  const rangeLabel =
+    viewMode === 'week'
+      ? `${weekRange.start.toLocaleDateString('hr-HR', {
+          day: 'numeric',
+          month: 'short',
+        })} - ${weekRange.end.toLocaleDateString('hr-HR', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+        })}`
+      : formatDate(currentDate)
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '1100px' }}>
-      <div style={{ marginBottom: '1.5rem' }}>
-        <h1 style={{ margin: 0 }}>Moj raspored</h1>
-        {user && (
-          <p style={{ margin: '0.25rem 0 0', color: '#666' }}>
+    <div className="doctor-own-schedule">
+      <div className="doctor-own-schedule__header">
+        <h1>Moj raspored</h1>
+        {user ? (
+          <p>
             Dr. {user.firstName} {user.lastName}
           </p>
-        )}
+        ) : null}
       </div>
 
       {error ? (
-        <div role="alert" style={{ padding: '0.75rem 1rem', background: '#fef2f2', color: '#b91c1c', borderRadius: '6px', marginBottom: '1rem' }}>
+        <div className="doctor-own-schedule__error" role="alert">
           {error}
         </div>
       ) : null}
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', gap: '0.25rem' }}>
+      <div className="doctor-own-schedule__controls">
+        <div className="doctor-own-schedule__segment" aria-label="Prikaz rasporeda">
           <button
+            className={viewMode === 'day' ? 'is-active' : undefined}
             type="button"
             onClick={() => setViewMode('day')}
-            style={{
-              padding: '0.375rem 0.875rem',
-              border: '1px solid #e2e8f0',
-              borderRadius: '4px 0 0 4px',
-              background: viewMode === 'day' ? '#2563eb' : '#fff',
-              color: viewMode === 'day' ? '#fff' : '#374151',
-              cursor: 'pointer',
-              fontSize: '0.875rem',
-            }}
           >
             Dan
           </button>
           <button
+            className={viewMode === 'week' ? 'is-active' : undefined}
             type="button"
             onClick={() => setViewMode('week')}
-            style={{
-              padding: '0.375rem 0.875rem',
-              border: '1px solid #e2e8f0',
-              borderLeft: 'none',
-              borderRadius: '0 4px 4px 0',
-              background: viewMode === 'week' ? '#2563eb' : '#fff',
-              color: viewMode === 'week' ? '#fff' : '#374151',
-              cursor: 'pointer',
-              fontSize: '0.875rem',
-            }}
           >
             Tjedan
           </button>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <button
-            type="button"
-            onClick={() => navigate('prev')}
-            aria-label="Prethodna"
-            style={{ padding: '0.375rem 0.75rem', border: '1px solid #e2e8f0', borderRadius: '4px', background: '#fff', cursor: 'pointer' }}
-          >
-            ←
+        <div className="doctor-own-schedule__nav">
+          <button type="button" aria-label="Prethodna" onClick={() => navigate('prev')}>
+            &larr;
           </button>
-          <button
-            type="button"
-            onClick={() => setCurrentDate(new Date())}
-            style={{ padding: '0.375rem 0.75rem', border: '1px solid #e2e8f0', borderRadius: '4px', background: '#fff', cursor: 'pointer', fontSize: '0.875rem' }}
-          >
+          <button type="button" onClick={() => setCurrentDate(new Date())}>
             Danas
           </button>
-          <button
-            type="button"
-            onClick={() => navigate('next')}
-            aria-label="Sljedeća"
-            style={{ padding: '0.375rem 0.75rem', border: '1px solid #e2e8f0', borderRadius: '4px', background: '#fff', cursor: 'pointer' }}
-          >
-            →
+          <button type="button" aria-label="Sljedeća" onClick={() => navigate('next')}>
+            &rarr;
           </button>
         </div>
 
-        <span style={{ color: '#374151', fontWeight: 500 }}>{rangeLabel}</span>
+        <span className="doctor-own-schedule__range">{rangeLabel}</span>
       </div>
 
       {isLoading ? (
-        <p style={{ color: '#666' }}>Učitavanje...</p>
+        <p className="doctor-own-schedule__loading">Učitavanje...</p>
       ) : viewMode === 'week' ? (
         <WeekView
           days={weekDays}
@@ -240,94 +239,70 @@ interface AppointmentCardProps {
   onUpdateStatus: (id: string, status: 'COMPLETED' | 'NO_SHOW') => void
 }
 
-function AppointmentCard({ appointment: a, updatingId, onUpdateStatus }: AppointmentCardProps): ReactElement {
-  const isUpdating = updatingId === a.id
-  const isScheduled = a.status === 'SCHEDULED'
-  const statusColor = STATUS_COLORS[a.status] ?? '#374151'
+function AppointmentCard({
+  appointment,
+  updatingId,
+  onUpdateStatus,
+}: AppointmentCardProps): ReactElement {
+  const isUpdating = updatingId === appointment.id
+  const isScheduled = appointment.status === 'SCHEDULED'
+  const statusColor = STATUS_COLORS[appointment.status] ?? '#374151'
 
   return (
-    <div
-      style={{
-        border: '1px solid #e2e8f0',
-        borderLeft: `4px solid ${statusColor}`,
-        borderRadius: '6px',
-        padding: '0.75rem',
-        background: '#fff',
-        marginBottom: '0.5rem',
-      }}
-    >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>
-            {formatTime(a.startAt)} – {formatTime(a.endAt)}
+    <article className="doctor-appointment-card" style={{ borderLeftColor: statusColor }}>
+      <div className="doctor-appointment-card__body">
+        <div className="doctor-appointment-card__content">
+          <div className="doctor-appointment-card__time">
+            {formatTime(appointment.startAt)} - {formatTime(appointment.endAt)}
           </div>
-          <div style={{ fontWeight: 500, marginTop: '0.25rem' }}>
-            {a.patient.firstName} {a.patient.lastName}
+          <div className="doctor-appointment-card__patient">
+            {appointment.patient.firstName} {appointment.patient.lastName}
           </div>
-          {a.patient.dateOfBirth ? (
-            <div style={{ fontSize: '0.8rem', color: '#666' }}>
-              Datum rođenja: {new Date(a.patient.dateOfBirth).toLocaleDateString('hr-HR')}
+          {appointment.patient.dateOfBirth ? (
+            <div className="doctor-appointment-card__meta">
+              Datum rođenja:{' '}
+              {new Date(appointment.patient.dateOfBirth).toLocaleDateString('hr-HR')}
             </div>
           ) : null}
-          <div style={{ fontSize: '0.8rem', color: '#666', marginTop: '0.15rem' }}>
-            {a.appointmentType.name} ({a.appointmentType.defaultDurationMinutes} min)
+          <div className="doctor-appointment-card__meta">
+            {appointment.appointmentType.name} (
+            {appointment.appointmentType.defaultDurationMinutes} min)
           </div>
-          <div style={{ marginTop: '0.35rem' }}>
+          <div className="doctor-appointment-card__status">
             <span
+              className="doctor-appointment-card__badge"
               style={{
-                fontSize: '0.75rem',
-                padding: '0.125rem 0.5rem',
-                borderRadius: '12px',
                 background: `${statusColor}18`,
                 color: statusColor,
-                fontWeight: 500,
               }}
             >
-              {STATUS_LABELS[a.status] ?? a.status}
+              {STATUS_LABELS[appointment.status] ?? appointment.status}
             </span>
           </div>
         </div>
 
         {isScheduled ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem', flexShrink: 0 }}>
+          <div className="doctor-appointment-card__actions">
             <button
+              className="doctor-appointment-card__action doctor-appointment-card__action--complete"
               type="button"
               disabled={isUpdating}
-              onClick={() => onUpdateStatus(a.id, 'COMPLETED')}
-              style={{
-                padding: '0.25rem 0.625rem',
-                background: '#16a34a',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '0.8rem',
-                opacity: isUpdating ? 0.6 : 1,
-              }}
+              onClick={() => onUpdateStatus(appointment.id, 'COMPLETED')}
             >
               Završi
             </button>
             <button
+              className="doctor-appointment-card__action doctor-appointment-card__action--no-show"
               type="button"
               disabled={isUpdating}
-              onClick={() => onUpdateStatus(a.id, 'NO_SHOW')}
-              style={{
-                padding: '0.25rem 0.625rem',
-                background: '#fff',
-                color: '#b91c1c',
-                border: '1px solid #fca5a5',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '0.8rem',
-                opacity: isUpdating ? 0.6 : 1,
-              }}
+              onClick={() => onUpdateStatus(appointment.id, 'NO_SHOW')}
             >
               Nije se pojavio
             </button>
           </div>
         ) : null}
       </div>
-    </div>
+    </article>
   )
 }
 
@@ -338,49 +313,47 @@ interface WeekViewProps {
   onUpdateStatus: (id: string, status: 'COMPLETED' | 'NO_SHOW') => void
 }
 
-function WeekView({ days, appointmentsForDay, updatingId, onUpdateStatus }: WeekViewProps): ReactElement {
+function WeekView({
+  days,
+  appointmentsForDay,
+  updatingId,
+  onUpdateStatus,
+}: WeekViewProps): ReactElement {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.75rem' }}>
-      {days.map((day) => {
-        const appts = appointmentsForDay(day)
-        const isToday = day.getTime() === today.getTime()
+    <div className="doctor-week-shell">
+      <div className="doctor-week-grid">
+        {days.map((day) => {
+          const dayAppointments = appointmentsForDay(day)
+          const isToday = day.getTime() === today.getTime()
 
-        return (
-          <div key={day.toISOString()}>
-            <div
-              style={{
-                textAlign: 'center',
-                padding: '0.5rem 0.25rem',
-                marginBottom: '0.5rem',
-                borderRadius: '6px',
-                background: isToday ? '#2563eb' : 'transparent',
-                color: isToday ? '#fff' : '#374151',
-                fontWeight: isToday ? 600 : 400,
-                fontSize: '0.8rem',
-              }}
-            >
-              {formatDateShort(day)}
-            </div>
-            {appts.length === 0 ? (
-              <div style={{ fontSize: '0.75rem', color: '#9ca3af', textAlign: 'center', padding: '0.5rem 0' }}>
-                —
+          return (
+            <section className="doctor-week-day" key={day.toISOString()}>
+              <div
+                className={
+                  isToday ? 'doctor-week-day__label is-today' : 'doctor-week-day__label'
+                }
+              >
+                {formatDateShort(day)}
               </div>
-            ) : (
-              appts.map((a) => (
-                <AppointmentCard
-                  key={a.id}
-                  appointment={a}
-                  updatingId={updatingId}
-                  onUpdateStatus={onUpdateStatus}
-                />
-              ))
-            )}
-          </div>
-        )
-      })}
+              {dayAppointments.length === 0 ? (
+                <div className="doctor-week-day__empty">-</div>
+              ) : (
+                dayAppointments.map((appointment) => (
+                  <AppointmentCard
+                    key={appointment.id}
+                    appointment={appointment}
+                    updatingId={updatingId}
+                    onUpdateStatus={onUpdateStatus}
+                  />
+                ))
+              )}
+            </section>
+          )
+        })}
+      </div>
     </div>
   )
 }
@@ -392,21 +365,24 @@ interface DayViewProps {
   onUpdateStatus: (id: string, status: 'COMPLETED' | 'NO_SHOW') => void
 }
 
-function DayView({ day, appointments, updatingId, onUpdateStatus }: DayViewProps): ReactElement {
+function DayView({
+  day,
+  appointments,
+  updatingId,
+  onUpdateStatus,
+}: DayViewProps): ReactElement {
   return (
-    <div style={{ maxWidth: '640px' }}>
-      <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1rem', color: '#374151' }}>
-        {formatDate(day)}
-      </h2>
+    <div className="doctor-day-view">
+      <h2>{formatDate(day)}</h2>
       {appointments.length === 0 ? (
-        <div style={{ padding: '2rem', textAlign: 'center', color: '#9ca3af', background: '#f8fafc', border: '1px dashed #cbd5e1', borderRadius: '8px' }}>
+        <div className="doctor-day-view__empty">
           Nema zakazanih termina za ovaj dan.
         </div>
       ) : (
-        appointments.map((a) => (
+        appointments.map((appointment) => (
           <AppointmentCard
-            key={a.id}
-            appointment={a}
+            key={appointment.id}
+            appointment={appointment}
             updatingId={updatingId}
             onUpdateStatus={onUpdateStatus}
           />
