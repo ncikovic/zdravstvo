@@ -366,7 +366,6 @@ function AuditPage(): ReactElement {
             <span>Entitet</span>
             <span>IP adresa</span>
             <span>Status</span>
-            <span aria-hidden="true" />
           </div>
 
           {isLoading ? (
@@ -403,15 +402,6 @@ function AuditPage(): ReactElement {
                 <span>{formatEntityDisplay(log.entityType, log.entityId)}</span>
                 <span>—</span>
                 <em className="audit-status">Uspješno</em>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedLog(log);
-                  }}
-                >
-                  Detalji
-                </button>
               </div>
             ))
           )}
