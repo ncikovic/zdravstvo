@@ -145,14 +145,13 @@ export const APP_NAVIGATION_ITEMS: readonly AppNavigationItem[] = [
     section: 'system',
   },
 
-  // Shared settings for MANAGER + SYSTEM_ADMIN
+  // MANAGER settings
   {
     id: 'settings',
     label: 'Postavke',
     path: APP_ROUTES.settings,
     icon: 'settings',
     allowedRoles: [OrganizationUserRole.MANAGER],
-    isSystemAdminItem: true,
     section: 'system',
   },
 ]

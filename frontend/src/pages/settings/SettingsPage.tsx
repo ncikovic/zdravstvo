@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ChangeEvent, ReactElement } from 'react'
+import { useSearchParams } from 'react-router-dom'
 
 import { AppIcon } from '@/components'
 import { useAuthStore } from '@/stores'
@@ -54,11 +55,20 @@ function OrgSettingsView(): ReactElement {
   const [tzOpen, setTzOpen] = useState(false)
   const tzRef = useRef<HTMLDivElement>(null)
 
-  const organizationId = useAuthStore((state) => state.organizationId)
+  const authOrganizationId = useAuthStore((state) => state.organizationId)
+  const isSystemAdmin = useAuthStore((state) => state.isSystemAdmin)
+  const [searchParams] = useSearchParams()
+  const organizationId = isSystemAdmin ? searchParams.get('organizationId') : authOrganizationId
 
   useEffect(() => {
-    if (!organizationId) return
+    if (!organizationId) {
+      setIsLoading(false)
+      setError('Organizacija nije odabrana.')
+      return
+    }
+
     setIsLoading(true)
+    setError(null)
     organizationsService
       .getById(organizationId)
       .then((org) => {

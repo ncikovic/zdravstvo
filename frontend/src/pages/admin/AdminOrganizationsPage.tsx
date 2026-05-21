@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import type { ReactElement } from 'react'
+import { Link } from 'react-router-dom'
 
+import { APP_ROUTES } from '@/app/routes'
 import { AppIcon } from '@/components'
 import { organizationsService } from '@/services'
 import type { Organization } from '@/types'
@@ -61,6 +63,9 @@ function AdminOrganizationsPage(): ReactElement {
       toast.error(err)
     }
   }
+
+  const getOrganizationSettingsPath = (organizationId: string): string =>
+    `${APP_ROUTES.settings}?organizationId=${encodeURIComponent(organizationId)}`
 
   return (
     <div style={{ padding: '2rem', maxWidth: '900px' }}>
@@ -152,13 +157,22 @@ function AdminOrganizationsPage(): ReactElement {
                   {org.createdAt.toLocaleDateString('hr-HR')}
                 </td>
                 <td style={{ padding: '0.75rem' }}>
-                  <button
-                    type="button"
-                    onClick={() => handleDeactivate(org.id, org.name)}
-                    style={{ padding: '0.25rem 0.75rem', background: '#fff', border: '1px solid #fca5a5', color: '#b91c1c', borderRadius: '4px', cursor: 'pointer', fontSize: '0.875rem' }}
-                  >
-                    Deaktiviraj
-                  </button>
+                  <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', whiteSpace: 'nowrap' }}>
+                    <Link
+                      to={getOrganizationSettingsPath(org.id)}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.25rem 0.75rem', background: '#fff', border: '1px solid #93c5fd', color: '#1d4ed8', borderRadius: '4px', cursor: 'pointer', fontSize: '0.875rem', textDecoration: 'none' }}
+                    >
+                      <AppIcon name="settings" />
+                      Postavke
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => handleDeactivate(org.id, org.name)}
+                      style={{ padding: '0.25rem 0.75rem', background: '#fff', border: '1px solid #fca5a5', color: '#b91c1c', borderRadius: '4px', cursor: 'pointer', fontSize: '0.875rem' }}
+                    >
+                      Deaktiviraj
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
