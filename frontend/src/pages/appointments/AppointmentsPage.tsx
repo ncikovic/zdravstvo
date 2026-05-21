@@ -18,7 +18,8 @@ import {
 import "./appointments.css";
 
 type AppointmentTone = "blue" | "teal" | "orange" | "red" | "gray";
-type FilterKey = "date" | "doctorId" | "appointmentTypeId" | "q";
+type CalendarView = "day" | "week" | "month";
+type FilterKey = "date" | "doctorId" | "appointmentTypeId" | "q" | "view";
 
 interface DoctorColumn {
   id: string;
@@ -48,11 +49,26 @@ interface CalendarAppointment {
   selected?: boolean;
 }
 
+interface VisibleDateRange {
+  start: Date;
+  end: Date;
+  startAt: string;
+  endAt: string;
+}
+
 const DISPLAYED_DOCTOR_LIMIT = 4;
 const CALENDAR_START_HOUR = 8;
 const CALENDAR_END_HOUR = 18;
 const HOUR_ROW_HEIGHT = 57;
 const APPOINTMENT_LIMIT = 200;
+
+const VIEW_OPTIONS: readonly { id: CalendarView; label: string }[] = [
+  { id: "day", label: "Dan" },
+  { id: "week", label: "Tjedan" },
+  { id: "month", label: "Mjesec" },
+];
+
+const WEEKDAY_SHORT_LABELS = ["Pon", "Uto", "Sri", "Čet", "Pet", "Sub", "Ned"];
 
 const hours = Array.from(
   { length: CALENDAR_END_HOUR - CALENDAR_START_HOUR },
@@ -87,6 +103,15 @@ const formatShortDate = (date: Date): string =>
     year: "numeric",
   }).format(date);
 
+const formatMonthLabel = (date: Date): string =>
+  new Intl.DateTimeFormat("hr-HR", {
+    month: "long",
+    year: "numeric",
+  }).format(date);
+
+const formatWeekdayLabel = (date: Date): string =>
+  new Intl.DateTimeFormat("hr-HR", { weekday: "long" }).format(date);
+
 const startOfLocalDay = (date: Date): Date =>
   new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
@@ -113,10 +138,180 @@ const addDays = (date: Date, days: number): Date => {
   return nextDate;
 };
 
-const getDayRange = (date: Date): { startAt: string; endAt: string } => ({
-  startAt: startOfLocalDay(date).toISOString(),
-  endAt: addDays(startOfLocalDay(date), 1).toISOString(),
-});
+const addMonths = (date: Date, months: number): Date => {
+  const targetMonthStart = new Date(
+    date.getFullYear(),
+    date.getMonth() + months,
+    1,
+  );
+  const lastTargetMonthDay = new Date(
+    targetMonthStart.getFullYear(),
+    targetMonthStart.getMonth() + 1,
+    0,
+  ).getDate();
+
+  targetMonthStart.setDate(Math.min(date.getDate(), lastTargetMonthDay));
+
+  return targetMonthStart;
+};
+
+const startOfWeek = (date: Date): Date => {
+  const dayStart = startOfLocalDay(date);
+  const dayOfWeek = dayStart.getDay();
+  const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+
+  return addDays(dayStart, mondayOffset);
+};
+
+const startOfMonth = (date: Date): Date =>
+  new Date(date.getFullYear(), date.getMonth(), 1);
+
+const getVisibleDateRange = (date: Date, view: CalendarView): VisibleDateRange => {
+  const start =
+    view === "week"
+      ? startOfWeek(date)
+      : view === "month"
+        ? startOfMonth(date)
+        : startOfLocalDay(date);
+  const end =
+    view === "week"
+      ? addDays(start, 7)
+      : view === "month"
+        ? addMonths(start, 1)
+        : addDays(start, 1);
+
+  return {
+    start,
+    end,
+    startAt: start.toISOString(),
+    endAt: end.toISOString(),
+  };
+};
+
+const parseViewQuery = (value: string | null): CalendarView => {
+  if (value === "week" || value === "month") {
+    return value;
+  }
+
+  return "day";
+};
+
+const getRangeLabel = (date: Date, view: CalendarView): string => {
+  if (view === "week") {
+    const range = getVisibleDateRange(date, view);
+    const lastDay = addDays(range.end, -1);
+
+    return `${formatShortDate(range.start)} - ${formatShortDate(lastDay)}`;
+  }
+
+  if (view === "month") {
+    return formatMonthLabel(date);
+  }
+
+  return formatLongDate(date);
+};
+
+const getViewDescription = (view: CalendarView): string => {
+  if (view === "week") {
+    return "Tjedni prikaz";
+  }
+
+  if (view === "month") {
+    return "Mjesečni prikaz";
+  }
+
+  return "Dnevni prikaz";
+};
+
+const getPreviousDateLabel = (view: CalendarView): string => {
+  if (view === "week") {
+    return "Prethodni tjedan";
+  }
+
+  if (view === "month") {
+    return "Prethodni mjesec";
+  }
+
+  return "Prethodni dan";
+};
+
+const getNextDateLabel = (view: CalendarView): string => {
+  if (view === "week") {
+    return "Sljedeci tjedan";
+  }
+
+  if (view === "month") {
+    return "Sljedeci mjesec";
+  }
+
+  return "Sljedeci dan";
+};
+
+const buildWeekDays = (date: Date): Date[] =>
+  Array.from({ length: 7 }, (_, index) => addDays(startOfWeek(date), index));
+
+const buildMonthDays = (date: Date): Date[] => {
+  const monthStart = startOfMonth(date);
+  const monthEnd = addMonths(monthStart, 1);
+  const gridStart = startOfWeek(monthStart);
+  const lastMonthDay = addDays(monthEnd, -1);
+  const gridEnd = addDays(startOfWeek(lastMonthDay), 7);
+  const days: Date[] = [];
+
+  for (let current = gridStart; current < gridEnd; current = addDays(current, 1)) {
+    days.push(current);
+  }
+
+  return days;
+};
+
+const isSameLocalDay = (first: Date, second: Date): boolean =>
+  formatDateKey(first) === formatDateKey(second);
+
+const isSameLocalMonth = (first: Date, second: Date): boolean =>
+  first.getFullYear() === second.getFullYear() &&
+  first.getMonth() === second.getMonth();
+
+const groupAppointmentsByDate = (
+  appointments: AppointmentResponseDto[],
+): Map<string, AppointmentResponseDto[]> => {
+  const appointmentsByDate = new Map<string, AppointmentResponseDto[]>();
+
+  appointments.forEach((appointment) => {
+    const dateKey = formatDateKey(new Date(appointment.startAt));
+    const list = appointmentsByDate.get(dateKey) ?? [];
+    list.push(appointment);
+    appointmentsByDate.set(dateKey, list);
+  });
+
+  appointmentsByDate.forEach((list) => {
+    list.sort(
+      (first, second) =>
+        new Date(first.startAt).getTime() - new Date(second.startAt).getTime(),
+    );
+  });
+
+  return appointmentsByDate;
+};
+
+const getEmptyStateMessage = (
+  view: CalendarView,
+  hasActiveFilters: boolean,
+): string => {
+  if (hasActiveFilters) {
+    return "Nema termina za odabrane filtere.";
+  }
+
+  if (view === "week") {
+    return "Nema termina za odabrani tjedan.";
+  }
+
+  if (view === "month") {
+    return "Nema termina za odabrani mjesec.";
+  }
+
+  return "Nema termina za odabrani dan.";
+};
 
 const getInitials = (firstName: string, lastName: string): string =>
   `${firstName[0] ?? ""}${lastName[0] ?? ""}`.toUpperCase();
@@ -390,6 +585,7 @@ function AppointmentsPage(): ReactElement {
       parseDateQuery(searchParams.get("date")) ?? startOfLocalDay(new Date()),
     [searchParams],
   );
+  const selectedView = parseViewQuery(searchParams.get("view"));
   const selectedDoctorId = searchParams.get("doctorId") ?? "";
   const selectedAppointmentTypeId = searchParams.get("appointmentTypeId") ?? "";
   const searchTerm = searchParams.get("q") ?? "";
@@ -397,10 +593,14 @@ function AppointmentsPage(): ReactElement {
     selectedDoctorId || selectedAppointmentTypeId || searchTerm.trim(),
   );
 
-  const dayRange = useMemo(() => getDayRange(selectedDate), [selectedDate]);
+  const visibleRange = useMemo(
+    () => getVisibleDateRange(selectedDate, selectedView),
+    [selectedDate, selectedView],
+  );
   const appointmentsQuery = useMemo<AppointmentListQueryDto>(() => {
     const query: AppointmentListQueryDto = {
-      ...dayRange,
+      startAt: visibleRange.startAt,
+      endAt: visibleRange.endAt,
       limit: APPOINTMENT_LIMIT,
     };
     const normalizedSearchTerm = searchTerm.trim();
@@ -418,7 +618,7 @@ function AppointmentsPage(): ReactElement {
     }
 
     return query;
-  }, [dayRange, searchTerm, selectedAppointmentTypeId, selectedDoctorId]);
+  }, [visibleRange, searchTerm, selectedAppointmentTypeId, selectedDoctorId]);
 
   const {
     data: appointmentsResponse,
@@ -450,7 +650,19 @@ function AppointmentsPage(): ReactElement {
       ),
     [appointmentsData],
   );
-  const selectedDayAppointments = appointments;
+  const appointmentsByDate = useMemo(
+    () => groupAppointmentsByDate(appointments),
+    [appointments],
+  );
+  const selectedDayAppointments = useMemo(
+    () =>
+      appointments.filter((appointment) =>
+        isSameLocalDay(new Date(appointment.startAt), selectedDate),
+      ),
+    [appointments, selectedDate],
+  );
+  const weekDays = useMemo(() => buildWeekDays(selectedDate), [selectedDate]);
+  const monthDays = useMemo(() => buildMonthDays(selectedDate), [selectedDate]);
   const doctors = useMemo(
     () =>
       buildDoctorColumns(
@@ -471,10 +683,8 @@ function AppointmentsPage(): ReactElement {
     [doctors, selectedAppointmentId, selectedDayAppointments],
   );
   const selectedAppointment =
-    selectedDayAppointments.find(
-      (appointment) => appointment.id === selectedAppointmentId,
-    ) ??
-    selectedDayAppointments[0] ??
+    appointments.find((appointment) => appointment.id === selectedAppointmentId) ??
+    appointments[0] ??
     null;
   const freeSlots = useMemo(
     () => buildFreeSlotSummaries(selectedDayAppointments, doctors),
@@ -487,19 +697,23 @@ function AppointmentsPage(): ReactElement {
         .slice(0, 3),
     [appointments],
   );
+  const currentRangeLabel = getRangeLabel(selectedDate, selectedView);
+  const currentViewDescription = getViewDescription(selectedView);
+  const emptyStateMessage = getEmptyStateMessage(
+    selectedView,
+    hasActiveFilters,
+  );
   const error = getErrorMessage(
     appointmentsError ?? doctorsError ?? appointmentTypesError,
   );
 
   useEffect(() => {
     setSelectedAppointmentId((currentAppointmentId) =>
-      selectedDayAppointments.some(
-        (appointment) => appointment.id === currentAppointmentId,
-      )
+      appointments.some((appointment) => appointment.id === currentAppointmentId)
         ? currentAppointmentId
-        : (selectedDayAppointments[0]?.id ?? null),
+        : (appointments[0]?.id ?? null),
     );
-  }, [selectedDayAppointments]);
+  }, [appointments]);
 
   const updateFilters = (updates: Partial<Record<FilterKey, string>>): void => {
     const nextParams = new URLSearchParams(searchParams);
@@ -521,9 +735,17 @@ function AppointmentsPage(): ReactElement {
     setSelectedAppointmentId(null);
   };
 
-  const changeDate = (days: number): void => {
-    const nextDate = startOfLocalDay(addDays(selectedDate, days));
-    updateFilters({ date: formatDateKey(nextDate) });
+  const changeDate = (direction: -1 | 1): void => {
+    const nextDate =
+      selectedView === "month"
+        ? addMonths(selectedDate, direction)
+        : addDays(selectedDate, selectedView === "week" ? direction * 7 : direction);
+
+    updateFilters({ date: formatDateKey(startOfLocalDay(nextDate)) });
+  };
+
+  const changeView = (view: CalendarView): void => {
+    updateFilters({ view: view === "day" ? "" : view });
   };
 
   const useToday = (): void => {
@@ -629,13 +851,13 @@ function AppointmentsPage(): ReactElement {
       <div className="appointments-content-grid">
         <section
           className="appointments-calendar-panel"
-          aria-label="Dnevni raspored"
+          aria-label={currentViewDescription}
         >
           <div className="appointments-calendar-toolbar">
             <div className="appointments-date-controls">
               <button
                 type="button"
-                aria-label="Prethodni dan"
+                aria-label={getPreviousDateLabel(selectedView)}
                 onClick={() => changeDate(-1)}
               >
                 <AppIcon name="chevronLeft" />
@@ -645,115 +867,265 @@ function AppointmentsPage(): ReactElement {
               </button>
               <button
                 type="button"
-                aria-label="Sljedeci dan"
+                aria-label={getNextDateLabel(selectedView)}
                 onClick={() => changeDate(1)}
               >
                 <AppIcon name="chevronRight" />
               </button>
             </div>
 
-            <div className="appointments-current-day">
-              {formatLongDate(selectedDate)}
+            <div className="appointments-current-day" aria-live="polite">
+              <span>
+                <strong>{currentRangeLabel}</strong>
+                <small>{currentViewDescription}</small>
+              </span>
               <AppIcon name="calendar" />
             </div>
 
             <div className="appointments-view-switcher" aria-label="Prikaz">
-              <button
-                className="appointments-view-switcher__active"
-                type="button"
-                aria-pressed="true"
-              >
-                Dan
-              </button>
-              <button
-                type="button"
-                onClick={() => changeDate(7)}
-              >
-                Tjedan
-              </button>
-              <button
-                type="button"
-                onClick={() => changeDate(30)}
-              >
-                Mjesec
-              </button>
-            </div>
-          </div>
-
-          <div className="appointments-calendar-scroll" aria-label="Dnevni raspored termina">
-          <div
-            className="appointments-calendar"
-            style={{
-              gridTemplateColumns: `76px repeat(${Math.max(doctors.length, 1)}, minmax(220px, 1fr))`,
-            }}
-          >
-            <div className="appointments-calendar__header-spacer" />
-            {doctors.map((doctor) => (
-              <div className="appointments-doctor-heading" key={doctor.id}>
-                <span
-                  className={`appointments-avatar appointments-avatar--${doctor.tone}`}
+              {VIEW_OPTIONS.map((viewOption) => (
+                <button
+                  className={
+                    selectedView === viewOption.id
+                      ? "appointments-view-switcher__active"
+                      : undefined
+                  }
+                  type="button"
+                  aria-pressed={selectedView === viewOption.id}
+                  key={viewOption.id}
+                  onClick={() => changeView(viewOption.id)}
                 >
-                  {doctor.initials}
-                </span>
-                <div>
-                  <strong>{doctor.name}</strong>
-                  <small>{doctor.specialty}</small>
-                </div>
-              </div>
-            ))}
-
-            <div className="appointments-calendar__times">
-              {hours.map((hour) => (
-                <span key={hour}>{hour}</span>
+                  {viewOption.label}
+                </button>
               ))}
             </div>
+          </div>
 
-            {doctors.map((doctor) => (
-              <div className="appointments-doctor-column" key={doctor.id}>
-                <div className="appointments-hour-lines">
+          {selectedView === "day" ? (
+            <div
+              className="appointments-calendar-scroll"
+              aria-label="Dnevni raspored termina"
+            >
+              <div
+                className="appointments-calendar"
+                style={{
+                  gridTemplateColumns: `76px repeat(${Math.max(
+                    doctors.length,
+                    1,
+                  )}, minmax(220px, 1fr))`,
+                }}
+              >
+                <div className="appointments-calendar__header-spacer" />
+                {doctors.map((doctor) => (
+                  <div className="appointments-doctor-heading" key={doctor.id}>
+                    <span
+                      className={`appointments-avatar appointments-avatar--${doctor.tone}`}
+                    >
+                      {doctor.initials}
+                    </span>
+                    <div>
+                      <strong>{doctor.name}</strong>
+                      <small>{doctor.specialty}</small>
+                    </div>
+                  </div>
+                ))}
+
+                <div className="appointments-calendar__times">
                   {hours.map((hour) => (
-                    <span key={hour} />
+                    <span key={hour}>{hour}</span>
                   ))}
                 </div>
-                {calendarAppointments
-                  .filter((appointment) => appointment.doctorId === doctor.id)
-                  .map((appointment) => (
-                    <Link
-                      className={[
-                        "appointment-card",
-                        `appointment-card--${appointment.tone}`,
-                        appointment.selected
-                          ? "appointment-card--selected"
-                          : "",
-                      ]
-                        .filter(Boolean)
-                        .join(" ")}
-                      key={appointment.id}
-                      style={{
-                        top: `${appointment.top}px`,
-                        height: `${appointment.height}px`,
-                        left: appointment.left,
-                        right: appointment.right,
-                      }}
-                      to={`/appointments/${appointment.id}`}
-                      onMouseEnter={() =>
-                        setSelectedAppointmentId(appointment.id)
-                      }
-                    >
-                      <span>
-                        {appointment.start} - {appointment.end}
-                      </span>
-                      <strong>{appointment.patient}</strong>
-                      <small>{appointment.type}</small>
-                      {appointment.selected ? (
-                        <AppIcon name="chevronRight" />
-                      ) : null}
-                    </Link>
-                  ))}
+
+                {doctors.map((doctor) => (
+                  <div className="appointments-doctor-column" key={doctor.id}>
+                    <div className="appointments-hour-lines">
+                      {hours.map((hour) => (
+                        <span key={hour} />
+                      ))}
+                    </div>
+                    {calendarAppointments
+                      .filter(
+                        (appointment) => appointment.doctorId === doctor.id,
+                      )
+                      .map((appointment) => (
+                        <Link
+                          className={[
+                            "appointment-card",
+                            `appointment-card--${appointment.tone}`,
+                            appointment.selected
+                              ? "appointment-card--selected"
+                              : "",
+                          ]
+                            .filter(Boolean)
+                            .join(" ")}
+                          key={appointment.id}
+                          style={{
+                            top: `${appointment.top}px`,
+                            height: `${appointment.height}px`,
+                            left: appointment.left,
+                            right: appointment.right,
+                          }}
+                          to={`/appointments/${appointment.id}`}
+                          onMouseEnter={() =>
+                            setSelectedAppointmentId(appointment.id)
+                          }
+                        >
+                          <span>
+                            {appointment.start} - {appointment.end}
+                          </span>
+                          <strong>{appointment.patient}</strong>
+                          <small>{appointment.type}</small>
+                          {appointment.selected ? (
+                            <AppIcon name="chevronRight" />
+                          ) : null}
+                        </Link>
+                      ))}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-          </div>
+            </div>
+          ) : null}
+
+          {selectedView === "week" ? (
+            <div
+              className="appointments-agenda appointments-agenda--week"
+              aria-label="Tjedni raspored termina"
+            >
+              {weekDays.map((day) => {
+                const dayAppointments =
+                  appointmentsByDate.get(formatDateKey(day)) ?? [];
+
+                return (
+                  <section
+                    className={[
+                      "appointments-agenda-day",
+                      isSameLocalDay(day, selectedDate)
+                        ? "appointments-agenda-day--selected"
+                        : "",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                    key={formatDateKey(day)}
+                  >
+                    <header>
+                      <strong>{formatWeekdayLabel(day)}</strong>
+                      <span>{formatShortDate(day)}</span>
+                      <em>{dayAppointments.length} termina</em>
+                    </header>
+
+                    <div className="appointments-agenda-list">
+                      {dayAppointments.length > 0 ? (
+                        dayAppointments.map((appointment, index) => {
+                          const tone = getAppointmentTone(appointment, index);
+                          const isSelected =
+                            appointment.id === selectedAppointmentId;
+
+                          return (
+                            <Link
+                              className={[
+                                "appointments-agenda-card",
+                                `appointments-agenda-card--${tone}`,
+                                isSelected
+                                  ? "appointments-agenda-card--selected"
+                                  : "",
+                              ]
+                                .filter(Boolean)
+                                .join(" ")}
+                              key={appointment.id}
+                              to={`/appointments/${appointment.id}`}
+                              onMouseEnter={() =>
+                                setSelectedAppointmentId(appointment.id)
+                              }
+                            >
+                              <time>
+                                {formatTime(new Date(appointment.startAt))} -{" "}
+                                {formatTime(new Date(appointment.endAt))}
+                              </time>
+                              <strong>{getPatientName(appointment)}</strong>
+                              <small>
+                                {getDoctorName(appointment)} ·{" "}
+                                {appointment.appointmentType.name}
+                              </small>
+                            </Link>
+                          );
+                        })
+                      ) : (
+                        <p className="appointments-agenda-empty">Nema termina</p>
+                      )}
+                    </div>
+                  </section>
+                );
+              })}
+            </div>
+          ) : null}
+
+          {selectedView === "month" ? (
+            <div
+              className="appointments-month-grid"
+              aria-label="Mjesečni raspored termina"
+            >
+              {WEEKDAY_SHORT_LABELS.map((weekday) => (
+                <span className="appointments-month-weekday" key={weekday}>
+                  {weekday}
+                </span>
+              ))}
+
+              {monthDays.map((day) => {
+                const dayAppointments =
+                  appointmentsByDate.get(formatDateKey(day)) ?? [];
+
+                return (
+                  <section
+                    className={[
+                      "appointments-month-day",
+                      isSameLocalMonth(day, selectedDate) ? "" : "is-muted",
+                      isSameLocalDay(day, selectedDate) ? "is-selected" : "",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                    key={formatDateKey(day)}
+                  >
+                    <header>
+                      <strong>{day.getDate()}</strong>
+                      <em>{dayAppointments.length}</em>
+                    </header>
+
+                    <div className="appointments-month-list">
+                      {dayAppointments.slice(0, 3).map((appointment, index) => {
+                        const tone = getAppointmentTone(appointment, index);
+
+                        return (
+                          <Link
+                            className={[
+                              "appointments-month-card",
+                              `appointments-month-card--${tone}`,
+                              appointment.id === selectedAppointmentId
+                                ? "appointments-month-card--selected"
+                                : "",
+                            ]
+                              .filter(Boolean)
+                              .join(" ")}
+                            key={appointment.id}
+                            to={`/appointments/${appointment.id}`}
+                            onMouseEnter={() =>
+                              setSelectedAppointmentId(appointment.id)
+                            }
+                          >
+                            <time>{formatTime(new Date(appointment.startAt))}</time>
+                            <span>{getPatientName(appointment)}</span>
+                          </Link>
+                        );
+                      })}
+
+                      {dayAppointments.length > 3 ? (
+                        <small>+{dayAppointments.length - 3} još</small>
+                      ) : null}
+                    </div>
+                  </section>
+                );
+              })}
+            </div>
+          ) : null}
 
           {areAppointmentsLoading ? (
             <div className="appointments-legend">
@@ -761,13 +1133,9 @@ function AppointmentsPage(): ReactElement {
             </div>
           ) : null}
 
-          {!areAppointmentsLoading && selectedDayAppointments.length === 0 ? (
+          {!areAppointmentsLoading && appointments.length === 0 ? (
             <div className="appointments-legend">
-              <span>
-                {hasActiveFilters
-                  ? "Nema termina za odabrane filtere."
-                  : "Nema termina za odabrani dan."}
-              </span>
+              <span>{emptyStateMessage}</span>
             </div>
           ) : null}
 
