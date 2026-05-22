@@ -29,6 +29,7 @@ export const APP_ROUTES = {
   users: '/users',
   adminOrganizations: '/admin/organizations',
   adminUsers: '/admin/users',
+  adminUserManage: '/admin/users/:orgUserId/manage',
   adminAudit: '/admin/audit',
   accessibility: '/accessibility',
   login: '/login',

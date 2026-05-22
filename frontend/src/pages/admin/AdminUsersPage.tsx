@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import type { ChangeEvent, ReactElement } from 'react'
+import { Link } from 'react-router-dom'
 
 import { OrganizationUserRole } from '@zdravstvo/contracts'
+import { APP_ROUTES } from '@/app/routes'
 import { adminUsersService } from '@/services'
 import type { AdminUserResponseDto } from '@/services'
-import { getApiErrorMessage, toast } from '@/utils'
+import { getApiErrorMessage } from '@/utils'
 
 const ROLE_LABELS: Record<OrganizationUserRole, string> = {
   [OrganizationUserRole.MANAGER]: 'Upravitelj',
@@ -26,7 +28,6 @@ function AdminUsersPage(): ReactElement {
   const [totalItems, setTotalItems] = useState(0)
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState<OrganizationUserRole | ''>('')
-  const [deactivatingId, setDeactivatingId] = useState<string | null>(null)
 
   const fetchUsers = async (currentPage: number, currentSearch: string, currentRole: OrganizationUserRole | ''): Promise<void> => {
     try {
@@ -61,21 +62,9 @@ function AdminUsersPage(): ReactElement {
     setPage(1)
   }
 
-  const handleDeactivate = async (user: AdminUserResponseDto): Promise<void> => {
-    const name = user.displayName ?? user.email ?? user.phone ?? user.orgUserId
-    if (!confirm(`Deaktiviraj korisnika "${name}" iz organizacije "${user.organizationName}"?`)) return
+  const getManageUserPath = (orgUserId: string): string =>
+    APP_ROUTES.adminUserManage.replace(':orgUserId', encodeURIComponent(orgUserId))
 
-    try {
-      setDeactivatingId(user.orgUserId)
-      await adminUsersService.deactivate(user.orgUserId)
-      await fetchUsers(page, search, roleFilter)
-      toast.success(`Korisnik "${name}" je uspješno deaktiviran.`)
-    } catch (err) {
-      toast.error(err)
-    } finally {
-      setDeactivatingId(null)
-    }
-  }
 
   return (
     <div style={{ padding: '2rem', maxWidth: '1100px' }}>
@@ -148,16 +137,12 @@ function AdminUsersPage(): ReactElement {
                         : badge('Neaktivan', '#dc2626')}
                     </td>
                     <td style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>
-                      {user.isActive && (
-                        <button
-                          type="button"
-                          disabled={deactivatingId === user.orgUserId}
-                          onClick={() => { void handleDeactivate(user) }}
-                          style={{ padding: '0.35rem 0.75rem', background: '#fee2e2', color: '#b91c1c', border: 'none', borderRadius: '5px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 500 }}
-                        >
-                          {deactivatingId === user.orgUserId ? 'Deaktiviranje...' : 'Deaktiviraj'}
-                        </button>
-                      )}
+                      <Link
+                        to={getManageUserPath(user.orgUserId)}
+                        style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '0.35rem 0.75rem', background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe', borderRadius: '5px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 500, textDecoration: 'none' }}
+                      >
+                        Upravljaj
+                      </Link>
                     </td>
                   </tr>
                 ))}

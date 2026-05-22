@@ -13,6 +13,8 @@ export interface AdminUserResponseDto {
   organizationId: string;
   organizationName: string;
   displayName: string | null;
+  firstName: string | null;
+  lastName: string | null;
 }
 
 export interface AdminUserListPaginationDto {
@@ -33,6 +35,12 @@ const emptyStringToUndefined = (value: unknown): unknown => {
   return trimmed.length > 0 ? trimmed : undefined;
 };
 
+const emptyStringToNull = (value: unknown): unknown => {
+  if (typeof value !== 'string') return value;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+};
+
 export const adminUserListQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   organizationId: z.preprocess(emptyStringToUndefined, z.string().uuid().optional()),
@@ -50,3 +58,16 @@ export const adminOrgUserIdParamsSchema = z.strictObject({
 });
 
 export type AdminOrgUserIdParamsDto = z.infer<typeof adminOrgUserIdParamsSchema>;
+
+export const updateAdminUserRequestSchema = z.strictObject({
+  email: z.preprocess(
+    emptyStringToNull,
+    z.string().trim().email().max(255).nullable().optional(),
+  ),
+  phone: z.preprocess(emptyStringToNull, z.string().trim().max(60).nullable().optional()),
+  role: z.nativeEnum(OrganizationUserRole).optional(),
+  firstName: z.preprocess(emptyStringToUndefined, z.string().trim().min(1).max(120).optional()),
+  lastName: z.preprocess(emptyStringToUndefined, z.string().trim().min(1).max(120).optional()),
+});
+
+export type UpdateAdminUserRequestDto = z.infer<typeof updateAdminUserRequestSchema>;

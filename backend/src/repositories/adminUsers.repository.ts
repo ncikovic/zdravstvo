@@ -27,6 +27,14 @@ export interface FindAdminUsersInput {
   search?: string;
 }
 
+export interface UpdateAdminUserRecordInput {
+  email?: string | null;
+  phone?: string | null;
+  role?: OrganizationUserRole;
+  firstName?: string;
+  lastName?: string;
+}
+
 interface AdminUserRow {
   org_user_id: Buffer;
   user_id: Buffer;
@@ -97,31 +105,9 @@ export class AdminUsersRepository {
   public constructor(private readonly executor: DatabaseExecutor) {}
 
   public async findMany(input: FindAdminUsersInput): Promise<AdminUserRecord[]> {
-    const rows = await applyFilters(
-      this.executor('organization_users as ou')
-        .join('users as u', 'u.id', 'ou.user_id')
-        .join('organizations as o', 'o.id', 'ou.organization_id')
-        .leftJoin('patient_profiles as pp', 'pp.user_id', 'ou.user_id')
-        .leftJoin('doctor_profiles as dp', 'dp.user_id', 'ou.user_id')
-        .select(
-          'ou.id as org_user_id',
-          'ou.user_id',
-          'u.email',
-          'u.phone',
-          'u.status as user_status',
-          'ou.role',
-          'ou.is_active',
-          'ou.organization_id',
-          'o.name as organization_name',
-          'pp.first_name as patient_first_name',
-          'pp.last_name as patient_last_name',
-          'dp.first_name as doctor_first_name',
-          'dp.last_name as doctor_last_name',
-        )
-        .orderBy('o.name', 'asc')
-        .orderBy('ou.created_at', 'asc'),
-      input,
-    )
+    const rows = await applyFilters(this.createAdminUsersQuery(), input)
+      .orderBy('o.name', 'asc')
+      .orderBy('ou.created_at', 'asc')
       .limit(input.limit)
       .offset(input.offset);
 
@@ -142,10 +128,112 @@ export class AdminUsersRepository {
     return Number(result?.total ?? 0);
   }
 
+  public async findByOrgUserId(orgUserId: string): Promise<AdminUserRecord | null> {
+    const row = await this.createAdminUsersQuery()
+      .where('ou.id', uuidToBuffer(orgUserId))
+      .first<AdminUserRow>();
+
+    return row ? mapAdminUserRecord(row) : null;
+  }
+
+  public async emailExistsForAnotherUser(email: string, userId: string): Promise<boolean> {
+    const row = await this.executor('users')
+      .where('email', email)
+      .whereNot('id', uuidToBuffer(userId))
+      .first('id');
+
+    return Boolean(row);
+  }
+
+  public async phoneExistsForAnotherUser(phone: string, userId: string): Promise<boolean> {
+    const row = await this.executor('users')
+      .where('phone', phone)
+      .whereNot('id', uuidToBuffer(userId))
+      .first('id');
+
+    return Boolean(row);
+  }
+
+  public async update(orgUserId: string, input: UpdateAdminUserRecordInput): Promise<void> {
+    const existing = await this.findByOrgUserId(orgUserId);
+
+    if (!existing) {
+      return;
+    }
+
+    const userUpdates: Record<string, string | null> = {};
+    if (input.email !== undefined) userUpdates.email = input.email;
+    if (input.phone !== undefined) userUpdates.phone = input.phone;
+
+    if (Object.keys(userUpdates).length > 0) {
+      await this.executor('users')
+        .where('id', uuidToBuffer(existing.userId))
+        .update(userUpdates);
+    }
+
+    if (input.role !== undefined) {
+      await this.executor('organization_users')
+        .where('id', uuidToBuffer(orgUserId))
+        .update({ role: input.role });
+    }
+
+    const profileUpdates: Record<string, string> = {};
+    if (input.firstName !== undefined) profileUpdates.first_name = input.firstName;
+    if (input.lastName !== undefined) profileUpdates.last_name = input.lastName;
+
+    if (Object.keys(profileUpdates).length === 0) {
+      return;
+    }
+
+    if (existing.doctorFirstName !== null || existing.doctorLastName !== null) {
+      await this.executor('doctor_profiles')
+        .where('user_id', uuidToBuffer(existing.userId))
+        .update(profileUpdates);
+      return;
+    }
+
+    if (existing.patientFirstName !== null || existing.patientLastName !== null) {
+      await this.executor('patient_profiles')
+        .where('user_id', uuidToBuffer(existing.userId))
+        .update(profileUpdates);
+    }
+  }
+
+  public async activate(orgUserId: string): Promise<boolean> {
+    return this.setActive(orgUserId, true);
+  }
+
   public async deactivate(orgUserId: string): Promise<boolean> {
+    return this.setActive(orgUserId, false);
+  }
+
+  private createAdminUsersQuery(): ReturnType<DatabaseExecutor['from']> {
+    return this.executor('organization_users as ou')
+      .join('users as u', 'u.id', 'ou.user_id')
+      .join('organizations as o', 'o.id', 'ou.organization_id')
+      .leftJoin('patient_profiles as pp', 'pp.user_id', 'ou.user_id')
+      .leftJoin('doctor_profiles as dp', 'dp.user_id', 'ou.user_id')
+      .select(
+        'ou.id as org_user_id',
+        'ou.user_id',
+        'u.email',
+        'u.phone',
+        'u.status as user_status',
+        'ou.role',
+        'ou.is_active',
+        'ou.organization_id',
+        'o.name as organization_name',
+        'pp.first_name as patient_first_name',
+        'pp.last_name as patient_last_name',
+        'dp.first_name as doctor_first_name',
+        'dp.last_name as doctor_last_name',
+      );
+  }
+
+  private async setActive(orgUserId: string, isActive: boolean): Promise<boolean> {
     const updated = await this.executor('organization_users')
       .where('id', uuidToBuffer(orgUserId))
-      .update({ is_active: 0 });
+      .update({ is_active: isActive ? 1 : 0 });
 
     return updated > 0;
   }

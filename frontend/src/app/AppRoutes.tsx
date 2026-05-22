@@ -36,6 +36,7 @@ import {
 import {
   AdminOrganizationsPage,
   AdminUsersPage,
+  ManageAdminUserPage,
   AdminAuditPage,
 } from '@/pages/admin';
 import { DoctorOwnSchedulePage } from '@/pages/doctors/DoctorOwnSchedulePage';
@@ -79,6 +80,7 @@ export function AppRoutes(): ReactElement {
           <Route element={<AppLayout />}>
             <Route path={APP_ROUTES.adminOrganizations} element={<AdminOrganizationsPage />} />
             <Route path={APP_ROUTES.adminUsers} element={<AdminUsersPage />} />
+            <Route path={APP_ROUTES.adminUserManage} element={<ManageAdminUserPage />} />
             <Route path={APP_ROUTES.adminAudit} element={<AdminAuditPage />} />
           </Route>
         </Route>

@@ -1,4 +1,8 @@
-import { adminOrgUserIdParamsSchema, adminUserListQuerySchema } from '@zdravstvo/contracts';
+import {
+  adminOrgUserIdParamsSchema,
+  adminUserListQuerySchema,
+  updateAdminUserRequestSchema,
+} from '@zdravstvo/contracts';
 
 export const listAdminUsersValidationSchemas = {
   query: adminUserListQuerySchema,
@@ -6,4 +10,9 @@ export const listAdminUsersValidationSchemas = {
 
 export const adminOrgUserIdValidationSchemas = {
   params: adminOrgUserIdParamsSchema,
+};
+
+export const updateAdminUserValidationSchemas = {
+  params: adminOrgUserIdParamsSchema,
+  body: updateAdminUserRequestSchema,
 };
