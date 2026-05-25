@@ -95,7 +95,7 @@ class InMemoryOrganizationsRepository {
     return organization;
   }
 
-  public async delete(organizationId: string): Promise<boolean> {
+  public async deactivate(organizationId: string): Promise<boolean> {
     const initialCount = this.records.length;
 
     this.records = this.records.filter((organization) => organization.id !== organizationId);
@@ -186,10 +186,10 @@ test('updates an organization', async () => {
   assert.equal(organization.updatedAt, '2026-04-21T20:00:00.000Z');
 });
 
-test('deletes an organization', async () => {
+test('deactivates an organization', async () => {
   const { repository, service } = createService([createOrganizationRecord()]);
 
-  await service.delete(ORGANIZATION_ID);
+  await service.deactivate(ORGANIZATION_ID);
 
   assert.equal(repository.records.length, 0);
 });
@@ -199,5 +199,5 @@ test('throws not found for missing organizations', async () => {
 
   await assertNotFound(() => service.getById(MISSING_ORGANIZATION_ID));
   await assertNotFound(() => service.update(MISSING_ORGANIZATION_ID, { name: 'Missing' }));
-  await assertNotFound(() => service.delete(MISSING_ORGANIZATION_ID));
+  await assertNotFound(() => service.deactivate(MISSING_ORGANIZATION_ID));
 });
