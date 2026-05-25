@@ -20,6 +20,9 @@ type DoctorTone =
   | "green"
   | "amber";
 
+type DoctorStatusFilter = "all" | "active" | "inactive";
+type DoctorAvailabilityFilter = "all" | "available" | "unavailable";
+
 const tones: DoctorTone[] = [
   "teal",
   "purple",
@@ -37,11 +40,19 @@ const getInitials = (firstName: string, lastName: string): string => {
   return (firstName[0] + lastName[0]).toUpperCase();
 };
 
+const getDoctorFullName = (doctor: DoctorResponseDto): string =>
+  `${doctor.firstName} ${doctor.lastName}`;
+
 function DoctorsPage(): ReactElement {
   const navigate = useNavigate();
   const [doctors, setDoctors] = useState<DoctorResponseDto[]>([]);
   const [selectedDoctorId, setSelectedDoctorId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<DoctorStatusFilter>("all");
+  const [specialtyFilter, setSpecialtyFilter] = useState("");
+  const [availabilityFilter, setAvailabilityFilter] =
+    useState<DoctorAvailabilityFilter>("all");
+  const [locationFilter, setLocationFilter] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
@@ -49,48 +60,94 @@ function DoctorsPage(): ReactElement {
   const [totalItems, setTotalItems] = useState(0);
 
   useEffect(() => {
-    const fetchDoctors = async () => {
+    const fetchDoctors = async (): Promise<void> => {
       try {
         setIsLoading(true);
         const data = await doctorsService.list(page);
         setDoctors(data.doctors);
         setTotalPages(data.totalPages);
         setTotalItems(data.totalItems);
-        setSelectedDoctorId((current) => current ?? data.doctors[0]?.id ?? null);
+        setSelectedDoctorId((current) =>
+          data.doctors.some((doctor) => doctor.id === current) ? current : null,
+        );
         setError(null);
       } catch (err) {
         setError(getApiErrorMessage(err));
         setDoctors([]);
+        setSelectedDoctorId(null);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchDoctors();
+    void fetchDoctors();
   }, [page]);
+
+  const specialtyOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          doctors
+            .map((doctor) => doctor.title?.trim())
+            .filter((title): title is string => Boolean(title)),
+        ),
+      ).sort((first, second) => first.localeCompare(second, "hr")),
+    [doctors],
+  );
 
   const filteredDoctors = useMemo(() => {
     const value = search.trim().toLowerCase();
-    if (!value) return doctors;
-    return doctors.filter((doctor) =>
-      [
-        `${doctor.firstName} ${doctor.lastName}`,
-        doctor.title,
-        doctor.email,
-        doctor.phone,
-        doctor.licenseNumber,
-      ]
-        .filter(Boolean)
-        .some((field) => field?.toLowerCase().includes(value)),
-    );
-  }, [doctors, search]);
 
-  const selectedDoctor =
-    filteredDoctors.find((doctor) => doctor.id === selectedDoctorId) ??
-    filteredDoctors[0] ??
-    doctors.find((doctor) => doctor.id === selectedDoctorId) ??
-    doctors[0] ??
-    null;
+    return doctors.filter((doctor) => {
+      const matchesSearch =
+        !value ||
+        [
+          getDoctorFullName(doctor),
+          doctor.title,
+          doctor.email,
+          doctor.phone,
+          doctor.licenseNumber,
+        ]
+          .filter(Boolean)
+          .some((field) => field?.toLowerCase().includes(value));
+      const matchesStatus =
+        statusFilter === "all" ||
+        (statusFilter === "active" ? doctor.isActive : !doctor.isActive);
+      const matchesSpecialty =
+        !specialtyFilter || doctor.title?.trim() === specialtyFilter;
+      const matchesAvailability =
+        availabilityFilter === "all" ||
+        (availabilityFilter === "available" ? doctor.isActive : !doctor.isActive);
+      const matchesLocation = locationFilter === "all" || locationFilter === "current";
+
+      return (
+        matchesSearch &&
+        matchesStatus &&
+        matchesSpecialty &&
+        matchesAvailability &&
+        matchesLocation
+      );
+    });
+  }, [availabilityFilter, doctors, locationFilter, search, specialtyFilter, statusFilter]);
+
+  const selectedDoctor = selectedDoctorId
+    ? filteredDoctors.find((doctor) => doctor.id === selectedDoctorId) ?? null
+    : null;
+  const hasActiveFilters =
+    search.trim().length > 0 ||
+    statusFilter !== "all" ||
+    specialtyFilter.length > 0 ||
+    availabilityFilter !== "all" ||
+    locationFilter !== "all";
+
+  const clearFilters = (): void => {
+    setSearch("");
+    setStatusFilter("all");
+    setSpecialtyFilter("");
+    setAvailabilityFilter("all");
+    setLocationFilter("all");
+    setPage(1);
+  };
 
   return (
     <div className="doctors-page">
@@ -101,7 +158,13 @@ function DoctorsPage(): ReactElement {
         </div>
       </div>
 
-      <div className="doctors-content-grid">
+      <div
+        className={
+          selectedDoctor
+            ? "doctors-content-grid"
+            : "doctors-content-grid doctors-content-grid--full"
+        }
+      >
         <div className="doctors-main-stack">
           <section
             className="doctors-filter-panel"
@@ -115,7 +178,10 @@ function DoctorsPage(): ReactElement {
                   type="search"
                   placeholder="Pretražite liječnike po imenu, specijalizaciji ili e-mailu..."
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  onChange={(event) => {
+                    setSearch(event.target.value);
+                    setPage(1);
+                  }}
                 />
               </label>
               <button
@@ -131,33 +197,70 @@ function DoctorsPage(): ReactElement {
             <div className="doctors-filter-row">
               <label>
                 <span>Status</span>
-                <div>
-                  Svi statusi
-                  <AppIcon name="chevronDown" />
-                </div>
+                <select
+                  value={statusFilter}
+                  onChange={(event) => {
+                    setStatusFilter(event.target.value as DoctorStatusFilter);
+                    setPage(1);
+                  }}
+                >
+                  <option value="all">Svi statusi</option>
+                  <option value="active">Aktivni</option>
+                  <option value="inactive">Neaktivni</option>
+                </select>
               </label>
               <label>
                 <span>Specijalizacija</span>
-                <div>
-                  Sve specijalizacije
-                  <AppIcon name="chevronDown" />
-                </div>
+                <select
+                  value={specialtyFilter}
+                  onChange={(event) => {
+                    setSpecialtyFilter(event.target.value);
+                    setPage(1);
+                  }}
+                >
+                  <option value="">Sve specijalizacije</option>
+                  {specialtyOptions.map((specialty) => (
+                    <option key={specialty} value={specialty}>
+                      {specialty}
+                    </option>
+                  ))}
+                </select>
               </label>
               <label>
                 <span>Dostupnost</span>
-                <div>
-                  Svi liječnici
-                  <AppIcon name="chevronDown" />
-                </div>
+                <select
+                  value={availabilityFilter}
+                  onChange={(event) => {
+                    setAvailabilityFilter(
+                      event.target.value as DoctorAvailabilityFilter,
+                    );
+                    setPage(1);
+                  }}
+                >
+                  <option value="all">Svi liječnici</option>
+                  <option value="available">Dostupni</option>
+                  <option value="unavailable">Nedostupni</option>
+                </select>
               </label>
               <label>
                 <span>Lokacija</span>
-                <div>
-                  Sve lokacije
-                  <AppIcon name="chevronDown" />
-                </div>
+                <select
+                  value={locationFilter}
+                  onChange={(event) => {
+                    setLocationFilter(event.target.value);
+                    setPage(1);
+                  }}
+                >
+                  <option value="all">Sve lokacije</option>
+                  <option value="current">Trenutna ustanova</option>
+                </select>
               </label>
-              <button className="doctors-clear-button" type="button" onClick={() => setSearch("")}>
+              <button
+                className="doctors-clear-button"
+                type="button"
+                onClick={clearFilters}
+                disabled={!hasActiveFilters}
+              >
                 <AppIcon name="tag" />
                 Obriši filtre
               </button>
@@ -186,11 +289,10 @@ function DoctorsPage(): ReactElement {
                   <span>Telefon</span>
                   <span>E-mail</span>
                   <span>Status</span>
-                  <span aria-hidden="true" />
                 </div>
 
                 {filteredDoctors.map((doctor, index) => {
-                  const fullName = `${doctor.firstName} ${doctor.lastName}`;
+                  const fullName = getDoctorFullName(doctor);
                   const initials = getInitials(
                     doctor.firstName,
                     doctor.lastName,
@@ -207,7 +309,6 @@ function DoctorsPage(): ReactElement {
                       role="row"
                       key={doctor.id}
                       onClick={() => setSelectedDoctorId(doctor.id)}
-                      style={{ cursor: "pointer" }}
                     >
                       <span
                         className={`doctors-avatar doctors-avatar--${tone}`}
@@ -230,16 +331,15 @@ function DoctorsPage(): ReactElement {
                       >
                         {doctor.isActive ? "Aktivan" : "Neaktivan"}
                       </em>
-                      <button
-                        type="button"
-                        aria-label={`Opcije za ${fullName}`}
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <AppIcon name="dots" />
-                      </button>
                     </div>
                   );
                 })}
+
+                {filteredDoctors.length === 0 ? (
+                  <div style={{ padding: "2rem", textAlign: "center" }}>
+                    Nema liječnika za zadane filtre.
+                  </div>
+                ) : null}
               </>
             )}
 
@@ -290,94 +390,88 @@ function DoctorsPage(): ReactElement {
           </section>
         </div>
 
-        <aside className="doctors-detail-panel" aria-label="Detalji liječnika">
-          <button
-            className="doctors-detail-close"
-            type="button"
-            aria-label="Zatvori detalje"
-            onClick={() => setSelectedDoctorId(null)}
-          >
-            ×
-          </button>
-          {selectedDoctor && !isLoading && !error && (
-            <>
-              {(() => {
-                const initials = getInitials(
-                  selectedDoctor.firstName,
-                  selectedDoctor.lastName,
-                );
-                return (
-                  <>
-                    <div className="doctors-detail-header">
-                      <span className="doctors-detail-avatar">{initials}</span>
-                      <div>
-                        <h2>
-                          Dr. {selectedDoctor.firstName}{" "}
-                          {selectedDoctor.lastName}
-                        </h2>
-                        {selectedDoctor.title && (
-                          <span>{selectedDoctor.title}</span>
-                        )}
-                        {selectedDoctor.licenseNumber && (
-                          <small>
-                            Licencija: {selectedDoctor.licenseNumber}
-                          </small>
-                        )}
-                      </div>
-                      <em>
-                        {selectedDoctor.isActive ? "Aktivan" : "Neaktivan"}
-                      </em>
+        {selectedDoctor ? (
+          <aside className="doctors-detail-panel" aria-label="Detalji liječnika">
+            <button
+              className="doctors-detail-close"
+              type="button"
+              aria-label="Zatvori detalje"
+              onClick={() => setSelectedDoctorId(null)}
+            >
+              ×
+            </button>
+            {(() => {
+              const initials = getInitials(
+                selectedDoctor.firstName,
+                selectedDoctor.lastName,
+              );
+              return (
+                <>
+                  <div className="doctors-detail-header">
+                    <span className="doctors-detail-avatar">{initials}</span>
+                    <div>
+                      <h2>
+                        Dr. {selectedDoctor.firstName} {" "}
+                        {selectedDoctor.lastName}
+                      </h2>
+                      {selectedDoctor.title && <span>{selectedDoctor.title}</span>}
+                      {selectedDoctor.licenseNumber && (
+                        <small>Licencija: {selectedDoctor.licenseNumber}</small>
+                      )}
                     </div>
+                    <em>
+                      {selectedDoctor.isActive ? "Aktivan" : "Neaktivan"}
+                    </em>
+                  </div>
 
-                    <section className="doctors-info-card">
-                      <h3>Kontakt podaci</h3>
-                      <div className="doctors-info-list">
-                        {selectedDoctor.phone && (
-                          <>
-                            <span>
-                              <AppIcon name="clock" />
-                              Telefon
-                            </span>
-                            <strong>{selectedDoctor.phone}</strong>
-                          </>
-                        )}
-                        {selectedDoctor.email && (
-                          <>
-                            <span>
-                              <AppIcon name="mail" />
-                              E-mail
-                            </span>
-                            <strong>{selectedDoctor.email}</strong>
-                          </>
-                        )}
-                      </div>
-                    </section>
+                  <section className="doctors-info-card">
+                    <h3>Kontakt podaci</h3>
+                    <div className="doctors-info-list">
+                      {selectedDoctor.phone && (
+                        <>
+                          <span>
+                            <AppIcon name="clock" />
+                            Telefon
+                          </span>
+                          <strong>{selectedDoctor.phone}</strong>
+                        </>
+                      )}
+                      {selectedDoctor.email && (
+                        <>
+                          <span>
+                            <AppIcon name="mail" />
+                            E-mail
+                          </span>
+                          <strong>{selectedDoctor.email}</strong>
+                        </>
+                      )}
+                    </div>
+                  </section>
 
-                    <section className="doctors-info-card doctors-actions-card">
-                      <h3>Brze akcije</h3>
-                      <div className="doctors-actions-grid">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            navigate(
-                              APP_ROUTES.doctorDetails.replace(
-                                ":doctorId",
-                                selectedDoctor.id,
-                              ),
-                            )
-                          }
-                        >
-                          <AppIcon name="note" />
-                          Pogledaj detalje
-                        </button>
-                      </div>
-                    </section>
-                  </>
-                );
-              })()}
-            </>
-          )}
-        </aside>
+                  <section className="doctors-info-card doctors-actions-card">
+                    <h3>Brze akcije</h3>
+                    <div className="doctors-actions-grid">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          navigate(
+                            APP_ROUTES.doctorDetails.replace(
+                              ":doctorId",
+                              selectedDoctor.id,
+                            ),
+                          )
+                        }
+                      >
+                        <AppIcon name="note" />
+                        Pogledaj detalje
+                      </button>
+                    </div>
+                  </section>
+                </>
+              );
+            })()}
+          </aside>
+        ) : null}
       </div>
     </div>
   );

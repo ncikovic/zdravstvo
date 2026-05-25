@@ -126,9 +126,6 @@ function DoctorSchedulePage(): ReactElement {
             {doctor.title && <p>{doctor.title}</p>}
           </div>
         </div>
-        <button className="doctor-schedule-menu-btn" type="button">
-          <AppIcon name="dots" />
-        </button>
       </div>
 
       <div className="doctor-schedule-content-grid">

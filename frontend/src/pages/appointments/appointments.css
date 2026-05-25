@@ -1232,3 +1232,96 @@
     grid-template-columns: 1fr;
   }
 }
+
+.appointments-selected-heading,
+.appointments-panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.appointments-selected-close {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  min-height: 30px;
+  place-items: center;
+  border: 0;
+  border-radius: 999px;
+  background: #eef6ff;
+  color: #49658f;
+}
+
+.appointments-selected-close .app-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.appointments-block-time-form {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.appointments-block-time-form label {
+  display: grid;
+  gap: 6px;
+  color: #53668a;
+  font-size: 0.82rem;
+  font-weight: 850;
+}
+
+.appointments-block-time-form input,
+.appointments-block-time-form select {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid #d9e6f2;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #17254b;
+  font-weight: 750;
+}
+
+.appointments-block-time-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.appointments-block-time-error {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: #fff1f2;
+  color: #b42318;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.appointments-block-time-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.appointments-block-time-actions button {
+  min-height: 40px;
+  border: 1px solid #d9e6f2;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #44577d;
+  font-weight: 900;
+}
+
+.appointments-block-time-actions button:last-child {
+  border: 0;
+  background: linear-gradient(135deg, #0d88e4, #086de2);
+  color: #ffffff;
+}
+
+.appointments-block-time-actions button:disabled {
+  opacity: 0.65;
+}

@@ -8,12 +8,15 @@ import { useEffect, useMemo, useState } from "react";
 import type { ReactElement } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 
+import { APP_ROUTES } from "@/app/routes";
 import { AppIcon } from "@/components";
 import {
   useAppointmentsQuery,
   useAppointmentTypesQuery,
   useDoctorsQuery,
 } from "@/hooks";
+import { doctorsService } from "@/services";
+import { getApiErrorMessage, toast } from "@/utils";
 
 import "./appointments.css";
 
@@ -579,6 +582,14 @@ function AppointmentsPage(): ReactElement {
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<
     string | null
   >(null);
+  const [isBlockTimeFormOpen, setIsBlockTimeFormOpen] = useState(false);
+  const [blockTimeDoctorId, setBlockTimeDoctorId] = useState("");
+  const [blockTimeDate, setBlockTimeDate] = useState("");
+  const [blockTimeStart, setBlockTimeStart] = useState("08:00");
+  const [blockTimeEnd, setBlockTimeEnd] = useState("08:30");
+  const [blockTimeReason, setBlockTimeReason] = useState("Blokirano vrijeme");
+  const [blockTimeError, setBlockTimeError] = useState<string | null>(null);
+  const [isBlockingTime, setIsBlockingTime] = useState(false);
 
   const selectedDate = useMemo(
     () =>
@@ -682,10 +693,9 @@ function AppointmentsPage(): ReactElement {
       ),
     [doctors, selectedAppointmentId, selectedDayAppointments],
   );
-  const selectedAppointment =
-    appointments.find((appointment) => appointment.id === selectedAppointmentId) ??
-    appointments[0] ??
-    null;
+  const selectedAppointment = selectedAppointmentId
+    ? appointments.find((appointment) => appointment.id === selectedAppointmentId) ?? null
+    : null;
   const freeSlots = useMemo(
     () => buildFreeSlotSummaries(selectedDayAppointments, doctors),
     [doctors, selectedDayAppointments],
@@ -711,7 +721,7 @@ function AppointmentsPage(): ReactElement {
     setSelectedAppointmentId((currentAppointmentId) =>
       appointments.some((appointment) => appointment.id === currentAppointmentId)
         ? currentAppointmentId
-        : (appointments[0]?.id ?? null),
+        : null,
     );
   }, [appointments]);
 
@@ -754,6 +764,58 @@ function AppointmentsPage(): ReactElement {
 
   const clearFilters = (): void => {
     updateFilters({ doctorId: "", appointmentTypeId: "", q: "" });
+  };
+
+  const openBlockTimeForm = (): void => {
+    setBlockTimeDoctorId(selectedDoctorId || doctorOptions[0]?.id || "");
+    setBlockTimeDate(formatDateKey(selectedDate));
+    setBlockTimeStart("08:00");
+    setBlockTimeEnd("08:30");
+    setBlockTimeReason("Blokirano vrijeme");
+    setBlockTimeError(null);
+    setIsBlockTimeFormOpen(true);
+  };
+
+  const closeBlockTimeForm = (): void => {
+    setIsBlockTimeFormOpen(false);
+    setBlockTimeError(null);
+  };
+
+  const handleBlockTime = async (): Promise<void> => {
+    if (!blockTimeDoctorId || !blockTimeDate || !blockTimeStart || !blockTimeEnd) {
+      setBlockTimeError("Odaberite liječnika, datum te početak i kraj blokade.");
+      return;
+    }
+
+    const startAt = new Date(`${blockTimeDate}T${blockTimeStart}:00`);
+    const endAt = new Date(`${blockTimeDate}T${blockTimeEnd}:00`);
+
+    if (Number.isNaN(startAt.getTime()) || Number.isNaN(endAt.getTime())) {
+      setBlockTimeError("Vrijeme blokade nije ispravno.");
+      return;
+    }
+
+    if (startAt >= endAt) {
+      setBlockTimeError("Vrijeme završetka mora biti nakon početka.");
+      return;
+    }
+
+    try {
+      setIsBlockingTime(true);
+      setBlockTimeError(null);
+      await doctorsService.createTimeOff(blockTimeDoctorId, {
+        startAt: startAt.toISOString(),
+        endAt: endAt.toISOString(),
+        reason: blockTimeReason.trim() || "Blokirano vrijeme",
+      });
+      toast.success("Vrijeme je blokirano bez pacijenta.");
+      closeBlockTimeForm();
+    } catch (blockError) {
+      setBlockTimeError(getApiErrorMessage(blockError));
+      toast.error(blockError);
+    } finally {
+      setIsBlockingTime(false);
+    }
   };
 
   return (
@@ -1222,50 +1284,48 @@ function AppointmentsPage(): ReactElement {
                 </div>
               ))}
             </div>
-            <button className="appointments-link-button" type="button" onClick={() => navigate('/my-appointments')}>
+            <button className="appointments-link-button" type="button" onClick={() => navigate(APP_ROUTES.notifications)}>
               Pogledaj sve podsjetnike
               <AppIcon name="chevronRight" />
             </button>
           </section>
 
-          <section className="appointments-selected-panel">
-            <h2>Detalji odabranog termina</h2>
-            {selectedAppointment ? (
-              <>
-                <div className="appointments-selected-card">
-                  <span className="appointments-selected-icon">
-                    <AppIcon name="calendar" />
-                  </span>
-                  <div>
-                    <strong>{getPatientName(selectedAppointment)}</strong>
-                    <small>{selectedAppointment.appointmentType.name}</small>
-                    <small>{getDurationLabel(selectedAppointment)}</small>
-                  </div>
-                  <div>
-                    <time>
-                      {formatTime(new Date(selectedAppointment.startAt))} -{" "}
-                      {formatTime(new Date(selectedAppointment.endAt))}
-                    </time>
-                    <small>{getDoctorName(selectedAppointment)}</small>
-                  </div>
-                </div>
-                <Link to={`/appointments/${selectedAppointment.id}`}>
-                  Pogledaj detalje termina
-                  <AppIcon name="chevronRight" />
-                </Link>
-              </>
-            ) : (
+          {selectedAppointment ? (
+            <section className="appointments-selected-panel">
+              <div className="appointments-selected-heading">
+                <h2>Detalji odabranog termina</h2>
+                <button
+                  className="appointments-selected-close"
+                  type="button"
+                  aria-label="Zatvori detalje termina"
+                  onClick={() => setSelectedAppointmentId(null)}
+                >
+                  <AppIcon name="xCircle" />
+                </button>
+              </div>
               <div className="appointments-selected-card">
                 <span className="appointments-selected-icon">
                   <AppIcon name="calendar" />
                 </span>
                 <div>
-                  <strong>Nema odabranog termina</strong>
-                  <small>Odaberite termin iz rasporeda.</small>
+                  <strong>{getPatientName(selectedAppointment)}</strong>
+                  <small>{selectedAppointment.appointmentType.name}</small>
+                  <small>{getDurationLabel(selectedAppointment)}</small>
+                </div>
+                <div>
+                  <time>
+                    {formatTime(new Date(selectedAppointment.startAt))} -{" "}
+                    {formatTime(new Date(selectedAppointment.endAt))}
+                  </time>
+                  <small>{getDoctorName(selectedAppointment)}</small>
                 </div>
               </div>
-            )}
-          </section>
+              <Link to={`/appointments/${selectedAppointment.id}`}>
+                Pogledaj detalje termina
+                <AppIcon name="chevronRight" />
+              </Link>
+            </section>
+          ) : null}
 
           <section className="appointments-side-panel appointments-quick-actions-panel">
             <h2>Brze akcije</h2>
@@ -1274,7 +1334,7 @@ function AppointmentsPage(): ReactElement {
                 <AppIcon name="calendar" />
                 Novi termin
               </Link>
-              <button type="button" onClick={() => navigate('/appointments/create')}>
+              <button type="button" onClick={openBlockTimeForm}>
                 <AppIcon name="shield" />
                 Blokiraj vrijeme
               </button>
@@ -1313,6 +1373,93 @@ function AppointmentsPage(): ReactElement {
               </button>
             </div>
           </section>
+
+          {isBlockTimeFormOpen ? (
+            <section className="appointments-side-panel appointments-block-time-panel">
+              <div className="appointments-panel-heading">
+                <h2>Blokiraj vrijeme</h2>
+                <button
+                  className="appointments-selected-close"
+                  type="button"
+                  aria-label="Zatvori blokiranje vremena"
+                  onClick={closeBlockTimeForm}
+                >
+                  <AppIcon name="xCircle" />
+                </button>
+              </div>
+              <p>Unesite zauzeće liječnika bez povezivanja s pacijentom.</p>
+
+              {blockTimeError ? (
+                <div className="appointments-block-time-error" role="alert">
+                  {blockTimeError}
+                </div>
+              ) : null}
+
+              <div className="appointments-block-time-form">
+                <label>
+                  <span>Liječnik</span>
+                  <select
+                    value={blockTimeDoctorId}
+                    onChange={(event) => setBlockTimeDoctorId(event.target.value)}
+                  >
+                    <option value="">Odaberite liječnika</option>
+                    {doctorOptions.map((doctor) => (
+                      <option key={doctor.id} value={doctor.id}>
+                        {getDoctorOptionName(doctor)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  <span>Datum</span>
+                  <input
+                    type="date"
+                    value={blockTimeDate}
+                    onChange={(event) => setBlockTimeDate(event.target.value)}
+                  />
+                </label>
+                <div className="appointments-block-time-row">
+                  <label>
+                    <span>Početak</span>
+                    <input
+                      type="time"
+                      value={blockTimeStart}
+                      onChange={(event) => setBlockTimeStart(event.target.value)}
+                    />
+                  </label>
+                  <label>
+                    <span>Kraj</span>
+                    <input
+                      type="time"
+                      value={blockTimeEnd}
+                      onChange={(event) => setBlockTimeEnd(event.target.value)}
+                    />
+                  </label>
+                </div>
+                <label>
+                  <span>Razlog</span>
+                  <input
+                    type="text"
+                    value={blockTimeReason}
+                    onChange={(event) => setBlockTimeReason(event.target.value)}
+                  />
+                </label>
+              </div>
+
+              <div className="appointments-block-time-actions">
+                <button type="button" onClick={closeBlockTimeForm}>
+                  Odustani
+                </button>
+                <button
+                  type="button"
+                  disabled={isBlockingTime}
+                  onClick={() => void handleBlockTime()}
+                >
+                  {isBlockingTime ? "Spremanje..." : "Spremi blokadu"}
+                </button>
+              </div>
+            </section>
+          ) : null}
         </aside>
       </div>
     </div>

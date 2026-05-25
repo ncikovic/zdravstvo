@@ -60,6 +60,10 @@
   align-items: stretch;
 }
 
+.appointment-types-content-grid--full {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .appointment-types-main-stack {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
@@ -180,10 +184,10 @@
   display: grid;
   grid-template-columns:
     48px minmax(170px, 1fr) 84px minmax(250px, 1.25fr)
-    minmax(150px, 0.84fr) 76px 104px 32px;
+    minmax(150px, 0.84fr) 104px 32px;
   gap: 16px;
   align-items: center;
-  min-width: 940px;
+  min-width: 860px;
   padding: 0 20px;
 }
 
@@ -392,10 +396,31 @@
 }
 
 .appointment-types-detail-panel {
+  position: relative;
   display: grid;
   align-content: start;
   min-width: 0;
   overflow: hidden;
+}
+
+.appointment-types-detail-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: grid;
+  width: 30px;
+  height: 30px;
+  min-height: 30px;
+  place-items: center;
+  border: 0;
+  border-radius: 999px;
+  background: #eef6ff;
+  color: #49658f;
+}
+
+.appointment-types-detail-close .app-icon {
+  width: 18px;
+  height: 18px;
 }
 
 .appointment-types-detail-header {

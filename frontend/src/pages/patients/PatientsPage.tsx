@@ -50,7 +50,7 @@ function PatientsPage(): ReactElement {
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(
     null,
   );
-  const [isDetailPanelOpen, setIsDetailPanelOpen] = useState(true);
+  const [isDetailPanelOpen, setIsDetailPanelOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -66,7 +66,9 @@ function PatientsPage(): ReactElement {
         setPatients(data.patients);
         setTotalPages(data.totalPages);
         setTotalItems(data.totalItems);
-        setSelectedPatientId((current) => current ?? data.patients[0]?.id ?? null);
+        setSelectedPatientId((current) =>
+          data.patients.some((patient) => patient.id === current) ? current : null,
+        );
         setError(null);
       } catch (err) {
         setError(getApiErrorMessage(err));
@@ -100,12 +102,9 @@ function PatientsPage(): ReactElement {
     );
   }, [patients, search]);
 
-  const selectedPatientCandidate =
-    filteredPatients.find((patient) => patient.id === selectedPatientId) ??
-    filteredPatients[0] ??
-    patients.find((patient) => patient.id === selectedPatientId) ??
-    patients[0] ??
-    null;
+  const selectedPatientCandidate = selectedPatientId
+    ? filteredPatients.find((patient) => patient.id === selectedPatientId) ?? null
+    : null;
   const selectedPatient = isDetailPanelOpen ? selectedPatientCandidate : null;
 
   return (
@@ -119,7 +118,7 @@ function PatientsPage(): ReactElement {
 
       <div
         className={
-          isDetailPanelOpen
+          isDetailPanelOpen && selectedPatient
             ? "patients-content-grid"
             : "patients-content-grid patients-content-grid--full"
         }
@@ -332,7 +331,7 @@ function PatientsPage(): ReactElement {
           </section>
         </div>
 
-        {isDetailPanelOpen ? (
+        {isDetailPanelOpen && selectedPatient ? (
           <aside className="patients-detail-panel" aria-label="Detalji pacijenta">
             <button
               className="patients-detail-close"
@@ -472,12 +471,7 @@ function PatientsPage(): ReactElement {
                   </button>
                 </div>
               </>
-            ) : (
-              <section className="patients-info-card">
-                <h3>Nema pacijenata</h3>
-                <p>Dodajte novog pacijenta za prikaz detalja.</p>
-              </section>
-            )}
+            ) : null}
           </aside>
         ) : null}
       </div>

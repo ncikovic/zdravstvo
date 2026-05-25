@@ -38,6 +38,10 @@
   align-items: start;
 }
 
+.doctors-content-grid--full {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .doctors-main-stack {
   display: grid;
   gap: 18px;
@@ -138,6 +142,7 @@
 }
 
 .doctors-filter-row label > div,
+.doctors-filter-row label > select,
 .doctors-clear-button,
 .doctors-page-size {
   display: inline-flex;
@@ -152,6 +157,11 @@
   color: #44577d;
   font-size: 0.9rem;
   font-weight: 850;
+}
+
+.doctors-filter-row label > select {
+  width: 100%;
+  appearance: auto;
 }
 
 .doctors-filter-row .app-icon,
@@ -174,12 +184,10 @@
 
 .doctors-table {
   display: grid;
-  grid-template-columns:
-    42px minmax(170px, 1.12fr) minmax(130px, 0.95fr) minmax(150px, 0.9fr)
-    minmax(180px, 1.12fr) minmax(150px, 0.86fr) 92px 32px;
+  grid-template-columns: 42px minmax(220px, 1.25fr) minmax(150px, 0.8fr) minmax(210px, 1fr) minmax(120px, 0.6fr);
   gap: 16px;
   align-items: center;
-  min-width: 980px;
+  min-width: 760px;
   padding: 0 20px;
 }
 

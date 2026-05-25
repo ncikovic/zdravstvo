@@ -69,9 +69,7 @@ function AppointmentTypesPage(): ReactElement {
         setTotalPages(data.totalPages)
         setTotalItems(data.totalItems)
         setSelectedAppointmentTypeId((current) =>
-          data.appointmentTypes.some((type) => type.id === current)
-            ? current
-            : data.appointmentTypes[0]?.id ?? null
+          data.appointmentTypes.some((type) => type.id === current) ? current : null
         )
         setError(null)
       } catch (err) {
@@ -87,10 +85,9 @@ function AppointmentTypesPage(): ReactElement {
 
   const displayedAppointmentTypes = useMemo(() => appointmentTypes, [appointmentTypes])
 
-  const selectedType =
-    displayedAppointmentTypes.find((type) => type.id === selectedAppointmentTypeId) ??
-    displayedAppointmentTypes[0] ??
-    null
+  const selectedType = selectedAppointmentTypeId
+    ? displayedAppointmentTypes.find((type) => type.id === selectedAppointmentTypeId) ?? null
+    : null
   const selectedTypeIndex = selectedType
     ? appointmentTypes.findIndex((type) => type.id === selectedType.id)
     : 0
@@ -136,7 +133,13 @@ function AppointmentTypesPage(): ReactElement {
         </button>
       </div>
 
-      <div className="appointment-types-content-grid">
+      <div
+        className={
+          selectedType
+            ? "appointment-types-content-grid"
+            : "appointment-types-content-grid appointment-types-content-grid--full"
+        }
+      >
         <div className="appointment-types-main-stack">
           <section className="appointment-types-filter-panel" aria-label="Filteri vrsta termina">
             <label className="appointment-types-search-field">
@@ -174,12 +177,6 @@ function AppointmentTypesPage(): ReactElement {
                 ))}
               </select>
             </label>
-            <label>
-              <span>Online rezervacija</span>
-              <select value="" disabled aria-label="Online rezervacija nije dostupna">
-                <option value="">Nije u API-ju</option>
-              </select>
-            </label>
             <button
               className="appointment-types-clear-button"
               type="button"
@@ -211,7 +208,6 @@ function AppointmentTypesPage(): ReactElement {
                   <span>Trajanje</span>
                   <span>Opis</span>
                   <span>Dostupno lijecnicima</span>
-                  <span>Online</span>
                   <span>Status</span>
                   <span aria-hidden="true" />
                 </div>
@@ -242,7 +238,6 @@ function AppointmentTypesPage(): ReactElement {
                         Nije dostupno kroz trenutni API.
                       </span>
                       <span>Nije dostupno</span>
-                      <span className="appointment-types-online">-</span>
                       <em
                         className={
                           type.isActive
@@ -325,8 +320,16 @@ function AppointmentTypesPage(): ReactElement {
           </section>
         </div>
 
-        <aside className="appointment-types-detail-panel" aria-label="Detalji vrste termina">
-          {selectedType ? (
+        {selectedType ? (
+          <aside className="appointment-types-detail-panel" aria-label="Detalji vrste termina">
+            <button
+              className="appointment-types-detail-close"
+              type="button"
+              aria-label="Zatvori detalje vrste termina"
+              onClick={() => setSelectedAppointmentTypeId(null)}
+            >
+              <AppIcon name="xCircle" />
+            </button>
             <>
               <div className="appointment-types-detail-header">
                 <span className="appointment-types-detail-icon">
@@ -349,14 +352,6 @@ function AppointmentTypesPage(): ReactElement {
                 <div>
                   <AppIcon name="users" />
                   <span>Nije dostupno</span>
-                </div>
-              </section>
-
-              <section className="appointment-types-info-card appointment-types-detail-row">
-                <h3>Online rezervacija</h3>
-                <div>
-                  <AppIcon name="building" />
-                  <span>Nije dostupno kroz trenutni API.</span>
                 </div>
               </section>
 
@@ -386,13 +381,8 @@ function AppointmentTypesPage(): ReactElement {
                 </button>
               </div>
             </>
-          ) : (
-            <section className="appointment-types-info-card">
-              <h3>Nema vrsta termina</h3>
-              <p>Dodajte novu vrstu termina za prikaz detalja.</p>
-            </section>
-          )}
-        </aside>
+          </aside>
+        ) : null}
       </div>
     </div>
   )

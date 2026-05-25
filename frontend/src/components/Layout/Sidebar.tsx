@@ -17,7 +17,7 @@ interface SidebarProps {
 const getNavLinkClassName = ({ isActive }: { isActive: boolean }): string =>
   isActive ? 'app-sidebar__link app-sidebar__link--active' : 'app-sidebar__link'
 
-export function Sidebar({ items, support, onCollapse, isOpen, onClose }: SidebarProps): ReactElement {
+export function Sidebar({ items, support, isOpen, onClose }: SidebarProps): ReactElement {
   return (
     <>
       {isOpen ? (
@@ -61,24 +61,6 @@ export function Sidebar({ items, support, onCollapse, isOpen, onClose }: Sidebar
             </NavLink>
           ))}
         </nav>
-
-        <div className="app-sidebar__support">
-          <AppIcon name="headphones" />
-          <div>
-            <strong>{support.title}</strong>
-            <span>{support.text}</span>
-          </div>
-          {support.collapseLabel ? (
-            <button className="app-sidebar__support-action" type="button" onClick={onCollapse}>
-              <AppIcon name="chevronLeft" />
-              {support.collapseLabel}
-            </button>
-          ) : (
-            <a className="app-sidebar__support-action" href="mailto:podrska@zdravstvo.hr">
-              {support.actionLabel}
-            </a>
-          )}
-        </div>
       </aside>
     </>
   )
