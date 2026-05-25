@@ -20,6 +20,7 @@ interface PatientFormData {
   address: string;
   emergencyContactName: string;
   emergencyContactPhone: string;
+  notes: string;
   status: "Aktivan" | "Neaktivan";
 }
 
@@ -33,6 +34,7 @@ const emptyFormData: PatientFormData = {
   address: "",
   emergencyContactName: "",
   emergencyContactPhone: "",
+  notes: "",
   status: "Aktivan",
 };
 
@@ -49,6 +51,7 @@ const mapPatientToFormData = (patient: PatientDto): PatientFormData => ({
   address: patient.address ?? "",
   emergencyContactName: patient.emergencyContactName ?? "",
   emergencyContactPhone: patient.emergencyContactPhone ?? "",
+  notes: patient.notes ?? "",
   status: patient.status === UserStatus.ACTIVE ? "Aktivan" : "Neaktivan",
 });
 
@@ -126,6 +129,7 @@ function EditPatientPage(): ReactElement {
         address: formData.address.trim() || null,
         emergencyContactName: formData.emergencyContactName.trim() || null,
         emergencyContactPhone: formData.emergencyContactPhone.trim() || null,
+        notes: formData.notes.trim() || null,
       });
       toast.success("Podaci pacijenta su uspješno ažurirani.");
       navigate(APP_ROUTES.patientDetails.replace(":patientId", patientId));
@@ -320,6 +324,20 @@ function EditPatientPage(): ReactElement {
                 <option value="Neaktivan">Neaktivan</option>
               </select>
             </label>
+            <label className="edit-patient-field" htmlFor="notes">
+              <span className="edit-patient-field__label">Napomene</span>
+              <textarea
+                id="notes"
+                className="edit-patient-field__textarea"
+                maxLength={5000}
+                value={formData.notes}
+                onChange={(e) => handleInputChange("notes", e.target.value)}
+              />
+              <span className="edit-patient-field__count">
+                {formData.notes.length} / 5000
+              </span>
+            </label>
+
 
             <label
               className="edit-patient-field"

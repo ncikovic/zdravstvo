@@ -33,6 +33,7 @@ const toPatientDto = (patient: Patient): PatientDto => ({
   address: patient.address,
   emergencyContactName: patient.emergencyContactName,
   emergencyContactPhone: patient.emergencyContactPhone,
+  notes: patient.notes,
   createdAt: patient.createdAt.toISOString(),
   updatedAt: patient.updatedAt.toISOString(),
 });

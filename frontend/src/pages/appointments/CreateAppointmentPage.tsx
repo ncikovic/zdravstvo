@@ -7,7 +7,7 @@ import type {
 import { UserStatus } from "@zdravstvo/contracts";
 import { useEffect, useMemo, useState } from "react";
 import type { ReactElement } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 
 import { AppIcon } from "@/components";
 import {
@@ -144,6 +144,8 @@ function DoctorPortrait(): ReactElement {
 
 function CreateAppointmentPage(): ReactElement {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const preselectedPatientId = searchParams.get("patientId") ?? "";
   const [patients, setPatients] = useState<PatientDto[]>([]);
   const [doctors, setDoctors] = useState<DoctorResponseDto[]>([]);
   const [appointmentTypes, setAppointmentTypes] = useState<
@@ -192,14 +194,41 @@ function CreateAppointmentPage(): ReactElement {
           (appointmentType) => appointmentType.isActive,
         );
         const activeDoctors = doctorData.doctors.filter((doctor) => doctor.isActive);
-        const activePatients = patientData.patients.filter(
+        let activePatients = patientData.patients.filter(
           (patient) => patient.status === ACTIVE_USER_STATUS,
         );
+
+        if (
+          preselectedPatientId &&
+          !activePatients.some((patient) => patient.id === preselectedPatientId)
+        ) {
+          try {
+            const preselectedPatient = await patientsService.getById(
+              preselectedPatientId,
+            );
+
+            if (preselectedPatient.status === ACTIVE_USER_STATUS) {
+              activePatients = [preselectedPatient, ...activePatients];
+            }
+          } catch {
+            activePatients = [...activePatients];
+          }
+        }
+
+        if (!isMounted) {
+          return;
+        }
+
+        const selectedPatientCandidate = activePatients.some(
+          (patient) => patient.id === preselectedPatientId,
+        )
+          ? preselectedPatientId
+          : (activePatients[0]?.id ?? "");
 
         setPatients(activePatients);
         setDoctors(activeDoctors);
         setAppointmentTypes(activeAppointmentTypes);
-        setSelectedPatientId(activePatients[0]?.id ?? "");
+        setSelectedPatientId(selectedPatientCandidate);
         setSelectedDoctorId(activeDoctors[0]?.id ?? "");
         setSelectedAppointmentTypeId(activeAppointmentTypes[0]?.id ?? "");
       } catch (loadError) {
@@ -220,7 +249,7 @@ function CreateAppointmentPage(): ReactElement {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [preselectedPatientId]);
 
   useEffect(() => {
     let isMounted = true;

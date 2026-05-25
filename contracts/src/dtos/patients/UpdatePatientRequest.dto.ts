@@ -11,4 +11,5 @@ export interface UpdatePatientRequestDto {
   address?: string | null;
   emergencyContactName?: string | null;
   emergencyContactPhone?: string | null;
+  notes?: string | null;
 }

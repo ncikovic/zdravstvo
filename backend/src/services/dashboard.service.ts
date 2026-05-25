@@ -237,6 +237,14 @@ const parseDateOnlyParts = (date: string): ZonedDateParts => {
   };
 };
 
+const isSameDateParts = (
+  firstDateParts: ZonedDateParts,
+  secondDateParts: ZonedDateParts,
+): boolean =>
+  firstDateParts.year === secondDateParts.year &&
+  firstDateParts.month === secondDateParts.month &&
+  firstDateParts.day === secondDateParts.day;
+
 const parseTimeParts = (value: string): TimeParts => {
   const [hours = "0", minutes = "0", seconds = "0"] = value
     .split(":")
@@ -437,13 +445,21 @@ export class DashboardService {
       context.organizationId,
     );
     const timeZone = organization?.timezone ?? DEFAULT_TIMEZONE;
+    const currentDateParts = getZonedDateParts(generatedAt, timeZone);
     const selectedDateParts = query.date
       ? parseDateOnlyParts(query.date)
-      : getZonedDateParts(generatedAt, timeZone);
+      : currentDateParts;
     const today = query.date
       ? createDayWindowFromParts(selectedDateParts, timeZone)
       : createDayWindow(generatedAt, timeZone);
-    const referenceDate = query.date ? today.start : generatedAt;
+    const isSelectedDateToday = isSameDateParts(
+      selectedDateParts,
+      currentDateParts,
+    );
+    const referenceDate =
+      !query.date || isSelectedDateToday || today.end <= generatedAt
+        ? generatedAt
+        : today.start;
     const base = {
       generatedAt: generatedAt.toISOString(),
       todayStart: today.start.toISOString(),

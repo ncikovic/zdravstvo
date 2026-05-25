@@ -12,6 +12,7 @@ export interface PatientDto {
   address: string | null;
   emergencyContactName: string | null;
   emergencyContactPhone: string | null;
+  notes: string | null;
   createdAt: string;
   updatedAt: string;
 }

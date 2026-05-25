@@ -72,6 +72,7 @@ export async function up(knex: Knex) {
     table.string('address', 255);
     table.string('emergency_contact_name', 120);
     table.string('emergency_contact_phone', 60);
+    table.text('notes');
     table.dateTime('created_at', { precision: 3 }).notNullable().defaultTo(knex.fn.now(3));
     table
       .dateTime('updated_at', { precision: 3 })

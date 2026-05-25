@@ -50,6 +50,7 @@ function PatientsPage(): ReactElement {
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(
     null,
   );
+  const [isDetailPanelOpen, setIsDetailPanelOpen] = useState(true);
   const [search, setSearch] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -92,18 +93,20 @@ function PatientsPage(): ReactElement {
         patient.phone,
         patient.email,
         patient.address,
+        patient.notes,
       ]
         .filter(Boolean)
         .some((field) => field?.toLowerCase().includes(value)),
     );
   }, [patients, search]);
 
-  const selectedPatient =
+  const selectedPatientCandidate =
     filteredPatients.find((patient) => patient.id === selectedPatientId) ??
     filteredPatients[0] ??
     patients.find((patient) => patient.id === selectedPatientId) ??
     patients[0] ??
     null;
+  const selectedPatient = isDetailPanelOpen ? selectedPatientCandidate : null;
 
   return (
     <div className="patients-page">
@@ -114,7 +117,13 @@ function PatientsPage(): ReactElement {
         </div>
       </div>
 
-      <div className="patients-content-grid">
+      <div
+        className={
+          isDetailPanelOpen
+            ? "patients-content-grid"
+            : "patients-content-grid patients-content-grid--full"
+        }
+      >
         <div className="patients-main-stack">
           <section
             className="patients-filter-panel"
@@ -223,7 +232,10 @@ function PatientsPage(): ReactElement {
                       }
                       role="row"
                       key={patient.id}
-                      onClick={() => setSelectedPatientId(patient.id)}
+                      onClick={() => {
+                        setSelectedPatientId(patient.id);
+                        setIsDetailPanelOpen(true);
+                      }}
                       style={{ cursor: "pointer" }}
                     >
                       <span
@@ -320,139 +332,154 @@ function PatientsPage(): ReactElement {
           </section>
         </div>
 
-        <aside className="patients-detail-panel" aria-label="Detalji pacijenta">
-          <button
-            className="patients-detail-close"
-            type="button"
-            aria-label="Zatvori detalje"
-            onClick={() => setSelectedPatientId(null)}
-          >
-            x
-          </button>
+        {isDetailPanelOpen ? (
+          <aside className="patients-detail-panel" aria-label="Detalji pacijenta">
+            <button
+              className="patients-detail-close"
+              type="button"
+              aria-label="Zatvori detalje"
+              onClick={() => setIsDetailPanelOpen(false)}
+            >
+              <AppIcon name="xCircle" />
+            </button>
 
-          {selectedPatient ? (
-            <>
-              <div className="patients-detail-header">
-                <span className="patients-detail-avatar">
-                  {getInitials(selectedPatient)}
-                </span>
-                <div>
-                  <h2>{getFullName(selectedPatient)}</h2>
-                  <span>
-                    {selectedPatient.dateOfBirth ||
-                      "Datum rodjenja nije dostupan"}
+            {selectedPatient ? (
+              <>
+                <div className="patients-detail-header">
+                  <span className="patients-detail-avatar">
+                    {getInitials(selectedPatient)}
                   </span>
-                  <small>OIB: {selectedPatient.oib || "Nije dostupno"}</small>
+                  <div>
+                    <h2>{getFullName(selectedPatient)}</h2>
+                    <span>
+                      {selectedPatient.dateOfBirth ||
+                        "Datum rodjenja nije dostupan"}
+                    </span>
+                    <small>OIB: {selectedPatient.oib || "Nije dostupno"}</small>
+                  </div>
+                  <em>{getPatientStatus(selectedPatient)}</em>
                 </div>
-                <em>{getPatientStatus(selectedPatient)}</em>
-              </div>
 
-              <section className="patients-info-card">
-                <h3>Kontakt podaci</h3>
-                <div className="patients-info-list">
-                  <span>
-                    <AppIcon name="clock" />
-                    Telefon
-                  </span>
-                  <strong>{selectedPatient.phone || "Nije dostupno"}</strong>
-                  <span>
-                    <AppIcon name="mail" />
-                    E-mail
-                  </span>
-                  <strong>{selectedPatient.email || "Nije dostupno"}</strong>
-                  <span>
-                    <AppIcon name="home" />
-                    Adresa
-                  </span>
-                  <strong>{selectedPatient.address || "Nije dostupno"}</strong>
-                </div>
-              </section>
+                <section className="patients-info-card">
+                  <h3>Kontakt podaci</h3>
+                  <div className="patients-info-list">
+                    <span>
+                      <AppIcon name="clock" />
+                      Telefon
+                    </span>
+                    <strong>{selectedPatient.phone || "Nije dostupno"}</strong>
+                    <span>
+                      <AppIcon name="mail" />
+                      E-mail
+                    </span>
+                    <strong>{selectedPatient.email || "Nije dostupno"}</strong>
+                    <span>
+                      <AppIcon name="home" />
+                      Adresa
+                    </span>
+                    <strong>{selectedPatient.address || "Nije dostupno"}</strong>
+                  </div>
+                </section>
 
-              <section className="patients-info-card">
-                <h3>Hitni kontakt</h3>
-                <div className="patients-emergency-contact">
-                  <AppIcon name="user" />
-                  <span>
-                    {selectedPatient.emergencyContactName || "Nije dostupno"}
-                    <strong>
-                      {selectedPatient.emergencyContactPhone || "Nije dostupno"}
-                    </strong>
-                  </span>
-                </div>
-              </section>
+                <section className="patients-info-card">
+                  <h3>Hitni kontakt</h3>
+                  <div className="patients-emergency-contact">
+                    <AppIcon name="user" />
+                    <span>
+                      {selectedPatient.emergencyContactName || "Nije dostupno"}
+                      <strong>
+                        {selectedPatient.emergencyContactPhone || "Nije dostupno"}
+                      </strong>
+                    </span>
+                  </div>
+                </section>
 
-              <section className="patients-info-card patients-appointments-card">
-                <div className="patients-card-heading">
-                  <h3>Nadolazeci termini</h3>
-                  <button type="button" onClick={() => navigate(APP_ROUTES.appointments)}>Prikazi sve</button>
-                </div>
-                <div className="patients-appointment-list">
-                  {upcomingAppointments.map(
-                    ([date, title, location, status]) => (
-                      <div className="patients-appointment-item" key={date}>
-                        <AppIcon name="calendar" />
-                        <span>
-                          <strong>{date}</strong>
-                          {title}
-                          <small>{location}</small>
-                        </span>
-                        <em>{status}</em>
-                      </div>
-                    ),
-                  )}
-                </div>
-              </section>
+                <section className="patients-info-card">
+                  <h3>Napomene</h3>
+                  <p className="patients-notes-text">
+                    {selectedPatient.notes?.trim() ||
+                      "Nema evidentiranih napomena."}
+                  </p>
+                </section>
 
-              <div className="patients-detail-actions">
-                <button
-                  type="button"
-                  onClick={() =>
-                    navigate(
-                      APP_ROUTES.patientDetails.replace(
-                        ":patientId",
-                        selectedPatient.id,
+                <section className="patients-info-card patients-appointments-card">
+                  <div className="patients-card-heading">
+                    <h3>Nadolazeci termini</h3>
+                    <button
+                      type="button"
+                      onClick={() => navigate(APP_ROUTES.appointments)}
+                    >
+                      Prikazi sve
+                    </button>
+                  </div>
+                  <div className="patients-appointment-list">
+                    {upcomingAppointments.map(
+                      ([date, title, location, status]) => (
+                        <div className="patients-appointment-item" key={date}>
+                          <AppIcon name="calendar" />
+                          <span>
+                            <strong>{date}</strong>
+                            {title}
+                            <small>{location}</small>
+                          </span>
+                          <em>{status}</em>
+                        </div>
                       ),
-                    )
-                  }
-                >
-                  <AppIcon name="user" />
-                  Pogledaj detalje
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    navigate(
-                      APP_ROUTES.patientEdit.replace(
-                        ":patientId",
-                        selectedPatient.id,
-                      ),
-                    )
-                  }
-                >
-                  <AppIcon name="note" />
-                  Uredi podatke
-                </button>
-                <button
-                  className="patients-detail-actions__primary"
-                  type="button"
-                  onClick={() =>
-                    navigate(
-                      `${APP_ROUTES.createAppointment}?patientId=${selectedPatient.id}`,
-                    )
-                  }
-                >
-                  <AppIcon name="calendar" />
-                  Rezerviraj termin
-                </button>
-              </div>
-            </>
-          ) : (
-            <section className="patients-info-card">
-              <h3>Nema pacijenata</h3>
-              <p>Dodajte novog pacijenta za prikaz detalja.</p>
-            </section>
-          )}
-        </aside>
+                    )}
+                  </div>
+                </section>
+
+                <div className="patients-detail-actions">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      navigate(
+                        APP_ROUTES.patientDetails.replace(
+                          ":patientId",
+                          selectedPatient.id,
+                        ),
+                      )
+                    }
+                  >
+                    <AppIcon name="user" />
+                    Pogledaj detalje
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      navigate(
+                        APP_ROUTES.patientEdit.replace(
+                          ":patientId",
+                          selectedPatient.id,
+                        ),
+                      )
+                    }
+                  >
+                    <AppIcon name="note" />
+                    Uredi podatke
+                  </button>
+                  <button
+                    className="patients-detail-actions__primary"
+                    type="button"
+                    onClick={() =>
+                      navigate(
+                        `${APP_ROUTES.createAppointment}?patientId=${selectedPatient.id}`,
+                      )
+                    }
+                  >
+                    <AppIcon name="calendar" />
+                    Rezerviraj termin
+                  </button>
+                </div>
+              </>
+            ) : (
+              <section className="patients-info-card">
+                <h3>Nema pacijenata</h3>
+                <p>Dodajte novog pacijenta za prikaz detalja.</p>
+              </section>
+            )}
+          </aside>
+        ) : null}
       </div>
     </div>
   );

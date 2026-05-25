@@ -657,3 +657,95 @@
     grid-template-columns: 1fr;
   }
 }
+
+.appointment-cancel-detail-row--top {
+  grid-template-columns: repeat(4, minmax(145px, 1fr));
+}
+
+.appointment-cancel-detail-row--bottom {
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+}
+
+.appointment-cancel-detail-item {
+  grid-template-columns: 48px minmax(0, 1fr);
+  align-items: start;
+  gap: 12px;
+  padding-inline: 16px;
+}
+
+.appointment-cancel-detail-icon {
+  width: 48px;
+  height: 48px;
+}
+
+.appointment-cancel-detail-icon .app-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.appointment-cancel-doctor-photo {
+  width: 48px;
+  height: 48px;
+}
+
+.appointment-cancel-detail-item strong,
+.appointment-cancel-detail-item div > span,
+.appointment-cancel-reason strong {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.appointment-cancel-reasons {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.appointment-cancel-reason {
+  min-height: 72px;
+}
+
+.appointment-cancel-notify {
+  cursor: pointer;
+}
+
+.appointment-cancel-notify span {
+  border: 1px solid #0876df;
+}
+
+.appointment-cancel-notify input:not(:checked) + span {
+  background: #ffffff;
+  border-color: #c6d4e6;
+}
+
+.appointment-cancel-notify input:not(:checked) + span::after {
+  display: none;
+}
+
+.appointment-cancel-notify input:focus-visible + span {
+  box-shadow: 0 0 0 3px rgba(8, 118, 223, 0.2);
+}
+
+@media (max-width: 1100px) {
+  .appointment-cancel-detail-row--top,
+  .appointment-cancel-detail-row--bottom,
+  .appointment-cancel-reasons {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .appointment-cancel-detail-row--top,
+  .appointment-cancel-detail-row--bottom,
+  .appointment-cancel-reasons {
+    grid-template-columns: 1fr;
+  }
+}
+
+.appointment-cancel-detail-item div > strong,
+.appointment-cancel-detail-item div > span,
+.appointment-cancel-reason strong {
+  overflow: visible !important;
+  text-overflow: clip !important;
+  white-space: normal !important;
+}
