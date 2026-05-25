@@ -256,11 +256,47 @@ class InMemoryDoctorsRepository {
     }
   }
 
+  public async countByOrganization(
+    organizationId: string,
+    filters: { isActive?: boolean } = {},
+  ): Promise<number> {
+    return this.organizationDoctors
+      .filter((doctor) => doctor.organizationId === organizationId)
+      .filter(
+        (doctor) =>
+          filters.isActive === undefined ||
+          doctor.isActive === filters.isActive,
+      )
+      .filter((doctor) => this.mapDoctor(doctor) !== null).length;
+  }
+
+  public async updateUserContact(
+    userId: string,
+    input: { email?: string | null; phone?: string | null },
+  ): Promise<DoctorUserRecord | null> {
+    const user = this.users.find((u) => u.id === userId);
+
+    if (!user) {
+      return null;
+    }
+
+    if (input.email !== undefined) {
+      user.email = input.email;
+    }
+
+    if (input.phone !== undefined) {
+      user.phone = input.phone;
+    }
+
+    return user;
+  }
+
   public async findManyByOrganization(
     organizationId: string,
     filters: { isActive?: boolean } = {},
+    pagination?: { limit: number; offset: number },
   ): Promise<DoctorRecord[]> {
-    return this.organizationDoctors
+    const results = this.organizationDoctors
       .filter((doctor) => doctor.organizationId === organizationId)
       .filter(
         (doctor) =>
@@ -270,6 +306,12 @@ class InMemoryDoctorsRepository {
       .map((doctor) => this.mapDoctor(doctor))
       .filter((doctor): doctor is DoctorRecord => doctor !== null)
       .sort((first, second) => first.lastName.localeCompare(second.lastName));
+
+    if (pagination) {
+      return results.slice(pagination.offset, pagination.offset + pagination.limit);
+    }
+
+    return results;
   }
 
   public async findByOrganizationAndDoctorId(
@@ -670,8 +712,8 @@ test("updates only allowed doctor fields", async () => {
   assert.equal(doctor.firstName, "Anamarija");
   assert.equal(doctor.title, null);
   assert.equal(doctor.isActive, false);
-  assert.equal(doctor.email, "doctor@example.test");
-  assert.equal(repository.users[0].email, "doctor@example.test");
+  assert.equal(doctor.email, "changed@example.test");
+  assert.equal(repository.users[0].email, "changed@example.test");
   assert.equal(repository.organizationUsers[0].isActive, false);
 });
 
