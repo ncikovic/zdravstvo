@@ -1,6 +1,7 @@
 export * from "./adminAudit.service";
 export * from "./notifications.service";
 export * from "./adminUsers.service";
+export * from "./managerUsers.service";
 export * from "./api";
 export * from "./appointments.service";
 export * from "./appointmentTypes.service";

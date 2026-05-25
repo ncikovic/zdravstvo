@@ -7,6 +7,7 @@ import type {
   DoctorTimeOffListResponseDto,
   DoctorWorkingHoursResponseDto,
   ReplaceDoctorWorkingHoursRequestDto,
+  UpdateDoctorRequestDto,
   UpdateDoctorSelfRequestDto,
 } from '@zdravstvo/contracts'
 
@@ -39,7 +40,7 @@ export const doctorsService = {
 
   async update(
     doctorId: string,
-    data: Partial<CreateDoctorRequestDto>,
+    data: UpdateDoctorRequestDto,
   ): Promise<DoctorResponseDto> {
     const response = await apiClient.patch<ApiResponse<DoctorResponseDto>>(
       `/doctors/${doctorId}`,

@@ -19,6 +19,7 @@ import {
   CreateDoctorPage,
   DashboardPage,
   DoctorDetailsPage,
+  EditDoctorPage,
   MyAppointmentsPage,
   DoctorExceptionsPage,
   DoctorSchedulePage,
@@ -28,6 +29,9 @@ import {
   LoginPage,
   NotFoundPage,
   PatientsPage,
+  ManagerUsersPage,
+  CreateManagerUserPage,
+  ManageManagerUserPage,
   NewPatientPage,
   EditPatientPage,
   PatientDetailsPage,
@@ -42,7 +46,6 @@ import {
 import { DoctorOwnSchedulePage } from '@/pages/doctors/DoctorOwnSchedulePage';
 import { BookAppointmentPage } from '@/pages/appointments/BookAppointmentPage';
 import { ProfilePage } from '@/pages/patients/ProfilePage';
-import { InternalPlaceholderPage } from '@/pages/InternalPlaceholderPage';
 
 import {
   DoctorRoute,
@@ -106,21 +109,15 @@ export function AppRoutes(): ReactElement {
             <Route path={APP_ROUTES.doctors} element={<DoctorsPage />} />
             <Route path={APP_ROUTES.doctorsCreate} element={<CreateDoctorPage />} />
             <Route path={APP_ROUTES.doctorDetails} element={<DoctorDetailsPage />} />
+            <Route path={APP_ROUTES.doctorEdit} element={<EditDoctorPage />} />
             <Route path={APP_ROUTES.doctorSchedule} element={<DoctorSchedulePage />} />
             <Route path={APP_ROUTES.doctorExceptions} element={<DoctorExceptionsPage />} />
             <Route path={APP_ROUTES.appointmentTypes} element={<AppointmentTypesPage />} />
             <Route path={APP_ROUTES.createAppointmentType} element={<CreateAppointmentTypePage />} />
             <Route path={APP_ROUTES.editAppointmentType} element={<EditAppointmentTypePage />} />
-            <Route
-              path={APP_ROUTES.users}
-              element={
-                <InternalPlaceholderPage
-                  title="Korisnici"
-                  description="Upravljanje korisnicima organizacije bit će dostupno ovdje."
-                  icon="users"
-                />
-              }
-            />
+            <Route path={APP_ROUTES.users} element={<ManagerUsersPage />} />
+            <Route path={APP_ROUTES.usersCreate} element={<CreateManagerUserPage />} />
+            <Route path={APP_ROUTES.usersManage} element={<ManageManagerUserPage />} />
             <Route path={APP_ROUTES.accessibility} element={<AccessibilityPage />} />
           </Route>
         </Route>

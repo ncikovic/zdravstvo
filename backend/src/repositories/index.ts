@@ -1,5 +1,6 @@
 export * from "./adminUsers.repository.js";
 export * from "./notifications.repository.js";
+export * from "./managerUsers.repository.js";
 export * from "./appointments.repository.js";
 export * from "./appointmentTypes.repository.js";
 export * from "./audit.repository.js";

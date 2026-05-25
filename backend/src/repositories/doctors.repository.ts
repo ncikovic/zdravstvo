@@ -29,6 +29,11 @@ export interface CreateDoctorProfileInput {
   bio: string | null;
 }
 
+export interface UpdateDoctorUserContactInput {
+  email?: string | null;
+  phone?: string | null;
+}
+
 export interface UpdateDoctorProfileInput {
   firstName?: string;
   lastName?: string;
@@ -320,6 +325,30 @@ export class DoctorsRepository {
       .first();
 
     return row ? mapDoctorUserRecord(row) : null;
+  }
+
+
+  public async updateUserContact(
+    userId: string,
+    input: UpdateDoctorUserContactInput,
+  ): Promise<DoctorUserRecord | null> {
+    const updateValues: Record<string, string | null> = {};
+
+    if (input.email !== undefined) {
+      updateValues.email = input.email;
+    }
+
+    if (input.phone !== undefined) {
+      updateValues.phone = input.phone;
+    }
+
+    if (Object.keys(updateValues).length > 0) {
+      await this.executor("users")
+        .where({ id: uuidToBuffer(userId) })
+        .update(updateValues);
+    }
+
+    return this.findUserById(userId);
   }
 
   public async createUser(

@@ -299,8 +299,8 @@ function DoctorDetailsPage(): ReactElement {
           <div className="doctor-details-card">
             <h3 className="doctor-details-card-title">Brze akcije</h3>
             <div className="doctor-details-actions">
-              <button type="button" className="doctor-details-action-link" onClick={() => navigate(APP_ROUTES.doctorDetails.replace(':doctorId', doctor.id))}>
-                <AppIcon name="note" />
+              <button type="button" className="doctor-details-action-link" onClick={() => navigate(APP_ROUTES.doctorEdit.replace(':doctorId', doctor.id))}>
+                <AppIcon name="edit" />
                 Uredi podatke
                 <AppIcon name="chevronRight" />
               </button>

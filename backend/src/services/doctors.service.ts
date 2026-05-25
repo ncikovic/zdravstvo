@@ -19,6 +19,7 @@ import { AppError } from "../errors/AppError.js";
 import {
   DoctorsRepository,
   type UpdateDoctorProfileInput,
+  type UpdateDoctorUserContactInput,
 } from "../repositories/index.js";
 import { db } from "../shared/db/index.js";
 import type { AuthenticatedRequestContext } from "../shared/context/index.js";
@@ -40,6 +41,7 @@ type DoctorsRepositoryContract = Pick<
   | "findUserByEmail"
   | "findUserByPhone"
   | "createUser"
+  | "updateUserContact"
   | "findDoctorProfileByUserId"
   | "findDoctorProfileByLicenseNumber"
   | "createDoctorProfile"
@@ -80,6 +82,10 @@ interface NormalizedCreateDoctorInput {
   licenseNumber: string | null;
   bio: string | null;
   isActive: boolean;
+}
+
+interface NormalizedUpdateDoctorInput extends UpdateDoctorProfileInput, UpdateDoctorUserContactInput {
+  isActive?: boolean;
 }
 
 interface NormalizedWorkingHourInput {
@@ -123,6 +129,16 @@ const normalizeOptionalEmail = (
   const normalizedValue = normalizeOptionalString(value);
 
   return normalizedValue ? normalizedValue.toLowerCase() : null;
+};
+
+const normalizeOptionalUpdateEmail = (
+  value: string | null | undefined,
+): string | null | undefined => {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  return normalizeOptionalEmail(value);
 };
 
 const normalizeOptionalUpdateString = (
@@ -262,8 +278,10 @@ const normalizeCreateDoctorInput = (
 
 const normalizeUpdateDoctorInput = (
   payload: UpdateDoctorRequestDto,
-): UpdateDoctorProfileInput & { isActive?: boolean } => {
+): NormalizedUpdateDoctorInput => {
   return {
+    email: normalizeOptionalUpdateEmail(payload.email),
+    phone: normalizeOptionalUpdateString(payload.phone),
     firstName:
       payload.firstName === undefined
         ? undefined
@@ -477,6 +495,37 @@ const ensureLicenseAvailable = async (
   }
 };
 
+
+
+const ensureContactAvailable = async (
+  repository: DoctorsRepositoryContract,
+  email: string | null | undefined,
+  phone: string | null | undefined,
+  doctorUserId: string,
+): Promise<void> => {
+  if (email) {
+    const existingUser = await repository.findUserByEmail(email);
+
+    if (existingUser && existingUser.id !== doctorUserId) {
+      throw AppError.conflict(
+        "EMAIL_ALREADY_EXISTS",
+        "Email is already registered.",
+      );
+    }
+  }
+
+  if (phone) {
+    const existingUser = await repository.findUserByPhone(phone);
+
+    if (existingUser && existingUser.id !== doctorUserId) {
+      throw AppError.conflict(
+        "PHONE_ALREADY_EXISTS",
+        "Phone is already registered.",
+      );
+    }
+  }
+};
+
 const ensureDoctorMembershipCanBeCreated = async (
   repository: DoctorsRepositoryContract,
   organizationId: string,
@@ -648,10 +697,10 @@ export class DoctorsService {
     const normalizedInput = normalizeUpdateDoctorInput(payload);
     const updateInput = removeUndefinedValues(
       normalizedInput,
-    ) as UpdateDoctorProfileInput & {
-      isActive?: boolean;
-    };
-    const { isActive, ...profileInput } = updateInput;
+    ) as NormalizedUpdateDoctorInput;
+    const { email, phone, isActive, ...profileInput } = updateInput;
+    const contactInput: UpdateDoctorUserContactInput = { email, phone };
+    const contactValues = removeUndefinedValues(contactInput) as UpdateDoctorUserContactInput;
 
     if (Object.keys(updateInput).length === 0) {
       throw AppError.badRequest(
@@ -671,12 +720,20 @@ export class DoctorsService {
           throw createDoctorNotFoundError();
         }
 
+        if (email !== undefined || phone !== undefined) {
+          await ensureContactAvailable(repository, email, phone, doctorId);
+        }
+
         if (profileInput.licenseNumber !== undefined) {
           await ensureLicenseAvailable(
             repository,
             profileInput.licenseNumber,
             doctorId,
           );
+        }
+
+        if (Object.keys(contactValues).length > 0) {
+          await repository.updateUserContact(doctorId, contactValues);
         }
 
         if (Object.keys(profileInput).length > 0) {
