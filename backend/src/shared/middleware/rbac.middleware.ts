@@ -12,7 +12,7 @@ export const requireRoles =
   (...allowedRoles: readonly OrganizationUserRole[]): RequestHandler =>
   (request, _response, next): void => {
     try {
-      const auth = (request as RequestWithAuth).auth ?? {};
+      const auth: Partial<AuthenticatedRequestContext> = (request as RequestWithAuth).auth ?? {};
 
       if (auth.isSystemAdmin) {
         next();

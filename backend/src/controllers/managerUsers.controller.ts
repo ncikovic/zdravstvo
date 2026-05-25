@@ -25,11 +25,11 @@ export class ManagerUsersController {
   }
 
   public async create(
-    request: Request<unknown, ApiResponse<ManagerUserResponseDto>, CreateManagerUserRequestDto>,
+    request: Request,
     response: Response<ApiResponse<ManagerUserResponseDto>>,
   ): Promise<void> {
     const context = requireAuthenticatedUser(request);
-    const user = await managerUsersService.create(context, request.body);
+    const user = await managerUsersService.create(context, request.body as CreateManagerUserRequestDto);
 
     response.status(201).json({ data: user });
   }
@@ -46,12 +46,12 @@ export class ManagerUsersController {
   }
 
   public async update(
-    request: Request<unknown, ApiResponse<ManagerUserResponseDto>, UpdateManagerUserRequestDto>,
+    request: Request,
     response: Response<ApiResponse<ManagerUserResponseDto>>,
   ): Promise<void> {
     const context = requireAuthenticatedUser(request);
     const { orgUserId } = request.params as ManagerOrgUserIdParamsDto;
-    const user = await managerUsersService.update(context, orgUserId, request.body);
+    const user = await managerUsersService.update(context, orgUserId, request.body as UpdateManagerUserRequestDto);
 
     response.status(200).json({ data: user });
   }
