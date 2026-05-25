@@ -351,7 +351,7 @@ test("logs in a user with a single active organization", async () => {
   if (response.authenticated) {
     assert.equal(
       response.accessToken,
-      `access:${USER_ID}:${ORGANIZATION_ID}:${ORG_USER_ID}:ADMIN`,
+      `access:${USER_ID}:${ORGANIZATION_ID}:${ORG_USER_ID}:MANAGER`,
     );
     assert.equal(response.user.email, "admin@example.test");
     assert.equal(response.organizationId, ORGANIZATION_ID);
@@ -422,7 +422,7 @@ test("selects an organization from a valid selection token", async () => {
   assert.equal(response.authenticated, true);
   assert.equal(
     response.accessToken,
-    `access:${USER_ID}:${ORGANIZATION_ID}:${ORG_USER_ID}:ADMIN`,
+    `access:${USER_ID}:${ORGANIZATION_ID}:${ORG_USER_ID}:MANAGER`,
   );
 });
 
