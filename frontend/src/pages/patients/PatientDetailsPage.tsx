@@ -245,7 +245,7 @@ function PatientDetailsPage(): ReactElement {
               <span>Napomene</span>
             </div>
             <p className="patient-details-notes-text">
-              Napomene nisu dostupne kroz trenutni API.
+              {patient.notes?.trim() || "Nema evidentiranih napomena."}
             </p>
           </div>
         </section>

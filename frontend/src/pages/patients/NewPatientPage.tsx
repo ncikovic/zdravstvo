@@ -82,6 +82,7 @@ function NewPatientPage(): ReactElement {
         emergencyContactPhone: formData.emergencyContactPhone.trim()
           ? `${formData.emergencyContactPhoneCode} ${formData.emergencyContactPhone.trim()}`
           : null,
+        notes: formData.notes.trim() || null,
       });
       toast.success("Pacijent je uspješno kreiran.");
       navigate(APP_ROUTES.patientDetails.replace(":patientId", patient.id));

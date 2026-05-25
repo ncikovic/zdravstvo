@@ -22,6 +22,7 @@ interface PatientRow {
   address: string | null;
   emergency_contact_name: string | null;
   emergency_contact_phone: string | null;
+  notes: string | null;
   created_at: Date | string;
   updated_at: Date | string;
 }
@@ -45,6 +46,7 @@ const PATIENT_COLUMNS = [
   "patient.address",
   "patient.emergency_contact_name",
   "patient.emergency_contact_phone",
+  "patient.notes",
   "patient.created_at",
   "patient.updated_at",
 ] as const;
@@ -67,6 +69,7 @@ const toPatient = (row: PatientRow): Patient => ({
   address: row.address,
   emergencyContactName: row.emergency_contact_name,
   emergencyContactPhone: row.emergency_contact_phone,
+  notes: row.notes,
   createdAt: toDate(row.created_at),
   updatedAt: toDate(row.updated_at),
 });
@@ -82,6 +85,7 @@ const buildInsertPayload = (
   address: record.address ?? null,
   emergency_contact_name: record.emergencyContactName ?? null,
   emergency_contact_phone: record.emergencyContactPhone ?? null,
+  notes: record.notes ?? null,
 });
 
 const buildUpdatePayload = (
@@ -117,6 +121,10 @@ const buildUpdatePayload = (
 
   if ("emergencyContactPhone" in record) {
     payload.emergency_contact_phone = record.emergencyContactPhone ?? null;
+  }
+
+  if ("notes" in record) {
+    payload.notes = record.notes ?? null;
   }
 
   return payload;

@@ -125,10 +125,14 @@ export function AdminReceptionDashboard({
                     <small>{slot.meta}</small>
                   </span>
                   {slot.actionLabel ? (
-                    <button className="dashboard-primary-small" type="button">
-                      {slot.actionLabel}
-                    </button>
-                  ) : null}
+  <button
+    className="dashboard-primary-small"
+    type="button"
+    onClick={() => navigate('/appointments/create')}
+  >
+    {slot.actionLabel}
+  </button>
+) : null}
                 </div>
               ))}
             </div>

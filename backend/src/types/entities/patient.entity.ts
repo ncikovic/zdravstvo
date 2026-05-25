@@ -12,6 +12,7 @@ export interface Patient {
   address: string | null;
   emergencyContactName: string | null;
   emergencyContactPhone: string | null;
+  notes: string | null;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -18,6 +18,7 @@ export const createPatientSchema = z.strictObject({
   address: z.string().trim().min(1).max(255).nullable().optional(),
   emergencyContactName: z.string().trim().min(1).max(120).nullable().optional(),
   emergencyContactPhone: z.string().trim().min(1).max(60).nullable().optional(),
+  notes: z.string().trim().max(5000).nullable().optional(),
 });
 
 export const updatePatientSchema = createPatientSchema
