@@ -24,8 +24,11 @@ import {
   useAppointmentTypesQuery,
 } from "@/hooks";
 
-const t = (hour: number): string =>
-  `2024-01-15T${String(hour).padStart(2, "0")}:00:00.000Z`;
+const t = (hour: number): string => {
+  const d = new Date();
+  d.setHours(hour, 0, 0, 0);
+  return d.toISOString();
+};
 
 const makeDoctor = (id: string, first: string, last: string): DoctorResponseDto => ({
   id,

@@ -32,6 +32,7 @@ const makeOrgScopedAuth = (
   isSystemAdmin: false,
   role: OrganizationUserRole.MANAGER,
   organizationId: 'org-id',
+  organizationName: 'Test Organization',
   orgUserId: 'org-user-id',
   ...overrides,
 });
@@ -56,6 +57,7 @@ const makeSystemAdminAuth = (): AuthenticatedAuthResponseDto => ({
   isSystemAdmin: true,
   role: null,
   organizationId: null,
+  organizationName: null,
   orgUserId: null,
 });
 
