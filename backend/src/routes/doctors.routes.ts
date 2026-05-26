@@ -22,6 +22,11 @@ import { requireAuthenticatedUser } from "../shared/context/index.js";
 import { doctorsService } from "../services/index.js";
 
 const canManageDoctors = requireRoles(OrganizationUserRole.MANAGER);
+const canListDoctors = requireRoles(
+  OrganizationUserRole.MANAGER,
+  OrganizationUserRole.RECEPTION,
+  OrganizationUserRole.PATIENT,
+);
 const canReadDoctors = requireRoles(
   OrganizationUserRole.MANAGER,
   OrganizationUserRole.RECEPTION,
@@ -43,7 +48,7 @@ doctorsRouter.post(
 doctorsRouter.get(
   "/doctors",
   authenticateRequest,
-  canReadDoctors,
+  canListDoctors,
   validateRequest(listDoctorsValidationSchemas),
   asyncHandler(async (request, response) => {
     await doctorsController.list(request, response);

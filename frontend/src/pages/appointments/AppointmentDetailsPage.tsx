@@ -1,10 +1,12 @@
-import type { AppointmentResponseDto } from "@zdravstvo/contracts";
+import { OrganizationUserRole, type AppointmentResponseDto } from "@zdravstvo/contracts";
 import { useEffect, useMemo, useState } from "react";
 import type { ReactElement } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
+import { APP_ROUTES } from "@/app/routes";
 import { AppIcon } from "@/components";
 import { appointmentsService } from "@/services";
+import { useAuthStore } from "@/stores";
 import type { AppIconName } from "@/types";
 
 import "./appointmentDetails.css";
@@ -221,6 +223,13 @@ const buildReminders = (
 function AppointmentDetailsPage(): ReactElement {
   const navigate = useNavigate();
   const { appointmentId } = useParams();
+  const role = useAuthStore((state) => state.role);
+  const isDoctor = role === OrganizationUserRole.DOCTOR;
+  const appointmentListRoute = isDoctor
+    ? APP_ROUTES.doctorOwnSchedule
+    : role === OrganizationUserRole.PATIENT
+      ? APP_ROUTES.myAppointments
+      : APP_ROUTES.appointments;
   const [appointment, setAppointment] = useState<AppointmentResponseDto | null>(
     null,
   );
@@ -307,7 +316,7 @@ function AppointmentDetailsPage(): ReactElement {
             <h1>Detalji termina</h1>
             <p>{error ?? "Termin nije pronadjen."}</p>
           </div>
-          <Link className="appointment-details-options" to="/appointments">
+          <Link className="appointment-details-options" to={appointmentListRoute}>
             <AppIcon name="chevronLeft" />
             Povratak na termine
           </Link>
@@ -324,11 +333,18 @@ function AppointmentDetailsPage(): ReactElement {
           <p>Pregled informacija o odabranom terminu i povezanom pacijentu.</p>
         </div>
 
-        <button className="appointment-details-options" type="button" onClick={() => navigate(`/appointments/${appointment.id}/change`)}>
-          <AppIcon name="dots" />
-          Opcije
-          <AppIcon name="chevronDown" />
-        </button>
+        {!isDoctor ? (
+          <button className="appointment-details-options" type="button" onClick={() => navigate(`/appointments/${appointment.id}/change`)}>
+            <AppIcon name="dots" />
+            Opcije
+            <AppIcon name="chevronDown" />
+          </button>
+        ) : (
+          <button className="appointment-details-options" type="button" onClick={() => navigate(appointmentListRoute)}>
+            <AppIcon name="chevronLeft" />
+            Povratak na raspored
+          </button>
+        )}
       </div>
 
       <div className="appointment-details-grid">
@@ -404,9 +420,11 @@ function AppointmentDetailsPage(): ReactElement {
                 </strong>
                 <small>Azurirano {formatDateTime(appointment.updatedAt)}</small>
               </span>
-              <button type="button" aria-label="Opcije biljeske" onClick={() => navigate(`/appointments/${appointment.id}/change`)}>
-                <AppIcon name="dots" />
-              </button>
+              {!isDoctor ? (
+                <button type="button" aria-label="Opcije biljeske" onClick={() => navigate(`/appointments/${appointment.id}/change`)}>
+                  <AppIcon name="dots" />
+                </button>
+              ) : null}
             </div>
           </section>
 
@@ -436,26 +454,30 @@ function AppointmentDetailsPage(): ReactElement {
         <aside className="appointment-details-sidebar">
           <section className="appointment-details-card appointment-details-actions">
             <h2>Akcije</h2>
-            <Link
-              className="appointment-details-action appointment-details-action--primary"
-              to={`/appointments/${appointment.id}/change`}
-            >
-              <AppIcon name="calendar" />
-              Promijeni termin
-            </Link>
-            <Link
-              className="appointment-details-action appointment-details-action--danger"
-              to={`/appointments/${appointment.id}/cancel`}
-            >
-              <AppIcon name="xCircle" />
-              Otkazi termin
-            </Link>
+            {!isDoctor ? (
+              <>
+                <Link
+                  className="appointment-details-action appointment-details-action--primary"
+                  to={`/appointments/${appointment.id}/change`}
+                >
+                  <AppIcon name="calendar" />
+                  Promijeni termin
+                </Link>
+                <Link
+                  className="appointment-details-action appointment-details-action--danger"
+                  to={`/appointments/${appointment.id}/cancel`}
+                >
+                  <AppIcon name="xCircle" />
+                  Otkazi termin
+                </Link>
+              </>
+            ) : null}
             <Link
               className="appointment-details-action appointment-details-action--secondary"
-              to="/appointments"
+              to={appointmentListRoute}
             >
               <AppIcon name="chevronLeft" />
-              Povratak na termine
+              Povratak
             </Link>
           </section>
 
@@ -482,7 +504,7 @@ function AppointmentDetailsPage(): ReactElement {
               ))}
             </div>
 
-            <button className="appointment-details-history-link" type="button" onClick={() => navigate('/appointments')}>
+            <button className="appointment-details-history-link" type="button" onClick={() => navigate(appointmentListRoute)}>
               Pogledaj cijelu povijest
               <AppIcon name="chevronRight" />
             </button>

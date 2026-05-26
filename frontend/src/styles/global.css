@@ -5448,6 +5448,20 @@ button {
   cursor: pointer;
 }
 
+.quick-note-input input {
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #172642;
+  font: inherit;
+  font-weight: 700;
+}
+
+.quick-note-input input::placeholder {
+  color: #9aa6b8;
+}
+
 .patient-appointment {
   position: relative;
 }

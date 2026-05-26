@@ -1,6 +1,7 @@
 import type { ReactElement } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
+import { APP_ROUTES } from '@/app/routes'
 import { AppIcon } from '@/components'
 import type { PatientDashboard as PatientDashboardData } from '@/types'
 
@@ -120,7 +121,7 @@ export function PatientDashboard({ dashboard }: PatientDashboardProps): ReactEle
 
         <div className="dashboard-side-stack">
           <DashboardSection title="Brze akcije" icon="plus">
-            <Link className="patient-action patient-action--primary" to="/appointments/create">
+            <Link className="patient-action patient-action--primary" to={APP_ROUTES.book}>
               <IconTile icon="calendarCheck" tone="teal" />
               <span>
                 <strong>Rezerviraj termin</strong>
@@ -142,7 +143,7 @@ export function PatientDashboard({ dashboard }: PatientDashboardProps): ReactEle
             title="Podsjetnici i obavijesti"
             icon="bell"
             footerLabel="Pogledaj sve obavijesti"
-            onFooter={() => navigate('/my-appointments')}
+            onFooter={() => navigate(APP_ROUTES.myAppointments)}
           >
             <div className="dashboard-compact-list">
               {view.reminders.map((reminder) => (
@@ -153,7 +154,7 @@ export function PatientDashboard({ dashboard }: PatientDashboardProps): ReactEle
                     <small>{reminder.meta}</small>
                   </span>
                   <StatusBadge tone={reminder.tone}>{reminder.status}</StatusBadge>
-                  <button className="dashboard-row-action" type="button" aria-label="Otvori podsjetnik" onClick={() => navigate('/my-appointments')}>
+                  <button className="dashboard-row-action" type="button" aria-label="Otvori podsjetnik" onClick={() => navigate(APP_ROUTES.myAppointments)}>
                     <AppIcon name="chevronRight" />
                   </button>
                 </div>
@@ -169,7 +170,7 @@ export function PatientDashboard({ dashboard }: PatientDashboardProps): ReactEle
           <strong>Vaše zdravlje na prvom mjestu</strong>
           <small>Redovitim pregledima i preventivnim mjerama čuvajte svoje zdravlje.</small>
         </span>
-        <button type="button" onClick={() => navigate('/appointments/create')}>
+        <button type="button" onClick={() => navigate(APP_ROUTES.book)}>
           Saznajte više o preventivi
           <AppIcon name="chevronRight" />
         </button>

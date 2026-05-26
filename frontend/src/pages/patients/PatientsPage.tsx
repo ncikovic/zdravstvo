@@ -1,11 +1,20 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ReactElement } from "react";
 import { useNavigate } from "react-router-dom";
-import type { PatientDto } from "@zdravstvo/contracts";
+import {
+  UserStatus,
+  type AppointmentResponseDto,
+  type AppointmentTypeDto,
+  type PatientDto,
+} from "@zdravstvo/contracts";
 
 import { AppIcon } from "@/components";
 import { APP_ROUTES } from "@/app/routes";
-import { patientsService } from "@/services";
+import {
+  appointmentTypesService,
+  appointmentsService,
+  patientsService,
+} from "@/services";
 import { getApiErrorMessage } from "@/utils";
 
 import "./patients.css";
@@ -19,6 +28,9 @@ type PatientTone =
   | "blue"
   | "red";
 
+type PatientStatusFilter = "all" | UserStatus.ACTIVE | UserStatus.DISABLED;
+type AppointmentTimingFilter = "all" | "upcoming" | "last30" | "none";
+
 const tones: PatientTone[] = [
   "teal",
   "purple",
@@ -29,9 +41,16 @@ const tones: PatientTone[] = [
   "red",
 ];
 
-const upcomingAppointments = [
-  ["Nije dostupno", "Termin", "Ustanova", "Status"],
-] as const;
+const dateFormatter = new Intl.DateTimeFormat("hr-HR", {
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+});
+
+const timeFormatter = new Intl.DateTimeFormat("hr-HR", {
+  hour: "2-digit",
+  minute: "2-digit",
+});
 
 const getTone = (index: number): PatientTone => tones[index % tones.length];
 
@@ -42,16 +61,79 @@ const getFullName = (patient: PatientDto): string =>
   `${patient.firstName} ${patient.lastName}`;
 
 const getPatientStatus = (patient: PatientDto): "Aktivan" | "Neaktivan" =>
-  patient.status === "ACTIVE" ? "Aktivan" : "Neaktivan";
+  patient.status === UserStatus.ACTIVE ? "Aktivan" : "Neaktivan";
+
+const getAppointmentStatusLabel = (
+  status: AppointmentResponseDto["status"],
+): string => {
+  const labels: Record<AppointmentResponseDto["status"], string> = {
+    SCHEDULED: "Zakazano",
+    CANCELLED: "Otkazano",
+    COMPLETED: "Završeno",
+    NO_SHOW: "Nedolazak",
+  };
+
+  return labels[status];
+};
+
+const getAppointmentTimestamp = (appointment: AppointmentResponseDto): number =>
+  new Date(appointment.startAt).getTime();
+
+const sortAppointmentsAscending = (
+  firstAppointment: AppointmentResponseDto,
+  secondAppointment: AppointmentResponseDto,
+): number => getAppointmentTimestamp(firstAppointment) - getAppointmentTimestamp(secondAppointment);
+
+const sortAppointmentsDescending = (
+  firstAppointment: AppointmentResponseDto,
+  secondAppointment: AppointmentResponseDto,
+): number => getAppointmentTimestamp(secondAppointment) - getAppointmentTimestamp(firstAppointment);
+
+const formatAppointmentDate = (appointment: AppointmentResponseDto): string => {
+  const date = new Date(appointment.startAt);
+
+  if (Number.isNaN(date.getTime())) {
+    return "Nije dostupno";
+  }
+
+  return `${dateFormatter.format(date)} u ${timeFormatter.format(date)}`;
+};
+
+const formatLastAppointment = (
+  appointments: readonly AppointmentResponseDto[],
+): string => {
+  if (appointments.length === 0) {
+    return "Nije dostupno";
+  }
+
+  const now = Date.now();
+  const pastAppointment = [...appointments]
+    .filter((appointment) => getAppointmentTimestamp(appointment) <= now)
+    .sort(sortAppointmentsDescending)[0];
+
+  if (pastAppointment) {
+    return formatAppointmentDate(pastAppointment);
+  }
+
+  const nextAppointment = [...appointments].sort(sortAppointmentsAscending)[0];
+
+  return nextAppointment ? `Uskoro: ${formatAppointmentDate(nextAppointment)}` : "Nije dostupno";
+};
 
 function PatientsPage(): ReactElement {
   const navigate = useNavigate();
   const [patients, setPatients] = useState<PatientDto[]>([]);
+  const [appointments, setAppointments] = useState<AppointmentResponseDto[]>([]);
+  const [appointmentTypes, setAppointmentTypes] = useState<AppointmentTypeDto[]>([]);
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(
     null,
   );
   const [isDetailPanelOpen, setIsDetailPanelOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<PatientStatusFilter>("all");
+  const [appointmentTypeFilter, setAppointmentTypeFilter] = useState("all");
+  const [appointmentTimingFilter, setAppointmentTimingFilter] =
+    useState<AppointmentTimingFilter>("all");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
@@ -81,15 +163,91 @@ function PatientsPage(): ReactElement {
     fetchPatients();
   }, [page]);
 
-  const filteredPatients = useMemo(() => {
-    const value = search.trim().toLowerCase();
+  useEffect(() => {
+    const fetchFilterData = async (): Promise<void> => {
+      try {
+        const [appointmentTypeData, appointmentData] = await Promise.all([
+          appointmentTypesService.list({ page: 1, isActive: true }),
+          appointmentsService.list({ limit: 200 }),
+        ]);
 
-    if (!value) {
-      return patients;
+        setAppointmentTypes(appointmentTypeData.appointmentTypes);
+        setAppointments(appointmentData.appointments);
+      } catch {
+        setAppointmentTypes([]);
+        setAppointments([]);
+      }
+    };
+
+    void fetchFilterData();
+  }, []);
+
+  const appointmentsByPatient = useMemo(() => {
+    const groupedAppointments = new Map<string, AppointmentResponseDto[]>();
+
+    for (const appointment of appointments) {
+      const patientAppointments = groupedAppointments.get(appointment.patient.id) ?? [];
+
+      patientAppointments.push(appointment);
+      groupedAppointments.set(appointment.patient.id, patientAppointments);
     }
 
-    return patients.filter((patient) =>
-      [
+    return groupedAppointments;
+  }, [appointments]);
+
+  const filteredPatients = useMemo(() => {
+    const value = search.trim().toLowerCase();
+    const now = Date.now();
+    const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000;
+
+    return patients.filter((patient) => {
+      const patientAppointments = appointmentsByPatient.get(patient.id) ?? [];
+
+      if (statusFilter !== "all" && patient.status !== statusFilter) {
+        return false;
+      }
+
+      if (
+        appointmentTypeFilter !== "all" &&
+        !patientAppointments.some(
+          (appointment) => appointment.appointmentType.id === appointmentTypeFilter,
+        )
+      ) {
+        return false;
+      }
+
+      if (appointmentTimingFilter === "upcoming") {
+        const hasUpcomingAppointment = patientAppointments.some(
+          (appointment) =>
+            appointment.status === "SCHEDULED" && getAppointmentTimestamp(appointment) >= now,
+        );
+
+        if (!hasUpcomingAppointment) {
+          return false;
+        }
+      }
+
+      if (appointmentTimingFilter === "last30") {
+        const hasRecentAppointment = patientAppointments.some((appointment) => {
+          const appointmentTime = getAppointmentTimestamp(appointment);
+
+          return appointmentTime < now && appointmentTime >= thirtyDaysAgo;
+        });
+
+        if (!hasRecentAppointment) {
+          return false;
+        }
+      }
+
+      if (appointmentTimingFilter === "none" && patientAppointments.length > 0) {
+        return false;
+      }
+
+      if (!value) {
+        return true;
+      }
+
+      return [
         getFullName(patient),
         patient.oib,
         patient.phone,
@@ -98,14 +256,38 @@ function PatientsPage(): ReactElement {
         patient.notes,
       ]
         .filter(Boolean)
-        .some((field) => field?.toLowerCase().includes(value)),
-    );
-  }, [patients, search]);
+        .some((field) => field?.toLowerCase().includes(value));
+    });
+  }, [
+    appointmentTimingFilter,
+    appointmentTypeFilter,
+    appointmentsByPatient,
+    patients,
+    search,
+    statusFilter,
+  ]);
 
   const selectedPatientCandidate = selectedPatientId
     ? filteredPatients.find((patient) => patient.id === selectedPatientId) ?? null
     : null;
   const selectedPatient = isDetailPanelOpen ? selectedPatientCandidate : null;
+  const selectedPatientAppointments = selectedPatient
+    ? appointmentsByPatient.get(selectedPatient.id) ?? []
+    : [];
+  const selectedUpcomingAppointments = [...selectedPatientAppointments]
+    .filter(
+      (appointment) =>
+        appointment.status === "SCHEDULED" && getAppointmentTimestamp(appointment) >= Date.now(),
+    )
+    .sort(sortAppointmentsAscending)
+    .slice(0, 3);
+
+  const clearFilters = (): void => {
+    setSearch("");
+    setStatusFilter("all");
+    setAppointmentTypeFilter("all");
+    setAppointmentTimingFilter("all");
+  };
 
   return (
     <div className="patients-page">
@@ -152,36 +334,52 @@ function PatientsPage(): ReactElement {
             <div className="patients-filter-row">
               <label>
                 <span>Status</span>
-                <div>
-                  Svi statusi
-                  <AppIcon name="chevronDown" />
-                </div>
-              </label>
-              <label>
-                <span>Lijecnik</span>
-                <div>
-                  Svi lijecnici
-                  <AppIcon name="chevronDown" />
-                </div>
+                <select
+                  className="patients-filter-select"
+                  value={statusFilter}
+                  onChange={(event) =>
+                    setStatusFilter(event.target.value as PatientStatusFilter)
+                  }
+                >
+                  <option value="all">Svi statusi</option>
+                  <option value={UserStatus.ACTIVE}>Aktivni</option>
+                  <option value={UserStatus.DISABLED}>Neaktivni</option>
+                </select>
               </label>
               <label>
                 <span>Vrsta termina</span>
-                <div>
-                  Sve vrste
-                  <AppIcon name="chevronDown" />
-                </div>
+                <select
+                  className="patients-filter-select"
+                  value={appointmentTypeFilter}
+                  onChange={(event) => setAppointmentTypeFilter(event.target.value)}
+                >
+                  <option value="all">Sve vrste</option>
+                  {appointmentTypes.map((appointmentType) => (
+                    <option key={appointmentType.id} value={appointmentType.id}>
+                      {appointmentType.name}
+                    </option>
+                  ))}
+                </select>
               </label>
               <label>
                 <span>Zadnji termin</span>
-                <div>
-                  Bilo kada
-                  <AppIcon name="chevronDown" />
-                </div>
+                <select
+                  className="patients-filter-select"
+                  value={appointmentTimingFilter}
+                  onChange={(event) =>
+                    setAppointmentTimingFilter(event.target.value as AppointmentTimingFilter)
+                  }
+                >
+                  <option value="all">Bilo kada</option>
+                  <option value="upcoming">Ima nadolazeći termin</option>
+                  <option value="last30">U zadnjih 30 dana</option>
+                  <option value="none">Bez termina</option>
+                </select>
               </label>
               <button
                 className="patients-clear-button"
                 type="button"
-                onClick={() => setSearch("")}
+                onClick={clearFilters}
               >
                 <AppIcon name="tag" />
                 Obrisi filtre
@@ -221,6 +419,7 @@ function PatientsPage(): ReactElement {
                 {filteredPatients.map((patient, index) => {
                   const fullName = getFullName(patient);
                   const status = getPatientStatus(patient);
+                  const patientAppointments = appointmentsByPatient.get(patient.id) ?? [];
 
                   return (
                     <div
@@ -246,7 +445,7 @@ function PatientsPage(): ReactElement {
                       <span>{patient.oib || "Nije dostupno"}</span>
                       <span>{patient.phone || "Nije dostupno"}</span>
                       <span className="patients-last-appointment">
-                        Nije dostupno
+                        {formatLastAppointment(patientAppointments)}
                       </span>
                       <em
                         className={
@@ -342,136 +541,144 @@ function PatientsPage(): ReactElement {
               <AppIcon name="xCircle" />
             </button>
 
-            {selectedPatient ? (
-              <>
-                <div className="patients-detail-header">
-                  <span className="patients-detail-avatar">
-                    {getInitials(selectedPatient)}
+            <>
+              <div className="patients-detail-header">
+                <span className="patients-detail-avatar">
+                  {getInitials(selectedPatient)}
+                </span>
+                <div>
+                  <h2>{getFullName(selectedPatient)}</h2>
+                  <span>
+                    {selectedPatient.dateOfBirth ||
+                      "Datum rodjenja nije dostupan"}
                   </span>
-                  <div>
-                    <h2>{getFullName(selectedPatient)}</h2>
-                    <span>
-                      {selectedPatient.dateOfBirth ||
-                        "Datum rodjenja nije dostupan"}
-                    </span>
-                    <small>OIB: {selectedPatient.oib || "Nije dostupno"}</small>
-                  </div>
-                  <em>{getPatientStatus(selectedPatient)}</em>
+                  <small>OIB: {selectedPatient.oib || "Nije dostupno"}</small>
                 </div>
+                <em>{getPatientStatus(selectedPatient)}</em>
+              </div>
 
-                <section className="patients-info-card">
-                  <h3>Kontakt podaci</h3>
-                  <div className="patients-info-list">
-                    <span>
-                      <AppIcon name="clock" />
-                      Telefon
-                    </span>
-                    <strong>{selectedPatient.phone || "Nije dostupno"}</strong>
-                    <span>
-                      <AppIcon name="mail" />
-                      E-mail
-                    </span>
-                    <strong>{selectedPatient.email || "Nije dostupno"}</strong>
-                    <span>
-                      <AppIcon name="home" />
-                      Adresa
-                    </span>
-                    <strong>{selectedPatient.address || "Nije dostupno"}</strong>
-                  </div>
-                </section>
+              <section className="patients-info-card">
+                <h3>Kontakt podaci</h3>
+                <div className="patients-info-list">
+                  <span>
+                    <AppIcon name="clock" />
+                    Telefon
+                  </span>
+                  <strong>{selectedPatient.phone || "Nije dostupno"}</strong>
+                  <span>
+                    <AppIcon name="mail" />
+                    E-mail
+                  </span>
+                  <strong>{selectedPatient.email || "Nije dostupno"}</strong>
+                  <span>
+                    <AppIcon name="home" />
+                    Adresa
+                  </span>
+                  <strong>{selectedPatient.address || "Nije dostupno"}</strong>
+                </div>
+              </section>
 
-                <section className="patients-info-card">
-                  <h3>Hitni kontakt</h3>
-                  <div className="patients-emergency-contact">
-                    <AppIcon name="user" />
-                    <span>
-                      {selectedPatient.emergencyContactName || "Nije dostupno"}
-                      <strong>
-                        {selectedPatient.emergencyContactPhone || "Nije dostupno"}
-                      </strong>
-                    </span>
-                  </div>
-                </section>
+              <section className="patients-info-card">
+                <h3>Hitni kontakt</h3>
+                <div className="patients-emergency-contact">
+                  <AppIcon name="user" />
+                  <span>
+                    {selectedPatient.emergencyContactName || "Nije dostupno"}
+                    <strong>
+                      {selectedPatient.emergencyContactPhone || "Nije dostupno"}
+                    </strong>
+                  </span>
+                </div>
+              </section>
 
-                <section className="patients-info-card">
-                  <h3>Napomene</h3>
-                  <p className="patients-notes-text">
-                    {selectedPatient.notes?.trim() ||
-                      "Nema evidentiranih napomena."}
-                  </p>
-                </section>
+              <section className="patients-info-card">
+                <h3>Napomene</h3>
+                <p className="patients-notes-text">
+                  {selectedPatient.notes?.trim() ||
+                    "Nema evidentiranih napomena."}
+                </p>
+              </section>
 
-                <section className="patients-info-card patients-appointments-card">
-                  <div className="patients-card-heading">
-                    <h3>Nadolazeci termini</h3>
-                    <button
-                      type="button"
-                      onClick={() => navigate(APP_ROUTES.appointments)}
-                    >
-                      Prikazi sve
-                    </button>
-                  </div>
-                  <div className="patients-appointment-list">
-                    {upcomingAppointments.map(
-                      ([date, title, location, status]) => (
-                        <div className="patients-appointment-item" key={date}>
-                          <AppIcon name="calendar" />
-                          <span>
-                            <strong>{date}</strong>
-                            {title}
-                            <small>{location}</small>
-                          </span>
-                          <em>{status}</em>
-                        </div>
+              <section className="patients-info-card patients-appointments-card">
+                <div className="patients-card-heading">
+                  <h3>Nadolazeci termini</h3>
+                  <button
+                    type="button"
+                    onClick={() => navigate(APP_ROUTES.appointments)}
+                  >
+                    Prikazi sve
+                  </button>
+                </div>
+                <div className="patients-appointment-list">
+                  {selectedUpcomingAppointments.length > 0 ? (
+                    selectedUpcomingAppointments.map((appointment) => (
+                      <div className="patients-appointment-item" key={appointment.id}>
+                        <AppIcon name="calendar" />
+                        <span>
+                          <strong>{formatAppointmentDate(appointment)}</strong>
+                          {appointment.appointmentType.name}
+                          <small>{`Dr. ${appointment.doctor.firstName} ${appointment.doctor.lastName}`}</small>
+                        </span>
+                        <em>{getAppointmentStatusLabel(appointment.status)}</em>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="patients-appointment-item">
+                      <AppIcon name="calendar" />
+                      <span>
+                        <strong>Nema nadolazećih termina</strong>
+                        Termin
+                        <small>Ustanova</small>
+                      </span>
+                      <em>Nije dostupno</em>
+                    </div>
+                  )}
+                </div>
+              </section>
+
+              <div className="patients-detail-actions">
+                <button
+                  type="button"
+                  onClick={() =>
+                    navigate(
+                      APP_ROUTES.patientDetails.replace(
+                        ":patientId",
+                        selectedPatient.id,
                       ),
-                    )}
-                  </div>
-                </section>
-
-                <div className="patients-detail-actions">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      navigate(
-                        APP_ROUTES.patientDetails.replace(
-                          ":patientId",
-                          selectedPatient.id,
-                        ),
-                      )
-                    }
-                  >
-                    <AppIcon name="user" />
-                    Pogledaj detalje
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      navigate(
-                        APP_ROUTES.patientEdit.replace(
-                          ":patientId",
-                          selectedPatient.id,
-                        ),
-                      )
-                    }
-                  >
-                    <AppIcon name="note" />
-                    Uredi podatke
-                  </button>
-                  <button
-                    className="patients-detail-actions__primary"
-                    type="button"
-                    onClick={() =>
-                      navigate(
-                        `${APP_ROUTES.createAppointment}?patientId=${selectedPatient.id}`,
-                      )
-                    }
-                  >
-                    <AppIcon name="calendar" />
-                    Rezerviraj termin
-                  </button>
-                </div>
-              </>
-            ) : null}
+                    )
+                  }
+                >
+                  <AppIcon name="user" />
+                  Pogledaj detalje
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    navigate(
+                      APP_ROUTES.patientEdit.replace(
+                        ":patientId",
+                        selectedPatient.id,
+                      ),
+                    )
+                  }
+                >
+                  <AppIcon name="note" />
+                  Uredi podatke
+                </button>
+                <button
+                  className="patients-detail-actions__primary"
+                  type="button"
+                  onClick={() =>
+                    navigate(
+                      `${APP_ROUTES.createAppointment}?patientId=${selectedPatient.id}`,
+                    )
+                  }
+                >
+                  <AppIcon name="calendar" />
+                  Rezerviraj termin
+                </button>
+              </div>
+            </>
           </aside>
         ) : null}
       </div>

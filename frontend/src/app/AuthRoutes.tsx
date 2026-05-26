@@ -154,6 +154,28 @@ export function ManagerReceptionRoute(): ReactElement {
   return <Outlet />
 }
 
+export function AppointmentDetailRoute(): ReactElement {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const role = useAuthStore((state) => state.role)
+
+  if (!isAuthenticated) {
+    return <Navigate to={APP_ROUTES.login} replace />
+  }
+
+  const allowed = [
+    OrganizationUserRole.MANAGER,
+    OrganizationUserRole.RECEPTION,
+    OrganizationUserRole.DOCTOR,
+    OrganizationUserRole.PATIENT,
+  ]
+
+  if (!role || !allowed.includes(role)) {
+    return <Navigate to={APP_ROUTES.forbidden} replace />
+  }
+
+  return <Outlet />
+}
+
 export function ScheduleActionRoute(): ReactElement {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const role = useAuthStore((state) => state.role)

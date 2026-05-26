@@ -113,8 +113,7 @@
 .patients-filter-row {
   display: grid;
   grid-template-columns:
-    minmax(140px, 0.85fr) minmax(150px, 0.9fr) minmax(150px, 0.9fr)
-    minmax(150px, 0.9fr) auto;
+    minmax(140px, 0.85fr) minmax(170px, 1fr) minmax(190px, 1fr) auto;
   gap: 16px;
   align-items: end;
 }
@@ -132,6 +131,7 @@
 }
 
 .patients-filter-row label > div,
+.patients-filter-select,
 .patients-clear-button,
 .patients-page-size {
   display: inline-flex;
@@ -154,6 +154,13 @@
   width: 18px;
   height: 18px;
   color: #52668a;
+}
+
+
+.patients-filter-select {
+  width: 100%;
+  appearance: auto;
+  cursor: pointer;
 }
 
 .patients-clear-button {

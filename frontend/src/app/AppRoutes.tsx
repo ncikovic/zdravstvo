@@ -49,6 +49,7 @@ import { ProfilePage } from '@/pages/patients/ProfilePage';
 
 import {
   DoctorRoute,
+  AppointmentDetailRoute,
   ManagerOrSystemAdminRoute,
   ManagerReceptionRoute,
   ManagerRoute,
@@ -136,10 +137,16 @@ export function AppRoutes(): ReactElement {
           </Route>
         </Route>
 
+        {/* Appointment details: manager, reception, doctor, and patient */}
+        <Route element={<AppointmentDetailRoute />}>
+          <Route element={<AppLayout />}>
+            <Route path={APP_ROUTES.appointmentDetails} element={<AppointmentDetailsPage />} />
+          </Route>
+        </Route>
+
         {/* Appointment detail actions: manager, reception, and patient */}
         <Route element={<ScheduleActionRoute />}>
           <Route element={<AppLayout />}>
-            <Route path={APP_ROUTES.appointmentDetails} element={<AppointmentDetailsPage />} />
             <Route path={APP_ROUTES.changeAppointment} element={<ChangeAppointmentPage />} />
             <Route path={APP_ROUTES.cancelAppointment} element={<CancelAppointmentPage />} />
           </Route>
