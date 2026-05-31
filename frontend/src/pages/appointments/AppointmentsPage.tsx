@@ -4,8 +4,8 @@ import type {
   AppointmentTypeDto,
   DoctorResponseDto,
 } from "@zdravstvo/contracts";
-import { useEffect, useMemo, useState } from "react";
-import type { ReactElement } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { ChangeEvent, KeyboardEvent, ReactElement } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 
 import { APP_ROUTES } from "@/app/routes";
@@ -579,9 +579,12 @@ const getErrorMessage = (error: unknown): string | null => {
 function AppointmentsPage(): ReactElement {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const doctorComboboxRef = useRef<HTMLDivElement | null>(null);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<
     string | null
   >(null);
+  const [doctorComboboxValue, setDoctorComboboxValue] = useState("");
+  const [isDoctorComboboxOpen, setIsDoctorComboboxOpen] = useState(false);
   const [isBlockTimeFormOpen, setIsBlockTimeFormOpen] = useState(false);
   const [blockTimeDoctorId, setBlockTimeDoctorId] = useState("");
   const [blockTimeDate, setBlockTimeDate] = useState("");
@@ -651,6 +654,28 @@ function AppointmentsPage(): ReactElement {
   const doctorOptions: DoctorResponseDto[] = doctorsData ?? [];
   const appointmentTypeOptions: AppointmentTypeDto[] =
     appointmentTypesData ?? [];
+  const selectedDoctorOption =
+    doctorOptions.find((doctor) => doctor.id === selectedDoctorId) ?? null;
+  const selectedDoctorLabel = selectedDoctorOption
+    ? getDoctorOptionName(selectedDoctorOption)
+    : "";
+  const normalizedDoctorComboboxValue = doctorComboboxValue
+    .trim()
+    .toLocaleLowerCase("hr-HR");
+  const filteredDoctorOptions = useMemo(() => {
+    if (!normalizedDoctorComboboxValue) {
+      return doctorOptions;
+    }
+
+    return doctorOptions.filter((doctor) =>
+      getDoctorOptionName(doctor)
+        .toLocaleLowerCase("hr-HR")
+        .includes(normalizedDoctorComboboxValue),
+    );
+  }, [doctorOptions, normalizedDoctorComboboxValue]);
+  const showAllDoctorsOption =
+    !normalizedDoctorComboboxValue ||
+    "svi lijecnici".includes(normalizedDoctorComboboxValue);
 
   const appointments = useMemo(
     () =>
@@ -725,6 +750,30 @@ function AppointmentsPage(): ReactElement {
     );
   }, [appointments]);
 
+  useEffect(() => {
+    if (!isDoctorComboboxOpen) {
+      setDoctorComboboxValue(selectedDoctorLabel);
+    }
+  }, [isDoctorComboboxOpen, selectedDoctorLabel]);
+
+  useEffect(() => {
+    const closeDoctorCombobox = (event: MouseEvent): void => {
+      if (
+        doctorComboboxRef.current &&
+        !doctorComboboxRef.current.contains(event.target as Node)
+      ) {
+        setIsDoctorComboboxOpen(false);
+        setDoctorComboboxValue(selectedDoctorLabel);
+      }
+    };
+
+    document.addEventListener("mousedown", closeDoctorCombobox);
+
+    return () => {
+      document.removeEventListener("mousedown", closeDoctorCombobox);
+    };
+  }, [selectedDoctorLabel]);
+
   const updateFilters = (updates: Partial<Record<FilterKey, string>>): void => {
     const nextParams = new URLSearchParams(searchParams);
 
@@ -764,6 +813,57 @@ function AppointmentsPage(): ReactElement {
 
   const clearFilters = (): void => {
     updateFilters({ doctorId: "", appointmentTypeId: "", q: "" });
+  };
+
+  const selectDoctorFilter = (doctorId: string, label: string): void => {
+    updateFilters({ doctorId });
+    setDoctorComboboxValue(label);
+    setIsDoctorComboboxOpen(false);
+  };
+
+  const handleDoctorComboboxChange = (
+    event: ChangeEvent<HTMLInputElement>,
+  ): void => {
+    const value = event.target.value;
+
+    setDoctorComboboxValue(value);
+    setIsDoctorComboboxOpen(true);
+
+    if (!value.trim() || (selectedDoctorLabel && value !== selectedDoctorLabel)) {
+      updateFilters({ doctorId: "" });
+    }
+  };
+
+  const handleDoctorComboboxKeyDown = (
+    event: KeyboardEvent<HTMLInputElement>,
+  ): void => {
+    if (event.key === "Escape") {
+      setIsDoctorComboboxOpen(false);
+      setDoctorComboboxValue(selectedDoctorLabel);
+      return;
+    }
+
+    if (event.key !== "Enter" || !isDoctorComboboxOpen) {
+      return;
+    }
+
+    event.preventDefault();
+
+    if (!doctorComboboxValue.trim()) {
+      selectDoctorFilter("", "");
+      return;
+    }
+
+    const exactMatch = filteredDoctorOptions.find(
+      (doctor) =>
+        getDoctorOptionName(doctor).toLocaleLowerCase("hr-HR") ===
+        normalizedDoctorComboboxValue,
+    );
+    const doctorToSelect = exactMatch ?? filteredDoctorOptions[0];
+
+    if (doctorToSelect) {
+      selectDoctorFilter(doctorToSelect.id, getDoctorOptionName(doctorToSelect));
+    }
   };
 
   const openBlockTimeForm = (): void => {
@@ -854,24 +954,73 @@ function AppointmentsPage(): ReactElement {
         </label>
         <label>
           <span>Lijecnik</span>
-          <div>
+          <div className="appointments-combobox" ref={doctorComboboxRef}>
             <AppIcon name="user" />
-            <select
+            <input
               aria-label="Lijecnik"
+              aria-autocomplete="list"
+              aria-controls="appointments-doctor-combobox-list"
+              aria-expanded={isDoctorComboboxOpen}
               disabled={areDoctorsLoading}
-              value={selectedDoctorId}
-              onChange={(event) =>
-                updateFilters({ doctorId: event.target.value })
+              placeholder="Svi lijecnici"
+              role="combobox"
+              type="text"
+              value={doctorComboboxValue}
+              onChange={handleDoctorComboboxChange}
+              onFocus={() => setIsDoctorComboboxOpen(true)}
+              onKeyDown={handleDoctorComboboxKeyDown}
+            />
+            <button
+              aria-label="Prikazi lijecnike"
+              className="appointments-combobox__toggle"
+              disabled={areDoctorsLoading}
+              type="button"
+              onClick={() =>
+                setIsDoctorComboboxOpen((currentValue) => !currentValue)
               }
             >
-              <option value="">Svi lijecnici</option>
-              {doctorOptions.map((doctor) => (
-                <option key={doctor.id} value={doctor.id}>
-                  {getDoctorOptionName(doctor)}
-                </option>
-              ))}
-            </select>
-            <AppIcon name="chevronDown" />
+              <AppIcon name="chevronDown" />
+            </button>
+            {isDoctorComboboxOpen ? (
+              <ul
+                className="appointments-combobox__list"
+                id="appointments-doctor-combobox-list"
+                role="listbox"
+              >
+                {showAllDoctorsOption ? (
+                  <li
+                    className={!selectedDoctorId ? "is-active" : undefined}
+                    role="option"
+                    aria-selected={!selectedDoctorId}
+                    onMouseDown={() => selectDoctorFilter("", "")}
+                  >
+                    Svi lijecnici
+                  </li>
+                ) : null}
+                {filteredDoctorOptions.map((doctor) => {
+                  const doctorName = getDoctorOptionName(doctor);
+
+                  return (
+                    <li
+                      className={
+                        doctor.id === selectedDoctorId ? "is-active" : undefined
+                      }
+                      key={doctor.id}
+                      role="option"
+                      aria-selected={doctor.id === selectedDoctorId}
+                      onMouseDown={() => selectDoctorFilter(doctor.id, doctorName)}
+                    >
+                      {doctorName}
+                    </li>
+                  );
+                })}
+                {!filteredDoctorOptions.length && !showAllDoctorsOption ? (
+                  <li className="appointments-combobox__empty">
+                    Nema pronadenih lijecnika
+                  </li>
+                ) : null}
+              </ul>
+            ) : null}
           </div>
         </label>
         <label>

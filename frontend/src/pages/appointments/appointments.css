@@ -127,6 +127,81 @@
   cursor: pointer;
 }
 
+.appointments-combobox {
+  position: relative;
+}
+
+.appointments-combobox__toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #526382;
+  cursor: pointer;
+}
+
+.appointments-combobox__toggle:disabled {
+  color: #8a97af;
+  cursor: wait;
+}
+
+.appointments-combobox__toggle .app-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.appointments-combobox__list {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 30;
+  max-height: 240px;
+  margin: 0;
+  padding: 5px;
+  overflow-y: auto;
+  border: 1px solid #d9e6f2;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 16px 32px rgba(22, 55, 99, 0.16);
+  list-style: none;
+}
+
+.appointments-combobox__list li {
+  min-width: 0;
+  overflow: hidden;
+  padding: 9px 10px;
+  border-radius: 6px;
+  color: #46567a;
+  font-size: 0.88rem;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.appointments-combobox__list li:hover {
+  background: #f0f8ff;
+}
+
+.appointments-combobox__list li.is-active {
+  background: #e5f7f6;
+  color: #07857c;
+}
+
+.appointments-combobox__list .appointments-combobox__empty {
+  color: #8a97af;
+  cursor: default;
+}
+
+.appointments-combobox__list .appointments-combobox__empty:hover {
+  background: transparent;
+}
+
 .appointments-filters input:disabled,
 .appointments-filters select:disabled {
   color: #8a97af;
