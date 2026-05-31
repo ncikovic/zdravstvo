@@ -70,12 +70,6 @@ function ManagerUsersPage(): ReactElement {
         </Link>
       </div>
 
-      {usersQuery.error && (
-        <div role="alert" className="manager-users-alert">
-          {getApiErrorMessage(usersQuery.error)}
-        </div>
-      )}
-
       <div className="manager-users-filters">
         <label className="manager-users-search-field">
           <AppIcon name="search" />
@@ -102,6 +96,10 @@ function ManagerUsersPage(): ReactElement {
 
       {usersQuery.isLoading ? (
         <div className="manager-users-loading">Učitavanje korisnika...</div>
+      ) : usersQuery.error ? (
+        <div role="alert" className="manager-users-alert">
+          {getApiErrorMessage(usersQuery.error)}
+        </div>
       ) : users.length === 0 ? (
         <div className="manager-users-empty">
           Nema korisnika koji odgovaraju odabranim filterima.

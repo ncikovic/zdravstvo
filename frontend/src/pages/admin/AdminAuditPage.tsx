@@ -37,14 +37,12 @@ function AdminAuditPage(): ReactElement {
         <p style={{ margin: '0.25rem 0 0', color: '#666' }}>Pregled svih akcija u sustavu.</p>
       </div>
 
-      {error ? (
-        <div role="alert" style={{ padding: '0.75rem 1rem', background: '#fef2f2', color: '#b91c1c', borderRadius: '6px', marginBottom: '1rem' }}>
-          {error}
-        </div>
-      ) : null}
-
       {isLoading ? (
         <p style={{ color: '#666' }}>Učitavanje...</p>
+      ) : error ? (
+        <div role="alert" style={{ padding: '2rem', textAlign: 'center', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', color: '#b91c1c' }}>
+          {error}
+        </div>
       ) : (
         <>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>

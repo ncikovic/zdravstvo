@@ -75,12 +75,6 @@ function AdminUsersPage(): ReactElement {
         </p>
       </div>
 
-      {error && (
-        <div role="alert" style={{ padding: '0.75rem 1rem', background: '#fef2f2', color: '#b91c1c', borderRadius: '6px', marginBottom: '1rem' }}>
-          {error}
-        </div>
-      )}
-
       <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
         <input
           type="search"
@@ -103,6 +97,10 @@ function AdminUsersPage(): ReactElement {
 
       {isLoading ? (
         <p style={{ color: '#6b7280' }}>Učitavanje...</p>
+      ) : error ? (
+        <div role="alert" style={{ padding: '3rem', textAlign: 'center', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', color: '#b91c1c' }}>
+          {error}
+        </div>
       ) : users.length === 0 ? (
         <div style={{ padding: '3rem', textAlign: 'center', background: '#f8fafc', border: '1px dashed #cbd5e1', borderRadius: '8px', color: '#94a3b8' }}>
           Nema korisnika koji odgovaraju odabranim filterima.

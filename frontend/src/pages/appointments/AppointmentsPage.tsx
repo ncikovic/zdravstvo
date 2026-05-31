@@ -1344,7 +1344,7 @@ function AppointmentsPage(): ReactElement {
             </div>
           ) : null}
 
-          {!areAppointmentsLoading && appointments.length === 0 ? (
+          {!areAppointmentsLoading && !error && appointments.length === 0 ? (
             <div className="appointments-legend">
               <span>{emptyStateMessage}</span>
             </div>

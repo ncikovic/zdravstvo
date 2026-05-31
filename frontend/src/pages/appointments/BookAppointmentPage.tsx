@@ -100,6 +100,7 @@ function BookAppointmentPage(): ReactElement {
     const fetch = async (): Promise<void> => {
       try {
         setLoadingTypes(true)
+        setError(null)
         const result = await appointmentTypesService.list(1)
         setAppointmentTypes(result.appointmentTypes.filter((t) => t.isActive))
       } catch (err) {
@@ -116,6 +117,7 @@ function BookAppointmentPage(): ReactElement {
     const fetch = async (): Promise<void> => {
       try {
         setLoadingDoctors(true)
+        setError(null)
         const result = await doctorsService.list(1)
         setDoctors(result.doctors.filter((d) => d.isActive))
       } catch (err) {
@@ -132,6 +134,7 @@ function BookAppointmentPage(): ReactElement {
     const fetch = async (): Promise<void> => {
       try {
         setLoadingSlots(true)
+        setError(null)
         setSlots([])
         setSelectedSlot(null)
         const result = await appointmentsService.findAvailableSlots({
@@ -202,6 +205,7 @@ function BookAppointmentPage(): ReactElement {
         <Step1
           types={appointmentTypes}
           loading={loadingTypes}
+          hasError={Boolean(error)}
           selected={selectedType}
           onSelect={(t) => { setSelectedType(t); setStep(2) }}
         />
@@ -219,6 +223,7 @@ function BookAppointmentPage(): ReactElement {
           date={selectedDate}
           slots={slots}
           loading={loadingSlots}
+          hasError={Boolean(error)}
           selected={selectedSlot}
           onDateChange={setSelectedDate}
           onSelect={(s) => { setSelectedSlot(s); setStep(4) }}
@@ -242,17 +247,18 @@ function BookAppointmentPage(): ReactElement {
 interface Step1Props {
   types: AppointmentTypeDto[]
   loading: boolean
+  hasError: boolean
   selected: AppointmentTypeDto | null
   onSelect: (t: AppointmentTypeDto) => void
 }
 
-function Step1({ types, loading, onSelect }: Step1Props): ReactElement {
+function Step1({ types, loading, hasError, onSelect }: Step1Props): ReactElement {
   if (loading) return <p style={{ color: '#666' }}>Učitavanje...</p>
 
   return (
     <div>
       <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1rem' }}>Odaberite vrstu pregleda</h2>
-      {types.length === 0 ? (
+      {hasError ? null : types.length === 0 ? (
         <p style={{ color: '#9ca3af' }}>Nema dostupnih vrsta pregleda.</p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -382,13 +388,14 @@ interface Step3Props {
   date: string
   slots: AppointmentAvailableSlotDto[]
   loading: boolean
+  hasError: boolean
   selected: AppointmentAvailableSlotDto | null
   onDateChange: (d: string) => void
   onSelect: (s: AppointmentAvailableSlotDto) => void
   onBack: () => void
 }
 
-function Step3({ date, slots, loading, selected, onDateChange, onSelect, onBack }: Step3Props): ReactElement {
+function Step3({ date, slots, loading, hasError, selected, onDateChange, onSelect, onBack }: Step3Props): ReactElement {
   const today = new Date().toISOString().slice(0, 10)
 
   return (
@@ -408,7 +415,7 @@ function Step3({ date, slots, loading, selected, onDateChange, onSelect, onBack 
 
       {loading ? (
         <p style={{ color: '#666' }}>Učitavanje termina...</p>
-      ) : slots.length === 0 ? (
+      ) : hasError ? null : slots.length === 0 ? (
         <div style={{ padding: '2rem', textAlign: 'center', background: '#f8fafc', border: '1px dashed #cbd5e1', borderRadius: '8px', color: '#9ca3af' }}>
           Nema slobodnih termina za odabrani datum. Pokušajte drugi datum.
         </div>

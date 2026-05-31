@@ -84,12 +84,6 @@ function AdminOrganizationsPage(): ReactElement {
         </button>
       </div>
 
-      {error ? (
-        <div role="alert" style={{ padding: '0.75rem 1rem', background: '#fef2f2', color: '#b91c1c', borderRadius: '6px', marginBottom: '1rem' }}>
-          {error}
-        </div>
-      ) : null}
-
       {isCreating ? (
         <div style={{ padding: '1rem', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', marginBottom: '1.5rem' }}>
           <h2 style={{ margin: '0 0 1rem', fontSize: '1rem' }}>Nova organizacija</h2>
@@ -136,6 +130,10 @@ function AdminOrganizationsPage(): ReactElement {
 
       {isLoading ? (
         <p style={{ color: '#666' }}>Učitavanje...</p>
+      ) : error ? (
+        <div role="alert" style={{ padding: '2rem', textAlign: 'center', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', color: '#b91c1c' }}>
+          {error}
+        </div>
       ) : (
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>

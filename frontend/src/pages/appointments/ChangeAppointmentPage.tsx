@@ -685,7 +685,10 @@ function ChangeAppointmentPage(): ReactElement {
                       Ucitavanje...
                     </span>
                   ) : null}
-                  {!isLoadingSlots && availableSlots.length === 0 ? (
+                  {!isLoadingSlots &&
+                  selectedAppointmentTypeId &&
+                  selectedDoctorId &&
+                  availableSlots.length === 0 ? (
                     <span className="appointment-change-empty-times">
                       {slotError ?? "Nema slobodnih termina za odabrani dan."}
                     </span>
