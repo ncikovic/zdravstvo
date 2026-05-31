@@ -623,6 +623,16 @@
   font-size: 0.82rem;
   font-weight: 900;
   line-height: 1.2;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.doctors-actions-grid button:hover {
+  border-color: #c5d5e8;
+  background: #f8fafc;
+  box-shadow: 0 8px 18px rgba(22, 55, 99, 0.08);
+  transform: translateY(-1px);
 }
 
 .doctors-actions-grid__primary {
@@ -633,11 +643,6 @@
 
 .doctors-actions-grid button:last-child {
   grid-column: 1 / -1;
-  justify-content: flex-start;
-}
-
-.doctors-actions-grid button:last-child .app-icon:last-child {
-  margin-left: auto;
 }
 
 .doctors-actions-grid .app-icon {
