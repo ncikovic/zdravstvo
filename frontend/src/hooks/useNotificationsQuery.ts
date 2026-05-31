@@ -12,13 +12,21 @@ import type {
 } from "@zdravstvo/contracts";
 
 import { notificationsService } from "@/services";
+import { useAuthStore } from "@/stores";
 import type { AppApiError } from "@/types";
+
+const getNotificationScope = (): readonly [string, string | null] => {
+  const { organizationId, user } = useAuthStore.getState();
+
+  return [user?.userId ?? "anonymous", organizationId] as const;
+};
 
 export const notificationsQueryKeys = {
   all: ["notifications"] as const,
   list: (query: NotificationListQueryDto) =>
-    [...notificationsQueryKeys.all, "list", query] as const,
-  unreadCount: () => [...notificationsQueryKeys.all, "unread-count"] as const,
+    [...notificationsQueryKeys.all, getNotificationScope(), "list", query] as const,
+  unreadCount: () =>
+    [...notificationsQueryKeys.all, getNotificationScope(), "unread-count"] as const,
 };
 
 const invalidateNotifications = async (
@@ -75,6 +83,11 @@ export const useMarkAllNotificationsReadMutation = (): UseMutationResult<
 
   return useMutation({
     mutationFn: () => notificationsService.markAllRead(),
+    onMutate: () => {
+      queryClient.setQueryData(notificationsQueryKeys.unreadCount(), {
+        unreadCount: 0,
+      });
+    },
     onSuccess: () => {
       void invalidateNotifications(queryClient);
     },

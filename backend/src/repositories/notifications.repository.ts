@@ -112,6 +112,15 @@ export class NotificationsRepository {
     }
   }
 
+  private applyOrganizationFilter(
+    queryBuilder: Knex.QueryBuilder,
+    organizationId: string,
+  ): void {
+    if (organizationId) {
+      queryBuilder.where("organization_id", uuidToBuffer(organizationId));
+    }
+  }
+
   public async find(
     organizationId: string,
     recipientUserId: string,
@@ -133,10 +142,10 @@ export class NotificationsRepository {
         "created_at",
       )
       .where({
-        organization_id: uuidToBuffer(organizationId),
         recipient_user_id: uuidToBuffer(recipientUserId),
       });
 
+    this.applyOrganizationFilter(rowsQuery, organizationId);
     applyListFilters(rowsQuery, query);
 
     const rows = await rowsQuery
@@ -155,14 +164,13 @@ export class NotificationsRepository {
   ): Promise<number> {
     const countQuery = this.executor("notifications")
       .where({
-        organization_id: uuidToBuffer(organizationId),
         recipient_user_id: uuidToBuffer(recipientUserId),
-      })
-      .count<CountRow[]>({ total: "id" });
+      });
 
+    this.applyOrganizationFilter(countQuery, organizationId);
     applyListFilters(countQuery, query);
 
-    const row = await countQuery.first();
+    const row = await countQuery.count<CountRow[]>({ total: "id" }).first();
 
     return row ? Number(row.total) : 0;
   }
@@ -171,14 +179,15 @@ export class NotificationsRepository {
     organizationId: string,
     recipientUserId: string,
   ): Promise<number> {
-    const row = await this.executor("notifications")
+    const countQuery = this.executor("notifications")
       .where({
-        organization_id: uuidToBuffer(organizationId),
         recipient_user_id: uuidToBuffer(recipientUserId),
       })
-      .whereNull("read_at")
-      .count<CountRow[]>({ total: "id" })
-      .first();
+      .whereNull("read_at");
+
+    this.applyOrganizationFilter(countQuery, organizationId);
+
+    const row = await countQuery.count<CountRow[]>({ total: "id" }).first();
 
     return row ? Number(row.total) : 0;
   }
@@ -202,14 +211,15 @@ export class NotificationsRepository {
     recipientUserId: string,
     notificationId: string,
   ): Promise<boolean> {
-    const affectedRows = await this.executor("notifications")
+    const updateQuery = this.executor("notifications")
       .where({
         id: uuidToBuffer(notificationId),
-        organization_id: uuidToBuffer(organizationId),
         recipient_user_id: uuidToBuffer(recipientUserId),
-      })
-      .whereNull("read_at")
-      .update({ read_at: new Date() });
+      });
+
+    this.applyOrganizationFilter(updateQuery, organizationId);
+
+    const affectedRows = await updateQuery.update({ read_at: new Date() });
 
     return affectedRows > 0;
   }
@@ -218,13 +228,15 @@ export class NotificationsRepository {
     organizationId: string,
     recipientUserId: string,
   ): Promise<number> {
-    return this.executor("notifications")
+    const updateQuery = this.executor("notifications")
       .where({
-        organization_id: uuidToBuffer(organizationId),
         recipient_user_id: uuidToBuffer(recipientUserId),
       })
-      .whereNull("read_at")
-      .update({ read_at: new Date() });
+      .whereNull("read_at");
+
+    this.applyOrganizationFilter(updateQuery, organizationId);
+
+    return updateQuery.update({ read_at: new Date() });
   }
 
   public async findActiveRecipientsByRoles(

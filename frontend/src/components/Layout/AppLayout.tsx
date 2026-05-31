@@ -5,7 +5,6 @@ import { getRoleShellConfig } from '@/app/config'
 import { APP_ROUTES } from '@/app/routes'
 import { useAccessibility } from '@/contexts/AccessibilityContext'
 import {
-  useMarkAllNotificationsReadMutation,
   useNotificationsQuery,
   useRoleNavigation,
   useUnreadNotificationCountQuery,
@@ -159,7 +158,6 @@ export function AppLayout(): ReactElement {
   const shellConfig = getRoleShellConfig(role, isSystemAdmin)
   const notificationsQuery = useNotificationsQuery({ page: 1 })
   const unreadCountQuery = useUnreadNotificationCountQuery()
-  const markAllReadMutation = useMarkAllNotificationsReadMutation()
   const location = useLocation()
   const { announce } = useAccessibility()
   const pageTitle = resolvePageTitle(location.pathname)
@@ -181,10 +179,6 @@ export function AppLayout(): ReactElement {
   const toggleNotifications = (): void => {
     setOpenMenu((currentMenu) => {
       const nextMenu = currentMenu === 'notifications' ? null : 'notifications'
-
-      if (nextMenu === 'notifications' && unreadNotificationCount > 0) {
-        markAllReadMutation.mutate()
-      }
 
       return nextMenu
     })
@@ -310,15 +304,11 @@ export function AppLayout(): ReactElement {
                   <strong>Obavijesti</strong>
                   <span>{unreadNotificationCount} nepročitano</span>
                   {recentNotifications.slice(0, 5).map((notification) => (
-                    <NavLink
-                      key={notification.id}
-                      to={APP_ROUTES.notifications}
-                      onClick={() => setOpenMenu(null)}
-                    >
+                    <div className="topbar-notification-preview" key={notification.id}>
                       <strong>{notification.title}</strong>
                       <span>{notification.message}</span>
                       <small>{formatNotificationTime(notification.createdAt)}</small>
-                    </NavLink>
+                    </div>
                   ))}
                   {recentNotifications.length === 0 ? <span>Nema obavijesti.</span> : null}
                   <NavLink to={APP_ROUTES.notifications} onClick={() => setOpenMenu(null)}>

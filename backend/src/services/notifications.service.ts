@@ -79,9 +79,20 @@ export class NotificationsService {
     const page = query.page ?? 1;
 
     const [notifications, totalItems, summary] = await Promise.all([
-      this.notificationsRepository.find(context.organizationId, context.userId, query),
-      this.notificationsRepository.count(context.organizationId, context.userId, query),
-      this.notificationsRepository.summarize(context.organizationId, context.userId),
+      this.notificationsRepository.find(
+        context.organizationId,
+        context.userId,
+        query,
+      ),
+      this.notificationsRepository.count(
+        context.organizationId,
+        context.userId,
+        query,
+      ),
+      this.notificationsRepository.summarize(
+        context.organizationId,
+        context.userId,
+      ),
     ]);
 
     return {
@@ -120,7 +131,9 @@ export class NotificationsService {
     }
   }
 
-  public async markAllRead(context: NotificationsRequestContext): Promise<void> {
+  public async markAllRead(
+    context: NotificationsRequestContext,
+  ): Promise<void> {
     await this.notificationsRepository.markAllRead(
       context.organizationId,
       context.userId,
@@ -131,49 +144,34 @@ export class NotificationsService {
     input: AppointmentNotificationInput,
   ): Promise<void> {
     const { appointment, context } = input;
-    const notifications: CreateNotificationInput[] = [];
+    const notifications: CreateNotificationInput[] = [
+      this.buildAppointmentNotification({
+        appointment,
+        context,
+        recipientUserId: appointment.patient.id,
+        type: "APPOINTMENT_CONFIRMED",
+        title: "Appointment confirmed",
+        message: createAppointmentMessage(
+          appointment,
+          "Your appointment has been confirmed",
+        ),
+        eventSuffix: "patient-confirmed",
+      }),
+    ];
 
-    if (context.actorRole === OrganizationUserRole.PATIENT) {
+    if (appointment.doctor.id !== context.actorUserId) {
       notifications.push(
         this.buildAppointmentNotification({
           appointment,
           context,
-          recipientUserId: appointment.patient.id,
-          type: "APPOINTMENT_REQUEST_SUBMITTED",
-          title: "Appointment request submitted",
-          message: createAppointmentMessage(
-            appointment,
-            "Your appointment request was submitted",
-          ),
-          eventSuffix: "patient-submitted",
-        }),
-      );
-      notifications.push(
-        ...(await this.buildStaffNotifications({
-          appointment,
-          context,
-          type: "APPOINTMENT_REQUEST_RECEIVED",
-          title: "New appointment request",
-          message: createAppointmentMessage(
-            appointment,
-            `${appointment.patient.firstName} ${appointment.patient.lastName} requested an appointment`,
-          ),
-          eventSuffix: "staff-request",
-        })),
-      );
-    } else {
-      notifications.push(
-        this.buildAppointmentNotification({
-          appointment,
-          context,
-          recipientUserId: appointment.patient.id,
+          recipientUserId: appointment.doctor.id,
           type: "APPOINTMENT_CONFIRMED",
-          title: "Appointment confirmed",
+          title: "New scheduled appointment",
           message: createAppointmentMessage(
             appointment,
-            "Your appointment has been confirmed",
+            `${appointment.patient.firstName} ${appointment.patient.lastName} booked an appointment`,
           ),
-          eventSuffix: "patient-confirmed",
+          eventSuffix: `doctor-scheduled-${appointment.createdAt.toISOString()}`,
         }),
       );
     }
@@ -309,14 +307,17 @@ export class NotificationsService {
     message: string;
     eventSuffix: string;
   }): Promise<CreateNotificationInput[]> {
-    const staff = await this.notificationsRepository.findActiveRecipientsByRoles(
-      input.context.organizationId,
-      STAFF_NOTIFICATION_ROLES,
-    );
+    const staff =
+      await this.notificationsRepository.findActiveRecipientsByRoles(
+        input.context.organizationId,
+        STAFF_NOTIFICATION_ROLES,
+      );
     const recipientIds = uniqueRecipients([
       ...staff.map((recipient) => recipient.userId),
       input.appointment.doctor.id,
-    ]).filter((recipientUserId) => recipientUserId !== input.context.actorUserId);
+    ]).filter(
+      (recipientUserId) => recipientUserId !== input.context.actorUserId,
+    );
 
     return recipientIds.map((recipientUserId) =>
       this.buildAppointmentNotification({

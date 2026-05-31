@@ -1,7 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { OrganizationUserRole } from "@zdravstvo/contracts";
+import {
+  OrganizationUserRole,
+  type NotificationDto,
+  type NotificationListQueryDto,
+  type NotificationSummaryDto,
+} from "@zdravstvo/contracts";
 
 import type {
   CreateNotificationInput,
@@ -40,10 +45,56 @@ class InMemoryNotificationsRepository {
     }
   }
 
-  public async createMany(inputs: readonly CreateNotificationInput[]): Promise<void> {
+  public async createMany(
+    inputs: readonly CreateNotificationInput[],
+  ): Promise<void> {
     for (const input of inputs) {
       await this.create(input);
     }
+  }
+
+  public async find(
+    organizationId: string,
+    recipientUserId: string,
+    query: NotificationListQueryDto,
+  ): Promise<NotificationDto[]> {
+    return this.filtered(organizationId, recipientUserId, query).map(
+      (notification) => ({
+        id: notification.eventKey,
+        organizationId: notification.organizationId,
+        recipientUserId: notification.recipientUserId,
+        actorUserId: notification.actorUserId,
+        type: notification.type,
+        title: notification.title,
+        message: notification.message,
+        entityType: notification.entityType,
+        entityId: notification.entityId,
+        readAt: this.readIds.has(notification.eventKey)
+          ? "2026-06-01T09:00:00.000Z"
+          : null,
+        createdAt: "2026-06-01T08:00:00.000Z",
+      }),
+    );
+  }
+
+  public async count(
+    organizationId: string,
+    recipientUserId: string,
+    query: NotificationListQueryDto,
+  ): Promise<number> {
+    return this.filtered(organizationId, recipientUserId, query).length;
+  }
+
+  public async summarize(
+    organizationId: string,
+    recipientUserId: string,
+  ): Promise<NotificationSummaryDto> {
+    const total = await this.count(organizationId, recipientUserId, {
+      page: 1,
+    });
+    const unread = await this.unreadCount(organizationId, recipientUserId);
+
+    return { total, unread, read: total - unread };
   }
 
   public async unreadCount(
@@ -100,7 +151,22 @@ class InMemoryNotificationsRepository {
     _organizationId: string,
     roles: readonly OrganizationUserRole[],
   ): Promise<NotificationRecipientRecord[]> {
-    return this.recipients.filter((recipient) => roles.includes(recipient.role));
+    return this.recipients.filter((recipient) =>
+      roles.includes(recipient.role),
+    );
+  }
+
+  private filtered(
+    organizationId: string,
+    recipientUserId: string,
+    query: NotificationListQueryDto,
+  ): CreateNotificationInput[] {
+    return this.notifications.filter(
+      (notification) =>
+        notification.organizationId === organizationId &&
+        notification.recipientUserId === recipientUserId &&
+        (!query.unreadOnly || !this.readIds.has(notification.eventKey)),
+    );
   }
 }
 
@@ -153,7 +219,7 @@ const createService = (): {
   return { repository, service };
 };
 
-test("creates patient and staff notifications for patient appointment requests", async () => {
+test("creates patient confirmation and doctor notification for patient bookings", async () => {
   const { repository, service } = createService();
 
   await service.notifyAppointmentCreated({
@@ -166,18 +232,22 @@ test("creates patient and staff notifications for patient appointment requests",
   });
 
   assert.deepEqual(
-    repository.notifications.map((notification) => notification.recipientUserId).sort(),
-    [DOCTOR_ID, MANAGER_ID, PATIENT_ID, RECEPTION_ID].sort(),
+    repository.notifications
+      .map((notification) => notification.recipientUserId)
+      .sort(),
+    [DOCTOR_ID, PATIENT_ID].sort(),
   );
   assert.equal(
-    repository.notifications.find((notification) => notification.recipientUserId === PATIENT_ID)
-      ?.type,
-    "APPOINTMENT_REQUEST_SUBMITTED",
+    repository.notifications.find(
+      (notification) => notification.recipientUserId === PATIENT_ID,
+    )?.type,
+    "APPOINTMENT_CONFIRMED",
   );
   assert.equal(
-    repository.notifications.find((notification) => notification.recipientUserId === DOCTOR_ID)
-      ?.type,
-    "APPOINTMENT_REQUEST_RECEIVED",
+    repository.notifications.find(
+      (notification) => notification.recipientUserId === DOCTOR_ID,
+    )?.type,
+    "APPOINTMENT_CONFIRMED",
   );
 });
 
@@ -193,9 +263,40 @@ test("creates patient confirmation notification for staff-created appointments",
     },
   });
 
-  assert.equal(repository.notifications.length, 1);
-  assert.equal(repository.notifications[0].recipientUserId, PATIENT_ID);
-  assert.equal(repository.notifications[0].type, "APPOINTMENT_CONFIRMED");
+  assert.equal(repository.notifications.length, 2);
+  assert.equal(
+    repository.notifications.find(
+      (notification) => notification.recipientUserId === PATIENT_ID,
+    )?.type,
+    "APPOINTMENT_CONFIRMED",
+  );
+  assert.equal(
+    repository.notifications.find(
+      (notification) => notification.recipientUserId === DOCTOR_ID,
+    )?.type,
+    "APPOINTMENT_CONFIRMED",
+  );
+});
+
+test("creates doctor assignment notification for staff-created appointments", async () => {
+  const { repository, service } = createService();
+
+  await service.notifyAppointmentCreated({
+    appointment: createAppointment(),
+    context: {
+      organizationId: ORGANIZATION_ID,
+      actorUserId: RECEPTION_ID,
+      actorRole: OrganizationUserRole.RECEPTION,
+    },
+  });
+
+  assert.ok(
+    repository.notifications.some(
+      (notification) =>
+        notification.recipientUserId === DOCTOR_ID &&
+        notification.type === "APPOINTMENT_CONFIRMED",
+    ),
+  );
 });
 
 test("creates update, cancellation, and status-change notifications", async () => {
@@ -230,9 +331,21 @@ test("creates update, cancellation, and status-change notifications", async () =
     },
   });
 
-  assert(repository.notifications.some((notification) => notification.type === "APPOINTMENT_UPDATED"));
-  assert(repository.notifications.some((notification) => notification.type === "APPOINTMENT_CANCELLED"));
-  assert(repository.notifications.some((notification) => notification.type === "APPOINTMENT_STATUS_CHANGED"));
+  assert(
+    repository.notifications.some(
+      (notification) => notification.type === "APPOINTMENT_UPDATED",
+    ),
+  );
+  assert(
+    repository.notifications.some(
+      (notification) => notification.type === "APPOINTMENT_CANCELLED",
+    ),
+  );
+  assert(
+    repository.notifications.some(
+      (notification) => notification.type === "APPOINTMENT_STATUS_CHANGED",
+    ),
+  );
 });
 
 test("tracks unread count and marks notifications as read for current user only", async () => {
@@ -249,22 +362,96 @@ test("tracks unread count and marks notifications as read for current user only"
   });
 
   assert.equal(
-    (await service.unreadCount({ organizationId: ORGANIZATION_ID, userId: PATIENT_ID }))
-      .unreadCount,
+    (
+      await service.unreadCount({
+        organizationId: ORGANIZATION_ID,
+        userId: PATIENT_ID,
+      })
+    ).unreadCount,
     1,
   );
 
-  await service.markAllRead({ organizationId: ORGANIZATION_ID, userId: DOCTOR_ID });
+  await service.markAllRead({
+    organizationId: ORGANIZATION_ID,
+    userId: DOCTOR_ID,
+  });
   assert.equal(
-    (await service.unreadCount({ organizationId: ORGANIZATION_ID, userId: PATIENT_ID }))
-      .unreadCount,
+    (
+      await service.unreadCount({
+        organizationId: ORGANIZATION_ID,
+        userId: PATIENT_ID,
+      })
+    ).unreadCount,
     1,
   );
 
-  await service.markAllRead({ organizationId: ORGANIZATION_ID, userId: PATIENT_ID });
+  await service.markAllRead({
+    organizationId: ORGANIZATION_ID,
+    userId: PATIENT_ID,
+  });
   assert.equal(
-    (await service.unreadCount({ organizationId: ORGANIZATION_ID, userId: PATIENT_ID }))
-      .unreadCount,
+    (
+      await service.unreadCount({
+        organizationId: ORGANIZATION_ID,
+        userId: PATIENT_ID,
+      })
+    ).unreadCount,
     0,
+  );
+});
+
+test("lists only current user's notifications and rejects marking another user's notification", async () => {
+  const { service } = createService();
+  const appointment = createAppointment();
+
+  await service.notifyAppointmentCreated({
+    appointment,
+    context: {
+      organizationId: ORGANIZATION_ID,
+      actorUserId: RECEPTION_ID,
+      actorRole: OrganizationUserRole.RECEPTION,
+    },
+  });
+
+  const patientList = await service.list(
+    {
+      organizationId: ORGANIZATION_ID,
+      userId: PATIENT_ID,
+    },
+    { page: 1 },
+  );
+  const doctorList = await service.list(
+    {
+      organizationId: ORGANIZATION_ID,
+      userId: DOCTOR_ID,
+    },
+    { page: 1 },
+  );
+
+  assert.equal(patientList.notifications.length, 1);
+  assert.equal(patientList.notifications[0]?.recipientUserId, PATIENT_ID);
+  assert.equal(doctorList.notifications.length, 1);
+  assert.equal(doctorList.notifications[0]?.recipientUserId, DOCTOR_ID);
+
+  const managerList = await service.list(
+    {
+      organizationId: ORGANIZATION_ID,
+      userId: MANAGER_ID,
+    },
+    { page: 1 },
+  );
+
+  assert.equal(managerList.notifications.length, 0);
+
+  await assert.rejects(
+    () =>
+      service.markRead(
+        {
+          organizationId: ORGANIZATION_ID,
+          userId: DOCTOR_ID,
+        },
+        patientList.notifications[0]?.id ?? "",
+      ),
+    /Notification not found/,
   );
 });

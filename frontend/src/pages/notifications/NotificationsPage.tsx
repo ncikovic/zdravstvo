@@ -1,45 +1,58 @@
-import { useEffect, useState, type ReactElement } from 'react'
-import type { NotificationDto } from '@zdravstvo/contracts'
+import { useEffect, useState, type ReactElement } from "react";
+import type { NotificationDto } from "@zdravstvo/contracts";
+import { OrganizationUserRole } from "@zdravstvo/contracts";
 
-import { AppIcon } from '@/components'
+import { AppIcon } from "@/components";
+import { useAuthStore } from "@/stores";
 import {
   useMarkAllNotificationsReadMutation,
   useMarkNotificationReadMutation,
   useNotificationsQuery,
-} from '@/hooks'
+} from "@/hooks";
 
-import './notifications.css'
+import "./notifications.css";
 
 const formatDateTime = (iso: string): string => {
-  const d = new Date(iso)
-  const dd = String(d.getDate()).padStart(2, '0')
-  const mm = String(d.getMonth() + 1).padStart(2, '0')
-  const yyyy = d.getFullYear()
-  const hh = String(d.getHours()).padStart(2, '0')
-  const min = String(d.getMinutes()).padStart(2, '0')
-  return `${dd}. ${mm}. ${yyyy}. ${hh}:${min}`
-}
+  const d = new Date(iso);
+  const dd = String(d.getDate()).padStart(2, "0");
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const yyyy = d.getFullYear();
+  const hh = String(d.getHours()).padStart(2, "0");
+  const min = String(d.getMinutes()).padStart(2, "0");
+  return `${dd}. ${mm}. ${yyyy}. ${hh}:${min}`;
+};
 
-const buildPaginationPages = (current: number, total: number): (number | '...')[] => {
-  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
-  const pages: (number | '...')[] = []
-  pages.push(1)
-  if (current > 3) pages.push('...')
-  for (let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); i++) {
-    pages.push(i)
+const buildPaginationPages = (
+  current: number,
+  total: number,
+): (number | "...")[] => {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const pages: (number | "...")[] = [];
+  pages.push(1);
+  if (current > 3) pages.push("...");
+  for (
+    let i = Math.max(2, current - 1);
+    i <= Math.min(total - 1, current + 1);
+    i++
+  ) {
+    pages.push(i);
   }
-  if (current < total - 2) pages.push('...')
-  pages.push(total)
-  return pages
-}
+  if (current < total - 2) pages.push("...");
+  pages.push(total);
+  return pages;
+};
 
 interface SummaryCardsProps {
-  total: number
-  unread: number
-  read: number
+  total: number;
+  unread: number;
+  read: number;
 }
 
-function SummaryCards({ total, unread, read }: SummaryCardsProps): ReactElement {
+function SummaryCards({
+  total,
+  unread,
+  read,
+}: SummaryCardsProps): ReactElement {
   return (
     <div className="notif-summary">
       <div className="notif-summary-card">
@@ -55,20 +68,23 @@ function SummaryCards({ total, unread, read }: SummaryCardsProps): ReactElement 
         <span className="notif-summary-card__value">{read}</span>
       </div>
     </div>
-  )
+  );
 }
 
 interface DetailPanelProps {
-  notification: NotificationDto
-  onClose: () => void
+  notification: NotificationDto;
+  onClose: () => void;
 }
 
-function DetailPanel({ notification, onClose }: DetailPanelProps): ReactElement {
+function DetailPanel({
+  notification,
+  onClose,
+}: DetailPanelProps): ReactElement {
   const rows = [
-    ['Vrsta', notification.title],
-    ['Vrijeme', formatDateTime(notification.createdAt)],
-    ['Status', notification.readAt ? 'Pročitano' : 'Nepročitano'],
-  ] as const
+    ["Vrsta", notification.title],
+    ["Vrijeme", formatDateTime(notification.createdAt)],
+    ["Status", notification.readAt ? "Pročitano" : "Nepročitano"],
+  ] as const;
 
   return (
     <aside className="notif-detail-panel" aria-label="Detalji obavijesti">
@@ -93,43 +109,63 @@ function DetailPanel({ notification, onClose }: DetailPanelProps): ReactElement 
         ))}
       </div>
     </aside>
-  )
+  );
 }
 
 function NotificationsPage(): ReactElement {
-  const [page, setPage] = useState(1)
-  const [selected, setSelected] = useState<NotificationDto | null>(null)
-  const query = useNotificationsQuery({ page })
-  const markReadMutation = useMarkNotificationReadMutation()
-  const markAllReadMutation = useMarkAllNotificationsReadMutation()
-  const notifications = query.data?.notifications ?? []
-  const summary = query.data?.summary ?? { total: 0, unread: 0, read: 0 }
-  const totalPages = query.data?.totalPages ?? 1
-  const totalItems = query.data?.totalItems ?? 0
-  const fromEntry = totalItems === 0 ? 0 : (page - 1) * 10 + 1
-  const toEntry = Math.min(page * 10, totalItems)
-  const paginationPages = buildPaginationPages(page, totalPages)
+  const [page, setPage] = useState(1);
+  const [selected, setSelected] = useState<NotificationDto | null>(null);
+  const [hasMarkedPageRead, setHasMarkedPageRead] = useState(false);
+  const query = useNotificationsQuery({ page });
+  const markReadMutation = useMarkNotificationReadMutation();
+  const markAllReadMutation = useMarkAllNotificationsReadMutation();
+  const role = useAuthStore((state) => state.role);
+  const notifications = query.data?.notifications ?? [];
+  const summary = query.data?.summary ?? { total: 0, unread: 0, read: 0 };
+  const totalPages = query.data?.totalPages ?? 1;
+  const totalItems = query.data?.totalItems ?? 0;
+  const fromEntry = totalItems === 0 ? 0 : (page - 1) * 10 + 1;
+  const toEntry = Math.min(page * 10, totalItems);
+  const paginationPages = buildPaginationPages(page, totalPages);
+
+  const emptyStateMessage = {
+    [OrganizationUserRole.PATIENT]: "Nemate novih obavijesti o terminima.",
+    [OrganizationUserRole.DOCTOR]: "Nemate novih obavijesti o rasporedu.",
+    [OrganizationUserRole.RECEPTION]: "Nemate novih obavijesti za obradu.",
+    [OrganizationUserRole.MANAGER]: "Nemate novih administrativnih obavijesti.",
+  }[role ?? OrganizationUserRole.MANAGER];
 
   useEffect(() => {
-    if (summary.unread > 0) {
-      markAllReadMutation.mutate()
+    if (!query.isLoading && !query.error && summary.unread > 0 && !hasMarkedPageRead) {
+      setHasMarkedPageRead(true);
+      markAllReadMutation.mutate();
     }
-  }, [summary.unread])
+  }, [
+    hasMarkedPageRead,
+    markAllReadMutation,
+    query.error,
+    query.isLoading,
+    summary.unread,
+  ]);
 
   useEffect(() => {
     setSelected((current) => {
-      if (!current) return notifications[0] ?? null
-      return notifications.find((notification) => notification.id === current.id) ?? notifications[0] ?? null
-    })
-  }, [notifications])
+      if (!current) return notifications[0] ?? null;
+      return (
+        notifications.find((notification) => notification.id === current.id) ??
+        notifications[0] ??
+        null
+      );
+    });
+  }, [notifications]);
 
   const selectNotification = (notification: NotificationDto): void => {
-    setSelected(notification)
+    setSelected(notification);
 
     if (!notification.readAt) {
-      markReadMutation.mutate(notification.id)
+      markReadMutation.mutate(notification.id);
     }
-  }
+  };
 
   return (
     <div className="notif-page">
@@ -140,7 +176,11 @@ function NotificationsPage(): ReactElement {
         </div>
       </div>
 
-      <SummaryCards total={summary.total} unread={summary.unread} read={summary.read} />
+      <SummaryCards
+        total={summary.total}
+        unread={summary.unread}
+        read={summary.read}
+      />
 
       <div className="notif-content-grid">
         <section className="notif-table-panel" aria-label="Obavijesti">
@@ -152,21 +192,27 @@ function NotificationsPage(): ReactElement {
           </div>
 
           {query.isLoading ? (
-            <div style={{ padding: '2rem', textAlign: 'center' }}>Učitavanje...</div>
+            <div style={{ padding: "2rem", textAlign: "center" }}>
+              Učitavanje...
+            </div>
           ) : query.error ? (
-            <div style={{ padding: '2rem', textAlign: 'center', color: '#d32f2f' }}>
+            <div
+              style={{ padding: "2rem", textAlign: "center", color: "#d32f2f" }}
+            >
               Greška pri učitavanju obavijesti.
             </div>
           ) : notifications.length === 0 ? (
-            <div style={{ padding: '2rem', textAlign: 'center' }}>Nema obavijesti.</div>
+            <div style={{ padding: "2rem", textAlign: "center" }}>
+              {emptyStateMessage}
+            </div>
           ) : (
             notifications.map((notification) => (
               <button
                 key={notification.id}
                 className={
                   notification.id === selected?.id
-                    ? 'notif-table notif-table--row notif-table--row-selected'
-                    : 'notif-table notif-table--row'
+                    ? "notif-table notif-table--row notif-table--row-selected"
+                    : "notif-table notif-table--row"
                 }
                 type="button"
                 role="row"
@@ -178,11 +224,11 @@ function NotificationsPage(): ReactElement {
                 <em
                   className={
                     notification.readAt
-                      ? 'notif-badge notif-badge--sent'
-                      : 'notif-badge notif-badge--pending'
+                      ? "notif-badge notif-badge--sent"
+                      : "notif-badge notif-badge--pending"
                   }
                 >
-                  {notification.readAt ? 'Pročitano' : 'Nepročitano'}
+                  {notification.readAt ? "Pročitano" : "Nepročitano"}
                 </em>
               </button>
             ))
@@ -190,7 +236,9 @@ function NotificationsPage(): ReactElement {
 
           {!query.isLoading && !query.error && totalItems > 0 ? (
             <div className="notif-pagination">
-              <span>Prikazano {fromEntry} do {toEntry} od {totalItems}</span>
+              <span>
+                Prikazano {fromEntry} do {toEntry} od {totalItems}
+              </span>
               <div>
                 <button
                   type="button"
@@ -201,12 +249,14 @@ function NotificationsPage(): ReactElement {
                   <AppIcon name="chevronLeft" />
                 </button>
                 {paginationPages.map((p, i) =>
-                  p === '...' ? (
+                  p === "..." ? (
                     <span key={`ellipsis-${i}`}>...</span>
                   ) : (
                     <button
                       key={p}
-                      className={p === page ? 'notif-pagination__active' : undefined}
+                      className={
+                        p === page ? "notif-pagination__active" : undefined
+                      }
                       type="button"
                       onClick={() => setPage(p)}
                     >
@@ -229,17 +279,27 @@ function NotificationsPage(): ReactElement {
         </section>
 
         {selected ? (
-          <DetailPanel notification={selected} onClose={() => setSelected(null)} />
+          <DetailPanel
+            notification={selected}
+            onClose={() => setSelected(null)}
+          />
         ) : (
           <aside className="notif-detail-panel" aria-label="Detalji obavijesti">
-            <p style={{ padding: '2rem', color: '#667590', textAlign: 'center', margin: 0 }}>
+            <p
+              style={{
+                padding: "2rem",
+                color: "#667590",
+                textAlign: "center",
+                margin: 0,
+              }}
+            >
               Odaberite obavijest za pregled detalja.
             </p>
           </aside>
         )}
       </div>
     </div>
-  )
+  );
 }
 
-export { NotificationsPage }
+export { NotificationsPage };
