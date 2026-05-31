@@ -47,6 +47,7 @@ export interface CreateAppointmentInput {
   appointmentTypeId: string;
   startAt: Date;
   endAt: Date;
+  status: "SCHEDULED";
   createdByOrgUserId: string;
   notes: string | null;
 }
@@ -66,7 +67,7 @@ export interface CancelAppointmentInput {
 }
 
 export interface UpdateAppointmentStatusInput {
-  status: "COMPLETED" | "NO_SHOW";
+  status: "SCHEDULED" | "COMPLETED" | "NO_SHOW";
   updatedByOrgUserId: string;
 }
 
@@ -521,7 +522,7 @@ export class AppointmentsRepository {
     const query = this.executor<AppointmentConflictRow>("appointments")
       .select("id", "doctor_user_id", "patient_user_id", "start_at", "end_at")
       .where("organization_id", uuidToBuffer(input.organizationId))
-      .andWhere("status", "SCHEDULED")
+      .whereNot("status", "CANCELLED")
       .andWhere((builder: Knex.QueryBuilder) => {
         builder
           .where("doctor_user_id", uuidToBuffer(input.doctorUserId))
@@ -557,7 +558,7 @@ export class AppointmentsRepository {
     const rows = await this.executor<AppointmentConflictRow>("appointments")
       .select("id", "doctor_user_id", "patient_user_id", "start_at", "end_at")
       .where("organization_id", uuidToBuffer(organizationId))
-      .andWhere("status", "SCHEDULED")
+      .whereNot("status", "CANCELLED")
       .whereIn(
         "doctor_user_id",
         doctorUserIds.map((doctorUserId) => uuidToBuffer(doctorUserId)),
@@ -707,7 +708,7 @@ export class AppointmentsRepository {
       appointment_type_id: uuidToBuffer(input.appointmentTypeId),
       start_at: input.startAt,
       end_at: input.endAt,
-      status: "SCHEDULED",
+      status: input.status,
       created_by_org_user_id: uuidToBuffer(input.createdByOrgUserId),
       notes: input.notes,
     });

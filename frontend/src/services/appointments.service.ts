@@ -95,4 +95,5 @@ export const appointmentsService = {
 
     return response.data.data;
   },
+
 };

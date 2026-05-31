@@ -963,18 +963,23 @@ export class AppointmentsService {
         appointmentTypeId: payload.appointmentTypeId,
         startAt: timing.startAt,
         endAt: timing.endAt,
+        status: "SCHEDULED",
         createdByOrgUserId: context.organizationUserId,
         notes: normalizeNotes(payload.notes),
       };
       const appointment = await repository.createAppointment(createInput);
-      await notifier.notifyAppointmentCreated({
-        appointment,
-        context: {
-          organizationId: context.organizationId,
-          actorUserId: context.userId,
-          actorRole: context.role,
-        },
-      });
+      try {
+        await notifier.notifyAppointmentCreated({
+          appointment,
+          context: {
+            organizationId: context.organizationId,
+            actorUserId: context.userId,
+            actorRole: context.role,
+          },
+        });
+      } catch (notificationError) {
+        console.error("Failed to send appointment created notification:", notificationError);
+      }
 
       return mapAppointmentResponse(appointment);
     });
@@ -1085,15 +1090,19 @@ export class AppointmentsService {
       if (!updatedAppointment) {
         throw AppError.notFound("Appointment not found.");
       }
-      await notifier.notifyAppointmentUpdated({
-        appointment: updatedAppointment,
-        previousDoctorId,
-        context: {
-          organizationId: context.organizationId,
-          actorUserId: context.userId,
-          actorRole: context.role,
-        },
-      });
+      try {
+        await notifier.notifyAppointmentUpdated({
+          appointment: updatedAppointment,
+          previousDoctorId,
+          context: {
+            organizationId: context.organizationId,
+            actorUserId: context.userId,
+            actorRole: context.role,
+          },
+        });
+      } catch (notificationError) {
+        console.error("Failed to send appointment updated notification:", notificationError);
+      }
 
       return mapAppointmentResponse(updatedAppointment);
     });
@@ -1143,14 +1152,18 @@ export class AppointmentsService {
       if (!updated) {
         throw AppError.notFound("Appointment not found.");
       }
-      await notifier.notifyAppointmentStatusChanged({
-        appointment: updated,
-        context: {
-          organizationId: context.organizationId,
-          actorUserId: context.userId,
-          actorRole: context.role,
-        },
-      });
+      try {
+        await notifier.notifyAppointmentStatusChanged({
+          appointment: updated,
+          context: {
+            organizationId: context.organizationId,
+            actorUserId: context.userId,
+            actorRole: context.role,
+          },
+        });
+      } catch (notificationError) {
+        console.error("Failed to send appointment status changed notification:", notificationError);
+      }
 
       return mapAppointmentResponse(updated);
     });
@@ -1199,14 +1212,18 @@ export class AppointmentsService {
       if (!cancelledAppointment) {
         throw AppError.notFound("Appointment not found.");
       }
-      await notifier.notifyAppointmentCancelled({
-        appointment: cancelledAppointment,
-        context: {
-          organizationId: context.organizationId,
-          actorUserId: context.userId,
-          actorRole: context.role,
-        },
-      });
+      try {
+        await notifier.notifyAppointmentCancelled({
+          appointment: cancelledAppointment,
+          context: {
+            organizationId: context.organizationId,
+            actorUserId: context.userId,
+            actorRole: context.role,
+          },
+        });
+      } catch (notificationError) {
+        console.error("Failed to send appointment cancelled notification:", notificationError);
+      }
 
       return mapAppointmentResponse(cancelledAppointment);
     });

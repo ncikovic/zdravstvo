@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { ReactElement } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import type { AppointmentAvailableSlotDto, AppointmentTypeDto, DoctorResponseDto } from '@zdravstvo/contracts'
 
@@ -9,6 +10,9 @@ import { appointmentsService } from '@/services/appointments.service'
 import { useAuthStore } from '@/stores/auth/auth.store'
 import { APP_ROUTES } from '@/app/routes'
 import { getApiErrorMessage, toast } from '@/utils'
+import { appointmentsQueryKeys } from '@/hooks/useAppointmentsQuery'
+import { dashboardQueryKeys } from '@/hooks/useDashboardQuery'
+import { notificationsQueryKeys } from '@/hooks/useNotificationsQuery'
 
 type Step = 1 | 2 | 3 | 4
 
@@ -74,6 +78,7 @@ function StepIndicator({ current }: { current: Step }): ReactElement {
 
 function BookAppointmentPage(): ReactElement {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const user = useAuthStore((s) => s.user)
 
   const [step, setStep] = useState<Step>(1)
@@ -165,12 +170,24 @@ function BookAppointmentPage(): ReactElement {
         startAt: selectedSlot.startAt,
         notes: notes.trim() || undefined,
       })
+      setSlots((currentSlots) =>
+        currentSlots.filter(
+          (slot) =>
+            slot.doctorId !== selectedSlot.doctorId ||
+            slot.startAt !== selectedSlot.startAt,
+        ),
+      )
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: appointmentsQueryKeys.all }),
+        queryClient.invalidateQueries({ queryKey: dashboardQueryKeys.all }),
+        queryClient.invalidateQueries({ queryKey: notificationsQueryKeys.all }),
+      ])
       toast.success('Termin je uspješno rezerviran.')
       setSuccess(true)
       setTimeout(() => navigate(APP_ROUTES.myAppointments), 2000)
     } catch (err) {
       toast.error(err)
-      setError('Termin se trenutno ne može rezervirati. Pokušajte ponovo.')
+      setError(getApiErrorMessage(err))
     } finally {
       setIsBooking(false)
     }

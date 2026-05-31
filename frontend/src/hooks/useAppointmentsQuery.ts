@@ -1,4 +1,7 @@
-import { useQuery, type UseQueryResult } from "@tanstack/react-query";
+import {
+  useQuery,
+  type UseQueryResult,
+} from "@tanstack/react-query";
 import type {
   AppointmentListQueryDto,
   AppointmentListResponseDto,
