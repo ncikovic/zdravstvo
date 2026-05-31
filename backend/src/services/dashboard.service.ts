@@ -380,7 +380,12 @@ const mapOrganizationResponse = (
 const sumAppointmentCounts = (
   counts: Record<DashboardAppointmentStatusDto, number>,
 ): number => {
-  return counts.SCHEDULED + counts.CANCELLED + counts.COMPLETED + counts.NO_SHOW;
+  return (
+    counts.SCHEDULED +
+    counts.CANCELLED +
+    counts.COMPLETED +
+    counts.NO_SHOW
+  );
 };
 
 const groupAppointmentsByDoctor = (
