@@ -16,12 +16,14 @@ import type { Knex } from "knex";
 import { AppError } from "../errors/AppError.js";
 import {
   AppointmentsRepository,
+  NotificationsRepository,
   type CreateAppointmentInput,
   type FindAppointmentsInput,
   type UpdateAppointmentScheduleInput,
 } from "../repositories/index.js";
 import type { AuthenticatedRequestContext } from "../shared/context/index.js";
 import { db } from "../shared/db/index.js";
+import { NotificationsService } from "./notifications.service.js";
 import type {
   AppointmentConflictRecord,
   AppointmentDoctorRecord,
@@ -62,7 +64,10 @@ type AppointmentsRepositoryContract = Pick<
 >;
 
 type AppointmentsTransactionRunner = <Result>(
-  handler: (repository: AppointmentsRepositoryContract) => Promise<Result>,
+  handler: (
+    repository: AppointmentsRepositoryContract,
+    notificationsService?: NotificationsService,
+  ) => Promise<Result>,
 ) => Promise<Result>;
 
 interface ZonedDateParts {
@@ -119,7 +124,10 @@ const defaultRunInTransaction: AppointmentsTransactionRunner = async (
   handler,
 ) => {
   return db.transaction(async (transaction: Knex.Transaction) =>
-    handler(new AppointmentsRepository(transaction)),
+    handler(
+      new AppointmentsRepository(transaction),
+      new NotificationsService(new NotificationsRepository(transaction)),
+    ),
   );
 };
 
@@ -822,6 +830,7 @@ export class AppointmentsService {
     ),
     private readonly runInTransaction: AppointmentsTransactionRunner = defaultRunInTransaction,
     private readonly now: () => Date = () => new Date(),
+    private readonly notificationsService: NotificationsService = new NotificationsService(),
   ) {}
 
   public async list(
@@ -919,7 +928,8 @@ export class AppointmentsService {
   ): Promise<AppointmentResponseDto> {
     ensureCreateAccess(context, payload);
 
-    return this.runInTransaction(async (repository) => {
+    return this.runInTransaction(async (repository, notificationService) => {
+      const notifier = notificationService ?? this.notificationsService;
       const { organization, appointmentType } = await resolveSchedulingContext(
         repository,
         context.organizationId,
@@ -957,6 +967,14 @@ export class AppointmentsService {
         notes: normalizeNotes(payload.notes),
       };
       const appointment = await repository.createAppointment(createInput);
+      await notifier.notifyAppointmentCreated({
+        appointment,
+        context: {
+          organizationId: context.organizationId,
+          actorUserId: context.userId,
+          actorRole: context.role,
+        },
+      });
 
       return mapAppointmentResponse(appointment);
     });
@@ -973,7 +991,8 @@ export class AppointmentsService {
       throw AppError.forbidden();
     }
 
-    return this.runInTransaction(async (repository) => {
+    return this.runInTransaction(async (repository, notificationService) => {
+      const notifier = notificationService ?? this.notificationsService;
       const appointment = await repository.findById(
         context.organizationId,
         appointmentId,
@@ -993,6 +1012,7 @@ export class AppointmentsService {
       }
 
       const nextDoctorId = payload.doctorId ?? appointment.doctor.id;
+      const previousDoctorId = appointment.doctor.id;
       const nextAppointmentTypeId =
         payload.appointmentTypeId ?? appointment.appointmentType.id;
       const { organization, appointmentType } = await resolveSchedulingContext(
@@ -1065,6 +1085,15 @@ export class AppointmentsService {
       if (!updatedAppointment) {
         throw AppError.notFound("Appointment not found.");
       }
+      await notifier.notifyAppointmentUpdated({
+        appointment: updatedAppointment,
+        previousDoctorId,
+        context: {
+          organizationId: context.organizationId,
+          actorUserId: context.userId,
+          actorRole: context.role,
+        },
+      });
 
       return mapAppointmentResponse(updatedAppointment);
     });
@@ -1100,20 +1129,31 @@ export class AppointmentsService {
       );
     }
 
-    const updated = await this.appointmentsRepository.updateStatus(
-      context.organizationId,
-      appointmentId,
-      {
-        status: payload.status,
-        updatedByOrgUserId: context.organizationUserId,
-      },
-    );
+    return this.runInTransaction(async (repository, notificationService) => {
+      const notifier = notificationService ?? this.notificationsService;
+      const updated = await repository.updateStatus(
+        context.organizationId,
+        appointmentId,
+        {
+          status: payload.status,
+          updatedByOrgUserId: context.organizationUserId,
+        },
+      );
 
-    if (!updated) {
-      throw AppError.notFound("Appointment not found.");
-    }
+      if (!updated) {
+        throw AppError.notFound("Appointment not found.");
+      }
+      await notifier.notifyAppointmentStatusChanged({
+        appointment: updated,
+        context: {
+          organizationId: context.organizationId,
+          actorUserId: context.userId,
+          actorRole: context.role,
+        },
+      });
 
-    return mapAppointmentResponse(updated);
+      return mapAppointmentResponse(updated);
+    });
   }
 
   public async cancel(
@@ -1127,7 +1167,8 @@ export class AppointmentsService {
       throw AppError.forbidden();
     }
 
-    return this.runInTransaction(async (repository) => {
+    return this.runInTransaction(async (repository, notificationService) => {
+      const notifier = notificationService ?? this.notificationsService;
       const appointment = await repository.findById(
         context.organizationId,
         appointmentId,
@@ -1158,6 +1199,14 @@ export class AppointmentsService {
       if (!cancelledAppointment) {
         throw AppError.notFound("Appointment not found.");
       }
+      await notifier.notifyAppointmentCancelled({
+        appointment: cancelledAppointment,
+        context: {
+          organizationId: context.organizationId,
+          actorUserId: context.userId,
+          actorRole: context.role,
+        },
+      });
 
       return mapAppointmentResponse(cancelledAppointment);
     });

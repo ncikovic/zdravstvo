@@ -16,7 +16,6 @@ export interface RoleShellConfig {
   roleLabel: string
   headerVariant: AppHeaderVariant
   searchPlaceholder: string
-  notificationCount: number
   dateLabel: string
   workspaceName: string
   sidebar: SidebarSupportConfig
@@ -28,7 +27,6 @@ const DEFAULT_SHELL_CONFIG: RoleShellConfig = {
   roleLabel: 'Korisnik',
   headerVariant: 'workspace',
   searchPlaceholder: 'Pretražite...',
-  notificationCount: 0,
   dateLabel: 'Danas',
   workspaceName: SHARED_WORKSPACE_NAME,
   sidebar: {
@@ -44,7 +42,6 @@ const ROLE_SHELL_CONFIG: Record<OrganizationUserRole, RoleShellConfig> = {
     roleLabel: 'Upravitelj',
     headerVariant: 'workspace',
     searchPlaceholder: 'Pretražite pacijente, termine, liječnike...',
-    notificationCount: 8,
     dateLabel: 'Petak, 23. svibnja 2025.',
     workspaceName: SHARED_WORKSPACE_NAME,
     sidebar: {
@@ -58,7 +55,6 @@ const ROLE_SHELL_CONFIG: Record<OrganizationUserRole, RoleShellConfig> = {
     roleLabel: 'Recepcija',
     headerVariant: 'workspace',
     searchPlaceholder: 'Pretražite pacijente, termine, liječnike...',
-    notificationCount: 8,
     dateLabel: 'Petak, 23. svibnja 2025.',
     workspaceName: SHARED_WORKSPACE_NAME,
     sidebar: {
@@ -72,7 +68,6 @@ const ROLE_SHELL_CONFIG: Record<OrganizationUserRole, RoleShellConfig> = {
     roleLabel: 'Opća medicina',
     headerVariant: 'clinical',
     searchPlaceholder: 'Pretraži pacijente, termine...',
-    notificationCount: 3,
     dateLabel: '21. svibnja 2024.',
     workspaceName: SHARED_WORKSPACE_NAME,
     sidebar: {
@@ -87,7 +82,6 @@ const ROLE_SHELL_CONFIG: Record<OrganizationUserRole, RoleShellConfig> = {
     roleLabel: 'Pacijent',
     headerVariant: 'patient',
     searchPlaceholder: 'Pretražite termine, ustanove...',
-    notificationCount: 2,
     dateLabel: 'Danas',
     workspaceName: SHARED_WORKSPACE_NAME,
     sidebar: {
@@ -103,7 +97,6 @@ const SYSTEM_ADMIN_SHELL_CONFIG: RoleShellConfig = {
   roleLabel: 'Sistem administrator',
   headerVariant: 'workspace',
   searchPlaceholder: 'Pretražite organizacije, korisnike...',
-  notificationCount: 0,
   dateLabel: 'Danas',
   workspaceName: 'Zdravstvo Admin',
   sidebar: {
