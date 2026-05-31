@@ -4,7 +4,12 @@ import { matchPath, NavLink, Outlet, useLocation, useSearchParams } from 'react-
 import { getRoleShellConfig } from '@/app/config'
 import { APP_ROUTES } from '@/app/routes'
 import { useAccessibility } from '@/contexts/AccessibilityContext'
-import { useRoleNavigation } from '@/hooks'
+import {
+  useMarkAllNotificationsReadMutation,
+  useNotificationsQuery,
+  useRoleNavigation,
+  useUnreadNotificationCountQuery,
+} from '@/hooks'
 import { useAuthStore, type AuthUser } from '@/stores'
 
 import { AppIcon } from './icons'
@@ -54,6 +59,14 @@ const formatSelectedDateLabel = (value: string): string => {
 
   return capitalize(dateLabelFormatter.format(date))
 }
+
+const formatNotificationTime = (value: string): string =>
+  new Intl.DateTimeFormat('hr-HR', {
+    day: '2-digit',
+    month: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(value))
 
 const formatUserName = (user: AuthUser | null): string => {
   const firstName = user?.firstName?.trim()
@@ -144,6 +157,9 @@ export function AppLayout(): ReactElement {
   const [searchParams, setSearchParams] = useSearchParams()
   const navigationItems = useRoleNavigation(role, isSystemAdmin)
   const shellConfig = getRoleShellConfig(role, isSystemAdmin)
+  const notificationsQuery = useNotificationsQuery({ page: 1 })
+  const unreadCountQuery = useUnreadNotificationCountQuery()
+  const markAllReadMutation = useMarkAllNotificationsReadMutation()
   const location = useLocation()
   const { announce } = useAccessibility()
   const pageTitle = resolvePageTitle(location.pathname)
@@ -155,9 +171,23 @@ export function AppLayout(): ReactElement {
   const userName = formatUserName(user)
   const initials = getUserInitials(userName)
   const selectedDate = resolveSelectedDate(searchParams.get('date'))
+  const unreadNotificationCount = unreadCountQuery.data?.unreadCount ?? 0
+  const recentNotifications = notificationsQuery.data?.notifications ?? []
 
   const toggleMenu = (menu: TopbarMenu): void => {
     setOpenMenu((currentMenu) => (currentMenu === menu ? null : menu))
+  }
+
+  const toggleNotifications = (): void => {
+    setOpenMenu((currentMenu) => {
+      const nextMenu = currentMenu === 'notifications' ? null : 'notifications'
+
+      if (nextMenu === 'notifications' && unreadNotificationCount > 0) {
+        markAllReadMutation.mutate()
+      }
+
+      return nextMenu
+    })
   }
 
   const updateSelectedDate = (date: string): void => {
@@ -268,17 +298,29 @@ export function AppLayout(): ReactElement {
                 type="button"
                 aria-label="Obavijesti"
                 aria-expanded={openMenu === 'notifications'}
-                onClick={() => toggleMenu('notifications')}
+                onClick={toggleNotifications}
               >
                 <AppIcon name="bell" />
-                {shellConfig.notificationCount > 0 ? (
-                  <span>{shellConfig.notificationCount}</span>
+                {unreadNotificationCount > 0 ? (
+                  <span>{unreadNotificationCount}</span>
                 ) : null}
               </button>
               {openMenu === 'notifications' ? (
                 <div className="topbar-dropdown__menu topbar-dropdown__menu--right">
                   <strong>Obavijesti</strong>
-                  <span>{shellConfig.notificationCount} aktivno</span>
+                  <span>{unreadNotificationCount} nepročitano</span>
+                  {recentNotifications.slice(0, 5).map((notification) => (
+                    <NavLink
+                      key={notification.id}
+                      to={APP_ROUTES.notifications}
+                      onClick={() => setOpenMenu(null)}
+                    >
+                      <strong>{notification.title}</strong>
+                      <span>{notification.message}</span>
+                      <small>{formatNotificationTime(notification.createdAt)}</small>
+                    </NavLink>
+                  ))}
+                  {recentNotifications.length === 0 ? <span>Nema obavijesti.</span> : null}
                   <NavLink to={APP_ROUTES.notifications} onClick={() => setOpenMenu(null)}>
                     Pogledaj sve obavijesti
                   </NavLink>

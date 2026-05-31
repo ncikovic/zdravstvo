@@ -1,43 +1,59 @@
 import type {
-  NotificationChannelDto,
   NotificationDto,
+  NotificationEntityTypeDto,
   NotificationListQueryDto,
-  NotificationStatusDto,
   NotificationSummaryDto,
-} from '@zdravstvo/contracts';
-import type { Buffer } from 'node:buffer';
+  NotificationTypeDto,
+  OrganizationUserRole,
+} from "@zdravstvo/contracts";
+import type { Knex } from "knex";
+import type { Buffer } from "node:buffer";
+import { v4 as uuidv4 } from "uuid";
 
-import { db } from '../shared/db/index.js';
-import { bufferToUuid, uuidToBuffer } from '../shared/utils/index.js';
+import type { DatabaseExecutor } from "../shared/db/index.js";
+import { db } from "../shared/db/index.js";
+import { bufferToUuid, uuidToBuffer } from "../shared/utils/index.js";
 
 const PAGE_SIZE = 10;
 
+export interface CreateNotificationInput {
+  organizationId: string;
+  recipientUserId: string;
+  actorUserId: string | null;
+  type: NotificationTypeDto;
+  title: string;
+  message: string;
+  entityType: NotificationEntityTypeDto;
+  entityId: string;
+  eventKey: string;
+}
+
+export interface NotificationRecipientRecord {
+  userId: string;
+  role: OrganizationUserRole;
+}
+
 interface NotificationRow {
-  reminder_id: Buffer | Uint8Array | string;
-  appointment_id: Buffer | Uint8Array | string;
-  channel: NotificationChannelDto;
-  scheduled_for: Date | string;
-  sent_at: Date | string | null;
-  status: NotificationStatusDto;
-  attempt_count: number;
-  last_error: string | null;
-  appointment_start_at: Date | string;
-  appointment_end_at: Date | string;
-  patient_first_name: string;
-  patient_last_name: string;
-  doctor_first_name: string;
-  doctor_last_name: string;
-  doctor_title: string | null;
-  appointment_type_name: string;
+  id: Buffer | Uint8Array | string;
+  organization_id: Buffer | Uint8Array | string;
+  recipient_user_id: Buffer | Uint8Array | string;
+  actor_user_id: Buffer | Uint8Array | string | null;
+  type: NotificationTypeDto;
+  title: string;
+  message: string;
+  entity_type: NotificationEntityTypeDto;
+  entity_id: Buffer | Uint8Array | string;
+  read_at: Date | string | null;
+  created_at: Date | string;
 }
 
 interface CountRow {
   total: string | number | bigint;
 }
 
-interface StatusCountRow {
-  status: NotificationStatusDto;
-  total: string | number | bigint;
+interface RecipientRow {
+  user_id: Buffer | Uint8Array | string;
+  role: OrganizationUserRole;
 }
 
 const toDate = (value: Date | string): Date =>
@@ -47,119 +63,189 @@ const toNullableDate = (value: Date | string | null): Date | null =>
   value === null ? null : toDate(value);
 
 const toDto = (row: NotificationRow): NotificationDto => ({
-  id: bufferToUuid(row.reminder_id),
-  appointmentId: bufferToUuid(row.appointment_id),
-  channel: row.channel,
-  scheduledFor: toDate(row.scheduled_for).toISOString(),
-  sentAt: toNullableDate(row.sent_at)?.toISOString() ?? null,
-  status: row.status,
-  attemptCount: row.attempt_count,
-  lastError: row.last_error,
-  appointment: {
-    id: bufferToUuid(row.appointment_id),
-    startAt: toDate(row.appointment_start_at).toISOString(),
-    endAt: toDate(row.appointment_end_at).toISOString(),
-    patientFirstName: row.patient_first_name,
-    patientLastName: row.patient_last_name,
-    doctorFirstName: row.doctor_first_name,
-    doctorLastName: row.doctor_last_name,
-    doctorTitle: row.doctor_title,
-    appointmentTypeName: row.appointment_type_name,
-  },
+  id: bufferToUuid(row.id),
+  organizationId: bufferToUuid(row.organization_id),
+  recipientUserId: bufferToUuid(row.recipient_user_id),
+  actorUserId: row.actor_user_id ? bufferToUuid(row.actor_user_id) : null,
+  type: row.type,
+  title: row.title,
+  message: row.message,
+  entityType: row.entity_type,
+  entityId: bufferToUuid(row.entity_id),
+  readAt: toNullableDate(row.read_at)?.toISOString() ?? null,
+  createdAt: toDate(row.created_at).toISOString(),
 });
 
-const buildBaseQuery = (organizationId: string, query: NotificationListQueryDto) => {
-  let q = db<NotificationRow>('appointment_reminders as reminder')
-    .innerJoin('appointments as appointment', 'appointment.id', 'reminder.appointment_id')
-    .innerJoin('patient_profiles as patient', 'patient.user_id', 'appointment.patient_user_id')
-    .innerJoin('doctor_profiles as doctor', 'doctor.user_id', 'appointment.doctor_user_id')
-    .innerJoin('appointment_types as apptType', 'apptType.id', 'appointment.appointment_type_id')
-    .where('reminder.organization_id', uuidToBuffer(organizationId));
-
-  if (query.status) {
-    q = q.andWhere('reminder.status', query.status);
+const applyListFilters = (
+  queryBuilder: Knex.QueryBuilder,
+  query: NotificationListQueryDto,
+): void => {
+  if (query.unreadOnly) {
+    queryBuilder.whereNull("read_at");
   }
-
-  if (query.channel) {
-    q = q.andWhere('reminder.channel', query.channel);
-  }
-
-  if (query.dateFrom) {
-    q = q.andWhere('reminder.scheduled_for', '>=', new Date(`${query.dateFrom}T00:00:00.000Z`));
-  }
-
-  if (query.dateTo) {
-    q = q.andWhere('reminder.scheduled_for', '<', new Date(`${query.dateTo}T23:59:59.999Z`));
-  }
-
-  return q;
 };
 
-export const notificationsRepository = {
-  async find(
+export class NotificationsRepository {
+  public constructor(private readonly executor: DatabaseExecutor = db) {}
+
+  public async create(input: CreateNotificationInput): Promise<void> {
+    await this.executor("notifications")
+      .insert({
+        id: uuidToBuffer(uuidv4()),
+        organization_id: uuidToBuffer(input.organizationId),
+        recipient_user_id: uuidToBuffer(input.recipientUserId),
+        actor_user_id: input.actorUserId ? uuidToBuffer(input.actorUserId) : null,
+        type: input.type,
+        title: input.title,
+        message: input.message,
+        entity_type: input.entityType,
+        entity_id: uuidToBuffer(input.entityId),
+        event_key: input.eventKey,
+      })
+      .onConflict(["organization_id", "recipient_user_id", "event_key"])
+      .ignore();
+  }
+
+  public async createMany(inputs: readonly CreateNotificationInput[]): Promise<void> {
+    for (const input of inputs) {
+      await this.create(input);
+    }
+  }
+
+  public async find(
     organizationId: string,
+    recipientUserId: string,
     query: NotificationListQueryDto,
   ): Promise<NotificationDto[]> {
     const page = query.page ?? 1;
-    const offset = (page - 1) * PAGE_SIZE;
-
-    const rows = await buildBaseQuery(organizationId, query)
+    const rowsQuery = this.executor<NotificationRow>("notifications")
       .select(
-        'reminder.id as reminder_id',
-        'reminder.appointment_id',
-        'reminder.channel',
-        'reminder.scheduled_for',
-        'reminder.sent_at',
-        'reminder.status',
-        'reminder.attempt_count',
-        'reminder.last_error',
-        'appointment.start_at as appointment_start_at',
-        'appointment.end_at as appointment_end_at',
-        'patient.first_name as patient_first_name',
-        'patient.last_name as patient_last_name',
-        'doctor.first_name as doctor_first_name',
-        'doctor.last_name as doctor_last_name',
-        'doctor.title as doctor_title',
-        'apptType.name as appointment_type_name',
+        "id",
+        "organization_id",
+        "recipient_user_id",
+        "actor_user_id",
+        "type",
+        "title",
+        "message",
+        "entity_type",
+        "entity_id",
+        "read_at",
+        "created_at",
       )
-      .orderBy('reminder.scheduled_for', 'desc')
-      .orderBy('reminder.id', 'desc')
+      .where({
+        organization_id: uuidToBuffer(organizationId),
+        recipient_user_id: uuidToBuffer(recipientUserId),
+      });
+
+    applyListFilters(rowsQuery, query);
+
+    const rows = await rowsQuery
+      .orderBy("created_at", "desc")
+      .orderBy("id", "desc")
       .limit(PAGE_SIZE)
-      .offset(offset);
+      .offset((page - 1) * PAGE_SIZE);
 
     return rows.map(toDto);
-  },
+  }
 
-  async count(
+  public async count(
     organizationId: string,
+    recipientUserId: string,
     query: NotificationListQueryDto,
   ): Promise<number> {
-    const row = await buildBaseQuery(organizationId, query)
-      .count<CountRow[]>({ total: 'reminder.id' })
+    const countQuery = this.executor("notifications")
+      .where({
+        organization_id: uuidToBuffer(organizationId),
+        recipient_user_id: uuidToBuffer(recipientUserId),
+      })
+      .count<CountRow[]>({ total: "id" });
+
+    applyListFilters(countQuery, query);
+
+    const row = await countQuery.first();
+
+    return row ? Number(row.total) : 0;
+  }
+
+  public async unreadCount(
+    organizationId: string,
+    recipientUserId: string,
+  ): Promise<number> {
+    const row = await this.executor("notifications")
+      .where({
+        organization_id: uuidToBuffer(organizationId),
+        recipient_user_id: uuidToBuffer(recipientUserId),
+      })
+      .whereNull("read_at")
+      .count<CountRow[]>({ total: "id" })
       .first();
 
     return row ? Number(row.total) : 0;
-  },
+  }
 
-  async summarize(organizationId: string): Promise<NotificationSummaryDto> {
-    const rows = await db<StatusCountRow>('appointment_reminders')
-      .select('status')
-      .count<StatusCountRow[]>({ total: 'id' })
-      .where('organization_id', uuidToBuffer(organizationId))
-      .groupBy('status');
-
-    const counts = {
-      PENDING: 0,
-      SENT: 0,
-      FAILED: 0,
-      ...Object.fromEntries(rows.map((r) => [r.status, Number(r.total)])),
-    };
+  public async summarize(
+    organizationId: string,
+    recipientUserId: string,
+  ): Promise<NotificationSummaryDto> {
+    const total = await this.count(organizationId, recipientUserId, { page: 1 });
+    const unread = await this.unreadCount(organizationId, recipientUserId);
 
     return {
-      total: counts.PENDING + counts.SENT + counts.FAILED,
-      pending: counts.PENDING,
-      sent: counts.SENT,
-      failed: counts.FAILED,
+      total,
+      unread,
+      read: total - unread,
     };
-  },
-};
+  }
+
+  public async markRead(
+    organizationId: string,
+    recipientUserId: string,
+    notificationId: string,
+  ): Promise<boolean> {
+    const affectedRows = await this.executor("notifications")
+      .where({
+        id: uuidToBuffer(notificationId),
+        organization_id: uuidToBuffer(organizationId),
+        recipient_user_id: uuidToBuffer(recipientUserId),
+      })
+      .whereNull("read_at")
+      .update({ read_at: new Date() });
+
+    return affectedRows > 0;
+  }
+
+  public async markAllRead(
+    organizationId: string,
+    recipientUserId: string,
+  ): Promise<number> {
+    return this.executor("notifications")
+      .where({
+        organization_id: uuidToBuffer(organizationId),
+        recipient_user_id: uuidToBuffer(recipientUserId),
+      })
+      .whereNull("read_at")
+      .update({ read_at: new Date() });
+  }
+
+  public async findActiveRecipientsByRoles(
+    organizationId: string,
+    roles: readonly OrganizationUserRole[],
+  ): Promise<NotificationRecipientRecord[]> {
+    if (roles.length === 0) {
+      return [];
+    }
+
+    const rows = await this.executor<RecipientRow>("organization_users")
+      .select("user_id", "role")
+      .where("organization_id", uuidToBuffer(organizationId))
+      .where("is_active", 1)
+      .whereIn("role", roles);
+
+    return rows.map((row) => ({
+      userId: bufferToUuid(row.user_id),
+      role: row.role,
+    }));
+  }
+}
+
+export const notificationsRepository = new NotificationsRepository();
