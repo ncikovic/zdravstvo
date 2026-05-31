@@ -3020,9 +3020,42 @@ button {
   height: 240px;
 }
 
+.public-card-visual--forbidden {
+  width: min(100%, 340px);
+  margin: 30px auto 28px;
+  position: relative;
+}
+
 .public-card-visual--not-found {
   height: 226px;
   margin-block: 30px 26px;
+}
+
+.public-status-page--forbidden .public-status-card {
+  overflow: visible;
+  display: grid;
+  gap: 24px;
+}
+
+.public-status-page--forbidden .public-card-visual__shield {
+  right: clamp(18px, 4vw, 42px);
+  top: clamp(22px, 4vh, 40px);
+}
+
+@media (max-width: 900px) {
+  .public-status-page--forbidden .public-status-panel {
+    padding: 22px 18px 30px;
+  }
+
+  .public-status-page--forbidden .public-card-visual {
+    width: min(100%, 320px);
+    margin: 28px auto 26px;
+  }
+
+  .public-status-page--forbidden .public-card-visual__shield {
+    right: clamp(16px, 5vw, 38px);
+    top: clamp(24px, 4vh, 36px);
+  }
 }
 
 .public-card-visual__number {
@@ -4664,6 +4697,32 @@ button {
   color: #1176d0;
   font-weight: 800;
   cursor: pointer;
+}
+
+.topbar-dropdown__menu a {
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid #dce8f3;
+  border-radius: 8px;
+  background: #f5faff;
+  color: #1176d0;
+  font-weight: 800;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+
+.topbar-notification-preview {
+  display: grid;
+  gap: 2px;
+  padding: 8px 0;
+  border-bottom: 1px solid #eef4fb;
+}
+
+.topbar-notification-preview small {
+  color: #8a96aa;
+  font-size: 0.76rem;
+  font-weight: 700;
 }
 
 .topbar-dropdown__actions {

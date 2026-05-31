@@ -3,6 +3,9 @@ import { Link, useNavigate } from 'react-router-dom';
 
 import { APP_ROUTES } from '@/app/routes';
 import {
+  getRoleHome,
+} from '@/app/AuthRoutes';
+import {
   PublicStatusIcon,
   PublicStatusLayout,
   StatusCardIllustration,
@@ -31,6 +34,12 @@ const accessDeniedFeatures: PublicStatusFeature[] = [
 export function AccessDeniedPage(): ReactElement {
   const navigate = useNavigate();
   const clearAuth = useAuthStore((state) => state.clearAuth);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const isSystemAdmin = useAuthStore((state) => state.isSystemAdmin);
+  const role = useAuthStore((state) => state.role);
+  const homeRoute = isAuthenticated
+    ? getRoleHome(isSystemAdmin, role)
+    : APP_ROUTES.login;
 
   const handleLogout = (): void => {
     clearAuth();
@@ -56,7 +65,7 @@ export function AccessDeniedPage(): ReactElement {
       <StatusCardIllustration variant="forbidden" />
 
       <div className="public-status-actions">
-        <Link className="public-status-button public-status-button--primary" to={APP_ROUTES.home}>
+        <Link className="public-status-button public-status-button--primary" to={homeRoute}>
           <PublicStatusIcon name="home" />
           Povratak na početnu
         </Link>

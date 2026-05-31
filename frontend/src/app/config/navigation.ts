@@ -1,157 +1,154 @@
-import { OrganizationUserRole } from '@zdravstvo/contracts'
+import { OrganizationUserRole } from "@zdravstvo/contracts";
 
-import type { AppNavigationItem } from '@/types'
+import type { AppNavigationItem } from "@/types";
 
-import { APP_ROUTES } from '../routes'
+import { APP_ROUTES } from "../routes";
 
 const ORGANIZATION_ROLES = [
   OrganizationUserRole.MANAGER,
   OrganizationUserRole.RECEPTION,
   OrganizationUserRole.DOCTOR,
   OrganizationUserRole.PATIENT,
-] as const
+] as const;
 
 export const APP_NAVIGATION_ITEMS: readonly AppNavigationItem[] = [
   // Shared organization navigation
   {
-    id: 'dashboard',
-    label: 'Dashboard',
+    id: "dashboard",
+    label: "Dashboard",
     path: APP_ROUTES.dashboard,
-    icon: 'dashboard',
+    icon: "dashboard",
     allowedRoles: ORGANIZATION_ROLES,
-    section: 'primary',
+    section: "primary",
   },
 
   // SYSTEM_ADMIN navigation
   {
-    id: 'admin-organizations',
-    label: 'Organizacije',
+    id: "admin-organizations",
+    label: "Organizacije",
     path: APP_ROUTES.adminOrganizations,
-    icon: 'building',
+    icon: "building",
     allowedRoles: [],
     isSystemAdminItem: true,
-    section: 'primary',
+    section: "primary",
   },
   {
-    id: 'admin-users',
-    label: 'Korisnici',
+    id: "admin-users",
+    label: "Korisnici",
     path: APP_ROUTES.adminUsers,
-    icon: 'users',
+    icon: "users",
     allowedRoles: [],
     isSystemAdminItem: true,
-    section: 'primary',
+    section: "primary",
   },
   {
-    id: 'admin-audit',
-    label: 'Audit',
+    id: "admin-audit",
+    label: "Audit",
     path: APP_ROUTES.adminAudit,
-    icon: 'shieldCheck',
+    icon: "shieldCheck",
     allowedRoles: [],
     isSystemAdminItem: true,
-    section: 'administration',
+    section: "administration",
   },
 
   // MANAGER navigation
   {
-    id: 'schedule',
-    label: 'Raspored',
+    id: "schedule",
+    label: "Raspored",
     path: APP_ROUTES.schedule,
-    icon: 'calendar',
-    allowedRoles: [OrganizationUserRole.MANAGER, OrganizationUserRole.RECEPTION],
-    section: 'primary',
+    icon: "calendar",
+    allowedRoles: [
+      OrganizationUserRole.MANAGER,
+      OrganizationUserRole.RECEPTION,
+    ],
+    section: "primary",
   },
   {
-    id: 'patients',
-    label: 'Pacijenti',
+    id: "patients",
+    label: "Pacijenti",
     path: APP_ROUTES.patients,
-    icon: 'patients',
-    allowedRoles: [OrganizationUserRole.MANAGER, OrganizationUserRole.RECEPTION],
-    section: 'clinical',
+    icon: "patients",
+    allowedRoles: [
+      OrganizationUserRole.MANAGER,
+      OrganizationUserRole.RECEPTION,
+    ],
+    section: "clinical",
   },
   {
-    id: 'doctors',
-    label: 'Liječnici',
+    id: "doctors",
+    label: "Liječnici",
     path: APP_ROUTES.doctors,
-    icon: 'doctor',
+    icon: "doctor",
     allowedRoles: [OrganizationUserRole.MANAGER],
-    section: 'clinical',
+    section: "clinical",
   },
   {
-    id: 'appointment-types',
-    label: 'Vrste termina',
+    id: "appointment-types",
+    label: "Vrste termina",
     path: APP_ROUTES.appointmentTypes,
-    icon: 'tag',
+    icon: "tag",
     allowedRoles: [OrganizationUserRole.MANAGER],
-    section: 'administration',
+    section: "administration",
   },
   {
-    id: 'users',
-    label: 'Korisnici',
+    id: "users",
+    label: "Korisnici",
     path: APP_ROUTES.users,
-    icon: 'users',
+    icon: "users",
     allowedRoles: [OrganizationUserRole.MANAGER],
-    section: 'administration',
+    section: "administration",
   },
   {
-    id: 'audit',
-    label: 'Audit',
+    id: "audit",
+    label: "Audit",
     path: APP_ROUTES.audit,
-    icon: 'shieldCheck',
+    icon: "shieldCheck",
     allowedRoles: [OrganizationUserRole.MANAGER],
-    section: 'administration',
+    section: "administration",
   },
-  {
-    id: 'notifications',
-    label: 'Obavijesti',
-    path: APP_ROUTES.notifications,
-    icon: 'bell',
-    allowedRoles: [OrganizationUserRole.MANAGER, OrganizationUserRole.RECEPTION],
-    section: 'administration',
-  },
-
   // DOCTOR navigation
   {
-    id: 'doctor-own-schedule',
-    label: 'Moj raspored',
+    id: "doctor-own-schedule",
+    label: "Moj raspored",
     path: APP_ROUTES.doctorOwnSchedule,
-    icon: 'calendarCheck',
+    icon: "calendarCheck",
     allowedRoles: [OrganizationUserRole.DOCTOR],
-    section: 'primary',
+    section: "primary",
   },
 
   // PATIENT navigation
   {
-    id: 'my-appointments',
-    label: 'Moji termini',
+    id: "my-appointments",
+    label: "Moji termini",
     path: APP_ROUTES.myAppointments,
-    icon: 'calendar',
+    icon: "calendar",
     allowedRoles: [OrganizationUserRole.PATIENT],
-    section: 'clinical',
+    section: "clinical",
   },
   {
-    id: 'book-appointment',
-    label: 'Zakaži termin',
+    id: "book-appointment",
+    label: "Zakaži termin",
     path: APP_ROUTES.book,
-    icon: 'plus',
+    icon: "plus",
     allowedRoles: [OrganizationUserRole.PATIENT],
-    section: 'clinical',
+    section: "clinical",
   },
   {
-    id: 'profile',
-    label: 'Profil',
+    id: "profile",
+    label: "Profil",
     path: APP_ROUTES.profile,
-    icon: 'user',
+    icon: "user",
     allowedRoles: [OrganizationUserRole.PATIENT],
-    section: 'system',
+    section: "system",
   },
 
   // MANAGER settings
   {
-    id: 'settings',
-    label: 'Postavke',
+    id: "settings",
+    label: "Postavke",
     path: APP_ROUTES.settings,
-    icon: 'settings',
+    icon: "settings",
     allowedRoles: [OrganizationUserRole.MANAGER],
-    section: 'system',
+    section: "system",
   },
-]
+];

@@ -197,6 +197,12 @@
   color: #ffffff;
 }
 
+.doctor-appointment-card__action--accept {
+  border: 1px solid #d97706;
+  background: #d97706;
+  color: #ffffff;
+}
+
 .doctor-appointment-card__action--no-show {
   border: 1px solid #fca5a5;
   background: #ffffff;

@@ -11,10 +11,10 @@ export const getRoleHome = (
   role: OrganizationUserRole | null,
 ): string => {
   if (isSystemAdmin) return APP_ROUTES.adminOrganizations
-  if (role === OrganizationUserRole.MANAGER) return APP_ROUTES.schedule
-  if (role === OrganizationUserRole.RECEPTION) return APP_ROUTES.schedule
+  if (role === OrganizationUserRole.MANAGER) return APP_ROUTES.dashboard
+  if (role === OrganizationUserRole.RECEPTION) return APP_ROUTES.dashboard
   if (role === OrganizationUserRole.DOCTOR) return APP_ROUTES.doctorOwnSchedule
-  if (role === OrganizationUserRole.PATIENT) return APP_ROUTES.myAppointments
+  if (role === OrganizationUserRole.PATIENT) return APP_ROUTES.dashboard
   return APP_ROUTES.dashboard
 }
 
