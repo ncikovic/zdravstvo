@@ -326,37 +326,6 @@ function EditAppointmentTypePage(): ReactElement {
             </div>
           </section>
 
-          <section className="appointment-type-edit-card">
-            <header>
-              <span>3</span>
-              <h2>Dostupnost i povezivanje</h2>
-            </header>
-
-            <div className="appointment-type-edit-availability-grid">
-              <label className="appointment-type-edit-field">
-                <span>Specijalizacije</span>
-                <button type="button" disabled>
-                  Nije dostupno kroz API
-                  <AppIcon name="chevronDown" />
-                </button>
-              </label>
-
-              <label className="appointment-type-edit-field">
-                <span>Lijecnici</span>
-                <button type="button" disabled>
-                  Nije dostupno kroz API
-                  <AppIcon name="chevronDown" />
-                </button>
-              </label>
-            </div>
-
-            <p className="appointment-type-edit-info">
-              <AppIcon name="info" />
-              Promjene ce se primijeniti na buduce rezervacije ove vrste
-              termina.
-            </p>
-          </section>
-
           <section className="appointment-type-edit-actions">
             <div className="appointment-type-edit-danger-actions">
               <button

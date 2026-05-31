@@ -142,8 +142,7 @@
 }
 
 .appointment-type-edit-form-grid,
-.appointment-type-edit-rules-grid,
-.appointment-type-edit-availability-grid {
+.appointment-type-edit-rules-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 20px 30px;
@@ -292,15 +291,6 @@
   grid-column: 1 / -1;
 }
 
-.appointment-type-edit-availability-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.appointment-type-edit-availability-grid
-  .appointment-type-edit-field:nth-child(4) {
-  max-width: 360px;
-}
-
 .appointment-type-edit-tags button {
   display: flex;
   align-items: center;
@@ -332,27 +322,6 @@
 .appointment-type-edit-tags em i {
   color: #5275a8;
   font-style: normal;
-}
-
-.appointment-type-edit-info {
-  display: grid;
-  grid-template-columns: 20px minmax(0, 1fr);
-  align-items: center;
-  gap: 10px;
-  min-height: 40px;
-  margin: 0;
-  padding: 0 12px;
-  border-radius: 8px;
-  background: #edf7ff;
-  color: #53668d;
-  font-size: 0.86rem;
-  font-weight: 650;
-}
-
-.appointment-type-edit-info .app-icon {
-  width: 18px;
-  height: 18px;
-  color: #0876df;
 }
 
 .appointment-type-edit-actions {
@@ -574,15 +543,9 @@
 
   .appointment-type-edit-form-grid,
   .appointment-type-edit-rules-grid,
-  .appointment-type-edit-availability-grid,
   .appointment-type-edit-reminder-row,
   .appointment-type-edit-side {
     grid-template-columns: 1fr;
-  }
-
-  .appointment-type-edit-availability-grid
-    .appointment-type-edit-field:nth-child(4) {
-    max-width: none;
   }
 }
 
