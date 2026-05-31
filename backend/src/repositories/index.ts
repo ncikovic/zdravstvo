@@ -1,3 +1,4 @@
+export * from "./accessibility.repository.js";
 export * from "./adminUsers.repository.js";
 export * from "./notifications.repository.js";
 export * from "./managerUsers.repository.js";

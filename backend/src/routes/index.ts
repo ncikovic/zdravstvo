@@ -1,5 +1,6 @@
 import { Router } from "express";
 
+import { accessibilityRouter } from "./accessibility.routes.js";
 import { adminAuditRouter } from "./adminAudit.routes.js";
 import { adminUsersRouter } from "./adminUsers.routes.js";
 import { appointmentsRouter } from "./appointments.routes.js";
@@ -17,6 +18,7 @@ import { patientsRouter } from "./patients.routes.js";
 export const apiRouter = Router();
 
 apiRouter.use(authRouter);
+apiRouter.use("/accessibility", accessibilityRouter);
 apiRouter.use("/admin/audit", adminAuditRouter);
 apiRouter.use("/admin/users", adminUsersRouter);
 apiRouter.use("/appointments", appointmentsRouter);

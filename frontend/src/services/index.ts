@@ -1,4 +1,5 @@
 export * from "./adminAudit.service";
+export * from "./accessibility.service";
 export * from "./notifications.service";
 export * from "./adminUsers.service";
 export * from "./managerUsers.service";

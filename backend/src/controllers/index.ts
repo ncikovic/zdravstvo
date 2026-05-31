@@ -1,4 +1,5 @@
 export * from "./adminAudit.controller.js";
+export * from "./accessibility.controller.js";
 export * from "./notifications.controller.js";
 export * from "./managerUsers.controller.js";
 export * from "./adminUsers.controller.js";

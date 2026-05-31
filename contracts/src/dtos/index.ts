@@ -1,4 +1,5 @@
 export * from "./admin-users/index.js";
+export * from "./accessibility/index.js";
 export * from "./notifications/index.js";
 export * from "./manager-users/index.js";
 export * from "./appointments/index.js";

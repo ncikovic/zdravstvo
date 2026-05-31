@@ -1,4 +1,5 @@
 export * from "./adminAudit.service.js";
+export * from "./accessibility.service.js";
 export * from "./notifications.service.js";
 export * from "./managerUsers.service.js";
 export * from "./adminUsers.service.js";
