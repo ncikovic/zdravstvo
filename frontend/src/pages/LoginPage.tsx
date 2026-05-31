@@ -94,14 +94,19 @@ export function LoginPage({ initialStep = 'login' }: LoginPageProps): ReactEleme
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<LoginFormValues, unknown, LoginRequestDto>({
     resolver: zodResolver(loginRequestSchema),
     defaultValues: {
-      identifier: 'Unesite email ili telefon',
+      identifier: '',
       password: '',
     },
   })
+  const identifierValue = watch('identifier')
+  const passwordValue = watch('password')
+  const showIdentifierHint = !identifierValue?.trim()
+  const showPasswordHint = !passwordValue
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -415,11 +420,16 @@ export function LoginPage({ initialStep = 'login' }: LoginPageProps): ReactEleme
                 <form className="login-form" onSubmit={handleSubmit(onSubmit)} noValidate>
                   <div className="login-field">
                     <label htmlFor="identifier">E-mail ili telefon</label>
-                    <div className="login-input-shell">
+                    <div className="login-input-shell login-input-shell--with-hint-label">
                       <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
                         <path d="M4.8 6.5h14.4c.8 0 1.5.7 1.5 1.5v8c0 .8-.7 1.5-1.5 1.5H4.8c-.8 0-1.5-.7-1.5-1.5V8c0-.8.7-1.5 1.5-1.5Z" />
                         <path d="m4 8 8 5.4L20 8" />
                       </svg>
+                      {showIdentifierHint ? (
+                        <label className="login-input-hint-label" htmlFor="identifier">
+                          Unesite email ili telefon
+                        </label>
+                      ) : null}
                       <input
                         id="identifier"
                         type="text"
@@ -438,11 +448,16 @@ export function LoginPage({ initialStep = 'login' }: LoginPageProps): ReactEleme
 
                   <div className="login-field">
                     <label htmlFor="password">Lozinka</label>
-                    <div className="login-input-shell">
+                    <div className="login-input-shell login-input-shell--with-hint-label">
                       <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
                         <path d="M7 10.5h10a1.6 1.6 0 0 1 1.6 1.6v6.3A1.6 1.6 0 0 1 17 20H7a1.6 1.6 0 0 1-1.6-1.6v-6.3A1.6 1.6 0 0 1 7 10.5Z" />
                         <path d="M8.8 10.5V8.2a3.2 3.2 0 1 1 6.4 0v2.3" />
                       </svg>
+                      {showPasswordHint ? (
+                        <label className="login-input-hint-label" htmlFor="password">
+                          Unesite lozinku
+                        </label>
+                      ) : null}
                       <input
                         id="password"
                         type={isPasswordVisible ? 'text' : 'password'}
