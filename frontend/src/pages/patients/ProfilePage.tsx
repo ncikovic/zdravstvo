@@ -422,26 +422,30 @@ function ProfilePage(): ReactElement {
                   aria-checked={form[setting.key]}
                   onClick={() => handleBooleanChange(setting.key, !form[setting.key])}
                   style={{
-                    width: '3rem',
-                    height: '1.5rem',
-                    borderRadius: '12px',
+                    width: '3.75rem',
+                    height: '2rem',
+                    borderRadius: '999px',
                     border: 'none',
                     background: form[setting.key] ? '#2563eb' : '#d1d5db',
                     cursor: 'pointer',
                     position: 'relative',
                     flexShrink: 0,
+                    padding: 0,
                   }}
                   aria-label={setting.title}
                 >
                   <span
                     style={{
                       position: 'absolute',
-                      top: '2px',
-                      left: form[setting.key] ? 'calc(100% - 1.25rem)' : '2px',
-                      width: '1.125rem',
-                      height: '1.125rem',
+                      top: '50%',
+                      left: form[setting.key] ? 'calc(100% - 1.75rem)' : '0.25rem',
+                      width: '1.5rem',
+                      height: '1.5rem',
                       borderRadius: '50%',
                       background: '#fff',
+                      transform: 'translateY(-50%)',
+                      boxShadow: '0 3px 8px rgba(15, 23, 42, 0.18)',
+                      transition: 'left 160ms ease',
                     }}
                   />
                 </button>
