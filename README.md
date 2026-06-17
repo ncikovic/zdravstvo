@@ -53,7 +53,12 @@ No exact Node.js or pnpm version is declared in `package.json`, `packageManager`
 
    `pnpm install`
 
-3. Create local `.env` files as needed. This repository currently does not include `.env.example` files.
+3. Create local `.env` files from the committed examples:
+
+   `cp backend/.env.example backend/.env`
+
+   `cp frontend/.env.example frontend/.env`
+
 4. Configure the backend database connection for a local MySQL database.
 5. Start MySQL and create the local database.
 6. Run backend migrations:
@@ -80,7 +85,7 @@ The full monorepo development command is also available:
 
 Local `.env` files are required for development and deployment-specific configuration. They must not be committed.
 
-This repository currently does not include `.env.example` files, so there is no committed canonical environment variable list. Keep local values private and add examples before relying on them as project documentation.
+Use `backend/.env.example` and `frontend/.env.example` as the canonical environment variable examples. Copy them to package-local `.env` files before running the backend or frontend, then adjust values for your local machine.
 
 Configuration areas used by the application include:
 
