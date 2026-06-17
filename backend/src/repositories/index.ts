@@ -1,1 +1,14 @@
-export {};
+export * from "./accessibility.repository.js";
+export * from "./adminUsers.repository.js";
+export * from "./notifications.repository.js";
+export * from "./managerUsers.repository.js";
+export * from "./appointments.repository.js";
+export * from "./appointmentTypes.repository.js";
+export * from "./audit.repository.js";
+export * from "./auth.repository.js";
+export * from "./dashboard.repository.js";
+export * from "./doctors.repository.js";
+export * from "./organizationUsers.repository.js";
+export * from "./organizations.repository.js";
+export * from "./patients.repository.js";
+export * from "./users.repository.js";

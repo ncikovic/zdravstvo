@@ -1,0 +1,279 @@
+.doctor-own-schedule {
+  width: min(100%, 1180px);
+  padding: 2rem;
+}
+
+.doctor-own-schedule__header {
+  margin-bottom: 1.5rem;
+}
+
+.doctor-own-schedule__header h1 {
+  margin: 0;
+  color: #07183a;
+  font-size: clamp(1.75rem, 2vw, 2.15rem);
+  line-height: 1.08;
+}
+
+.doctor-own-schedule__header p {
+  margin: 0.3rem 0 0;
+  color: #526382;
+}
+
+.doctor-own-schedule__error {
+  margin-bottom: 1rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.doctor-own-schedule__controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.doctor-own-schedule__segment,
+.doctor-own-schedule__nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.doctor-own-schedule__segment button,
+.doctor-own-schedule__nav button {
+  min-height: 40px;
+  padding: 0 0.9rem;
+  border: 1px solid #d9e6f2;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #263a5f;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 750;
+}
+
+.doctor-own-schedule__segment button.is-active {
+  border-color: #2563eb;
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.doctor-own-schedule__range {
+  color: #263a5f;
+  font-weight: 800;
+}
+
+.doctor-own-schedule__loading {
+  color: #667590;
+}
+
+.doctor-week-shell {
+  width: 100%;
+  overflow-x: auto;
+  padding-bottom: 0.4rem;
+}
+
+.doctor-week-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(170px, 1fr));
+  gap: 0.75rem;
+  min-width: 1190px;
+}
+
+.doctor-week-day {
+  min-width: 0;
+}
+
+.doctor-week-day__label {
+  display: grid;
+  min-height: 38px;
+  place-items: center;
+  margin-bottom: 0.6rem;
+  padding: 0 0.35rem;
+  border-radius: 8px;
+  color: #263a5f;
+  font-size: 0.8rem;
+  font-weight: 750;
+  text-align: center;
+}
+
+.doctor-week-day__label.is-today {
+  background: #2563eb;
+  color: #ffffff;
+  font-weight: 900;
+}
+
+.doctor-week-day__empty {
+  padding: 0.65rem 0;
+  color: #9ca3af;
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.doctor-appointment-card {
+  margin-bottom: 0.65rem;
+  border: 1px solid #d9e6f2;
+  border-left-width: 4px;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 10px 22px rgba(22, 55, 99, 0.06);
+  overflow: hidden;
+}
+
+.doctor-appointment-card__body {
+  display: grid;
+  gap: 0.7rem;
+  padding: 0.8rem;
+}
+
+.doctor-appointment-card__content {
+  min-width: 0;
+}
+
+.doctor-appointment-card__time {
+  color: #07183a;
+  font-size: 0.9rem;
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+.doctor-appointment-card__patient {
+  margin-top: 0.35rem;
+  color: #07183a;
+  font-weight: 850;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.doctor-appointment-card__meta {
+  margin-top: 0.25rem;
+  color: #526382;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.doctor-appointment-card__status {
+  margin-top: 0.5rem;
+}
+
+.doctor-appointment-card__badge {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.doctor-appointment-card__actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.45rem;
+}
+
+.doctor-appointment-card__action {
+  min-height: 36px;
+  padding: 0 0.6rem;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.doctor-appointment-card__action:disabled {
+  opacity: 0.6;
+}
+
+.doctor-appointment-card__action--complete {
+  border: 1px solid #16a34a;
+  background: #16a34a;
+  color: #ffffff;
+}
+
+.doctor-appointment-card__action--accept {
+  border: 1px solid #d97706;
+  background: #d97706;
+  color: #ffffff;
+}
+
+.doctor-appointment-card__action--no-show {
+  border: 1px solid #fca5a5;
+  background: #ffffff;
+  color: #b91c1c;
+}
+
+.doctor-day-view {
+  max-width: 720px;
+}
+
+.doctor-day-view h2 {
+  margin: 0 0 1rem;
+  color: #263a5f;
+  font-size: 1rem;
+  font-weight: 850;
+}
+
+.doctor-day-view .doctor-appointment-card__body {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+}
+
+.doctor-day-view .doctor-appointment-card__actions {
+  min-width: 148px;
+}
+
+.doctor-day-view__empty {
+  padding: 2rem;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #9ca3af;
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .doctor-own-schedule {
+    padding: 1.25rem;
+  }
+
+  .doctor-own-schedule__controls {
+    gap: 0.75rem;
+  }
+
+  .doctor-week-grid {
+    grid-template-columns: repeat(7, minmax(160px, 1fr));
+    min-width: 1120px;
+  }
+}
+
+@media (max-width: 640px) {
+  .doctor-own-schedule {
+    padding: 1rem;
+  }
+
+  .doctor-own-schedule__segment,
+  .doctor-own-schedule__nav,
+  .doctor-own-schedule__range {
+    width: 100%;
+  }
+
+  .doctor-own-schedule__segment button,
+  .doctor-own-schedule__nav button {
+    flex: 1;
+  }
+
+  .doctor-day-view .doctor-appointment-card__body {
+    grid-template-columns: 1fr;
+  }
+
+  .doctor-day-view .doctor-appointment-card__actions {
+    min-width: 0;
+  }
+}

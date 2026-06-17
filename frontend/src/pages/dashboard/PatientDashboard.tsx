@@ -1,0 +1,180 @@
+import type { ReactElement } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+
+import { APP_ROUTES } from '@/app/routes'
+import { AppIcon } from '@/components'
+import type { PatientDashboard as PatientDashboardData } from '@/types'
+
+import { mapPatientDashboard } from './dashboard.mappers'
+import {
+  AvatarBadge,
+  DashboardSection,
+  DashboardStatCard,
+  IconTile,
+  StatusBadge,
+} from './DashboardPrimitives'
+
+interface PatientDashboardProps {
+  dashboard: PatientDashboardData
+}
+
+export function PatientDashboard({ dashboard }: PatientDashboardProps): ReactElement {
+  const navigate = useNavigate()
+  const view = mapPatientDashboard(dashboard)
+
+  return (
+    <div className="dashboard-page dashboard-page--patient">
+      <div className="dashboard-page__hero">
+        <div>
+          <h1>Nadzorna ploča</h1>
+          <p>Pregledajte svoje termine, obavijesti i upravljajte svojim zdravstvenim obavezama.</p>
+        </div>
+      </div>
+
+      <div className="dashboard-stat-grid dashboard-stat-grid--four">
+        {view.stats.map((stat) => (
+          <DashboardStatCard key={stat.label} stat={stat} />
+        ))}
+      </div>
+
+      <div className="dashboard-grid dashboard-grid--patient">
+        <DashboardSection title="Sljedeći termin" icon="calendarCheck" className="patient-appointment">
+          {view.nextAppointment ? (
+            <>
+              <div className="patient-appointment__status">
+                <StatusBadge tone={view.nextAppointment.statusTone}>
+                  {view.nextAppointment.status}
+                </StatusBadge>
+              </div>
+              <div className="patient-appointment__doctor">
+                <AvatarBadge initials={view.nextAppointment.doctorInitials} tone="blue" />
+                <span>
+                  <strong>{view.nextAppointment.doctorName}</strong>
+                  <small>{view.nextAppointment.doctorTitle}</small>
+                </span>
+                <div className="patient-appointment__illustration" aria-hidden="true">
+                  <AppIcon name="calendarCheck" />
+                </div>
+              </div>
+              <div className="patient-appointment__meta">
+                <span>
+                  <AppIcon name="calendar" />
+                  <strong>Datum</strong>
+                  {view.nextAppointment.date}
+                  <small>{view.nextAppointment.weekday}</small>
+                </span>
+                <span>
+                  <AppIcon name="clock" />
+                  <strong>Vrijeme</strong>
+                  {view.nextAppointment.time}
+                  <small>({view.nextAppointment.duration})</small>
+                </span>
+                <span>
+                  <AppIcon name="building" />
+                  <strong>Lokacija</strong>
+                  {view.nextAppointment.location}
+                  <small>{view.nextAppointment.locationMeta}</small>
+                </span>
+                <span>
+                  <AppIcon name="clipboard" />
+                  <strong>Vrsta termina</strong>
+                  {view.nextAppointment.appointmentType}
+                </span>
+              </div>
+              <p className="patient-appointment__note">
+                <AppIcon name="info" />
+                {view.nextAppointment.note}
+              </p>
+              <div className="patient-appointment__actions">
+                <Link className="dashboard-gradient-action" to={`/appointments/${view.nextAppointment.id}`}>
+                  <AppIcon name="calendarCheck" />
+                  Detalji termina
+                </Link>
+                <Link className="dashboard-secondary-action" to={`/appointments/${view.nextAppointment.id}/change`}>
+                  <AppIcon name="calendar" />
+                  Promijeni termin
+                </Link>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="patient-appointment__status">
+                <StatusBadge tone="blue">Nema termina</StatusBadge>
+              </div>
+              <div className="patient-appointment__doctor">
+                <AvatarBadge initials="--" tone="blue" />
+                <span>
+                  <strong>Nema nadolazećeg termina</strong>
+                  <small>Vaš raspored je trenutno prazan</small>
+                </span>
+                <div className="patient-appointment__illustration" aria-hidden="true">
+                  <AppIcon name="calendarCheck" />
+                </div>
+              </div>
+              <p className="patient-appointment__note">
+                <AppIcon name="info" />
+                Novi termini prikazat će se nakon potvrde u ustanovi.
+              </p>
+            </>
+          )}
+        </DashboardSection>
+
+        <div className="dashboard-side-stack">
+          <DashboardSection title="Brze akcije" icon="plus">
+            <Link className="patient-action patient-action--primary" to={APP_ROUTES.book}>
+              <IconTile icon="calendarCheck" tone="teal" />
+              <span>
+                <strong>Rezerviraj termin</strong>
+                <small>Odaberite liječnika i pronađite slobodan termin</small>
+              </span>
+              <AppIcon name="chevronRight" />
+            </Link>
+            <Link className="patient-action" to="/my-appointments">
+              <IconTile icon="calendar" tone="blue" />
+              <span>
+                <strong>Pregledaj moje termine</strong>
+                <small>Pogledajte sve svoje nadolazeće termine</small>
+              </span>
+              <AppIcon name="chevronRight" />
+            </Link>
+          </DashboardSection>
+
+          <DashboardSection
+            title="Podsjetnici i obavijesti"
+            icon="bell"
+            footerLabel="Pogledaj sve obavijesti"
+            onFooter={() => navigate(APP_ROUTES.myAppointments)}
+          >
+            <div className="dashboard-compact-list">
+              {view.reminders.map((reminder) => (
+                <div className="dashboard-compact-row" key={reminder.title}>
+                  <IconTile icon={reminder.icon} tone={reminder.tone} />
+                  <span>
+                    <strong>{reminder.title}</strong>
+                    <small>{reminder.meta}</small>
+                  </span>
+                  <StatusBadge tone={reminder.tone}>{reminder.status}</StatusBadge>
+                  <button className="dashboard-row-action" type="button" aria-label="Otvori podsjetnik" onClick={() => navigate(APP_ROUTES.myAppointments)}>
+                    <AppIcon name="chevronRight" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </DashboardSection>
+        </div>
+      </div>
+
+      <section className="patient-health-banner">
+        <IconTile icon="shield" tone="blue" />
+        <span>
+          <strong>Vaše zdravlje na prvom mjestu</strong>
+          <small>Redovitim pregledima i preventivnim mjerama čuvajte svoje zdravlje.</small>
+        </span>
+        <button type="button" onClick={() => navigate(APP_ROUTES.book)}>
+          Saznajte više o preventivi
+          <AppIcon name="chevronRight" />
+        </button>
+      </section>
+    </div>
+  )
+}

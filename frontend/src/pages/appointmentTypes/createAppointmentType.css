@@ -1,0 +1,511 @@
+.appointment-type-create-page {
+  display: grid;
+  gap: 18px;
+  max-width: 1538px;
+  margin: 0 auto;
+  color: #07183a;
+}
+
+.appointment-type-create-page button {
+  cursor: default;
+}
+
+.appointment-type-create-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  min-height: 32px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #0876df;
+  font-size: 0.94rem;
+  font-weight: 850;
+}
+
+.appointment-type-create-back-link .app-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.appointment-type-create-hero span {
+  color: #5f7194;
+  font-size: 0.96rem;
+  font-weight: 650;
+}
+
+.appointment-type-create-hero h1 {
+  margin: 12px 0 0;
+  color: #07183a;
+  font-size: 2.2rem;
+  font-weight: 850;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+}
+
+.appointment-type-create-hero p {
+  margin: 7px 0 0;
+  color: #667590;
+  font-size: 1rem;
+  font-weight: 650;
+}
+
+.appointment-type-create-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 380px;
+  gap: 26px;
+  align-items: start;
+}
+
+.appointment-type-create-main {
+  display: grid;
+  gap: 0;
+  min-width: 0;
+}
+
+.appointment-type-create-card,
+.appointment-type-create-actions,
+.appointment-type-create-summary,
+.appointment-type-create-next {
+  border: 1px solid #dce8f3;
+  background: #ffffff;
+  box-shadow: 0 18px 44px rgba(21, 53, 96, 0.08);
+}
+
+.appointment-type-create-card {
+  display: grid;
+  gap: 22px;
+  min-width: 0;
+  padding: 22px 22px 20px;
+  border-radius: 12px;
+}
+
+.appointment-type-create-card + .appointment-type-create-card,
+.appointment-type-create-actions {
+  margin-top: -1px;
+}
+
+.appointment-type-create-card header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.appointment-type-create-card header > span {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border-radius: 50%;
+  background: #0876df;
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 900;
+}
+
+.appointment-type-create-card h2,
+.appointment-type-create-summary h2 {
+  margin: 0;
+  color: #07183a;
+  font-size: 1.06rem;
+  font-weight: 850;
+  line-height: 1.2;
+}
+
+.appointment-type-create-form-grid,
+.appointment-type-create-rules-grid,
+.appointment-type-create-availability-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px 30px;
+  min-width: 0;
+}
+
+.appointment-type-create-field {
+  position: relative;
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.appointment-type-create-field > span {
+  color: #07183a;
+  font-size: 0.84rem;
+  font-weight: 850;
+}
+
+.appointment-type-create-field b {
+  color: #f04438;
+}
+
+.appointment-type-create-field input,
+.appointment-type-create-field textarea,
+.appointment-type-create-field select,
+.appointment-type-create-field button {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #d6e2ef;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #5f6e8b;
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.appointment-type-create-field input,
+.appointment-type-create-field select {
+  min-height: 42px;
+  padding: 0 16px;
+}
+
+.appointment-type-create-field textarea {
+  min-height: 74px;
+  resize: vertical;
+  padding: 14px 16px;
+}
+
+.appointment-type-create-field input::placeholder,
+.appointment-type-create-field textarea::placeholder {
+  color: #8a97af;
+  opacity: 1;
+}
+
+.appointment-type-create-field button {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) 18px;
+  align-items: center;
+  gap: 12px;
+  min-height: 42px;
+  padding: 0 14px;
+  text-align: left;
+}
+
+.appointment-type-create-field button .app-icon {
+  width: 18px;
+  height: 18px;
+  color: #66799e;
+}
+
+.appointment-type-create-field button .app-icon:last-child {
+  justify-self: end;
+}
+
+.appointment-type-create-field--textarea em {
+  position: absolute;
+  right: 14px;
+  bottom: 8px;
+  color: #6b7b99;
+  font-size: 0.75rem;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.appointment-type-create-color-field i,
+.appointment-type-create-field button i {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #0876df;
+}
+
+.appointment-type-create-toggle {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.appointment-type-create-toggle > span {
+  position: relative;
+  width: 38px;
+  height: 20px;
+  border-radius: 999px;
+  background: #0876df;
+  box-shadow: inset 0 0 0 1px rgba(8, 118, 223, 0.18);
+}
+
+.appointment-type-create-toggle > span::after {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #ffffff;
+  content: "";
+}
+
+.appointment-type-create-toggle div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.appointment-type-create-toggle strong,
+.appointment-type-create-toggle small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.appointment-type-create-toggle strong {
+  color: #07183a;
+  font-size: 0.9rem;
+  font-weight: 850;
+}
+
+.appointment-type-create-toggle small {
+  color: #667590;
+  font-size: 0.8rem;
+  font-weight: 650;
+}
+
+.appointment-type-create-reminder-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px;
+  grid-column: 1 / -1;
+}
+
+.appointment-type-create-availability-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.appointment-type-create-availability-grid
+  .appointment-type-create-field:nth-child(4) {
+  max-width: 360px;
+}
+
+.appointment-type-create-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 20px 22px 14px;
+  border-radius: 0 0 12px 12px;
+}
+
+.appointment-type-create-cancel,
+.appointment-type-create-save {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-width: 168px;
+  min-height: 48px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 850;
+}
+
+.appointment-type-create-cancel {
+  border: 1px solid #d6e2ef;
+  background: #ffffff;
+  color: #0876df;
+}
+
+.appointment-type-create-save {
+  min-width: 220px;
+  border: 0;
+  background: linear-gradient(135deg, #0d88e4, #086de2);
+  color: #ffffff;
+  box-shadow: 0 12px 24px rgba(8, 109, 226, 0.22);
+}
+
+.appointment-type-create-save .app-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.appointment-type-create-side {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+}
+
+.appointment-type-create-summary,
+.appointment-type-create-next {
+  border-radius: 12px;
+}
+
+.appointment-type-create-summary {
+  padding: 26px 22px 22px;
+}
+
+.appointment-type-create-summary-name {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  min-height: 56px;
+  margin-top: 22px;
+  padding: 0 20px;
+  border: 1px solid #91c8ff;
+  border-radius: 8px;
+  background: #eef8ff;
+}
+
+.appointment-type-create-summary-name span {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #0876df;
+}
+
+.appointment-type-create-summary-name strong {
+  min-width: 0;
+  overflow: hidden;
+  color: #07183a;
+  font-size: 0.92rem;
+  font-weight: 850;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.appointment-type-create-summary-fields {
+  display: grid;
+  gap: 14px;
+  margin-top: 22px;
+}
+
+.appointment-type-create-summary-fields article,
+.appointment-type-create-linked {
+  display: grid;
+  gap: 6px;
+}
+
+.appointment-type-create-summary-fields span,
+.appointment-type-create-linked span,
+.appointment-type-create-linked p {
+  margin: 0;
+  color: #637395;
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+
+.appointment-type-create-summary-fields strong {
+  color: #23385f;
+  font-size: 1rem;
+  font-weight: 850;
+}
+
+.appointment-type-create-summary-fields em {
+  width: fit-content;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: #dff8f1;
+  color: #07937f;
+  font-size: 0.78rem;
+  font-style: normal;
+  font-weight: 850;
+}
+
+.appointment-type-create-linked {
+  margin-top: 18px;
+}
+
+.appointment-type-create-linked strong {
+  color: #23385f;
+}
+
+.appointment-type-create-next {
+  padding: 22px;
+  background: #f5fbff;
+}
+
+.appointment-type-create-next > div {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: 14px;
+}
+
+.appointment-type-create-next .app-icon {
+  width: 24px;
+  height: 24px;
+  color: #0876df;
+}
+
+.appointment-type-create-next strong {
+  color: #07183a;
+  font-size: 1rem;
+  font-weight: 850;
+}
+
+.appointment-type-create-next p {
+  margin: 10px 0 0;
+  color: #53668d;
+  font-size: 0.86rem;
+  font-weight: 650;
+  line-height: 1.55;
+}
+
+.appointment-type-create-next button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 46px;
+  margin-top: 20px;
+  border: 1px solid #d6e2ef;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #0876df;
+  font-size: 0.94rem;
+  font-weight: 850;
+}
+
+.appointment-type-create-next button .app-icon {
+  width: 20px;
+  height: 20px;
+}
+
+@media (max-width: 1400px) {
+  .appointment-type-create-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .appointment-type-create-side {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1020px) {
+  .appointment-type-create-form-grid,
+  .appointment-type-create-rules-grid,
+  .appointment-type-create-availability-grid,
+  .appointment-type-create-reminder-row,
+  .appointment-type-create-side {
+    grid-template-columns: 1fr;
+  }
+
+  .appointment-type-create-availability-grid
+    .appointment-type-create-field:nth-child(4) {
+    max-width: none;
+  }
+}
+
+@media (max-width: 680px) {
+  .appointment-type-create-hero h1 {
+    font-size: 1.9rem;
+  }
+
+  .appointment-type-create-card,
+  .appointment-type-create-summary,
+  .appointment-type-create-next {
+    padding: 20px;
+  }
+
+  .appointment-type-create-actions {
+    display: grid;
+  }
+
+  .appointment-type-create-cancel,
+  .appointment-type-create-save {
+    width: 100%;
+  }
+}
